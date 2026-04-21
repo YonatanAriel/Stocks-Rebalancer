@@ -14,9 +14,12 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  const [checkEmail, setCheckEmail] = useState(false);
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    setCheckEmail(false);
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
@@ -26,9 +29,10 @@ export default function LoginPage() {
         ? await signup(formData)
         : await login(formData);
 
-      // If we get here with an error (instead of redirect), display it
       if (result?.error) {
         setError(result.error);
+      } else if (result?.checkEmail) {
+        setCheckEmail(true);
       }
     } catch {
       // redirect() throws an error by design — this is expected
@@ -104,6 +108,12 @@ export default function LoginPage() {
               {error && (
                 <div className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
                   {error}
+                </div>
+              )}
+
+              {checkEmail && (
+                <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-500">
+                  Almost there! Please check your email inbox to confirm your account.
                 </div>
               )}
 

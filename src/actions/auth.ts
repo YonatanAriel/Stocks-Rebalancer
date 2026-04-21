@@ -30,10 +30,15 @@ export async function signup(formData: FormData) {
     password: formData.get('password') as string,
   }
 
-  const { error } = await supabase.auth.signUp(data)
+  const { data: authData, error } = await supabase.auth.signUp(data)
 
   if (error) {
     return { error: error.message }
+  }
+
+  // If a session isn't created immediately, it usually means email confirmation is required
+  if (!authData.session) {
+    return { checkEmail: true }
   }
 
   revalidatePath('/', 'layout')
