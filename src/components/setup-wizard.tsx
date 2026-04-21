@@ -26,14 +26,14 @@ export function SetupWizard() {
   const [step, setStep] = useState(1);
   const [portfolioName, setPortfolioName] = useState("My Portfolio");
   const [assets, setAssets] = useState<AssetRow[]>([
-    { ticker: "", targetPercentage: "", sharesOwned: "0" },
+    { ticker: "", targetPercentage: "", sharesOwned: "" },
   ]);
   const [loading, setLoading] = useState(false);
 
   function addRow() {
     setAssets([
       ...assets,
-      { ticker: "", targetPercentage: "", sharesOwned: "0" },
+      { ticker: "", targetPercentage: "", sharesOwned: "" },
     ]);
   }
 

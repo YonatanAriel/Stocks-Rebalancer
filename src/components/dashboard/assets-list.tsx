@@ -96,7 +96,7 @@ export function AssetsList({
   const [addingAsset, setAddingAsset] = useState(false);
   const [newTicker, setNewTicker] = useState("");
   const [newPercentage, setNewPercentage] = useState("");
-  const [newShares, setNewShares] = useState("0");
+  const [newShares, setNewShares] = useState("");
 
   async function handleEditSave() {
     if (!editingAsset) return;
@@ -131,7 +131,7 @@ export function AssetsList({
       setAddingAsset(false);
       setNewTicker("");
       setNewPercentage("");
-      setNewShares("0");
+      setNewShares("");
       router.refresh();
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Add failed");
