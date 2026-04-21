@@ -87,8 +87,9 @@ export function SetupWizard() {
 
       toast.success("Portfolio created successfully!");
       router.refresh();
-    } catch (error: any) {
-      toast.error(error.message || "Failed to create portfolio");
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Failed to create portfolio";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

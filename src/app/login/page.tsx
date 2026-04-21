@@ -29,9 +29,9 @@ export default function LoginPage() {
         ? await signup(formData)
         : await login(formData);
 
-      if (result?.error) {
+      if (result && 'error' in result && result.error) {
         setError(result.error);
-      } else if (result?.checkEmail) {
+      } else if (result && 'checkEmail' in result && result.checkEmail) {
         setCheckEmail(true);
       }
     } catch {
