@@ -15,12 +15,12 @@ interface AssetAllocation {
 }
 
 const COLORS = [
-  "oklch(0.7 0.18 250)",   // blue
-  "oklch(0.696 0.17 162)",  // emerald
+  "oklch(0.75 0.2 145)",    // green (primary)
+  "oklch(0.7 0.15 200)",    // teal
   "oklch(0.7 0.15 300)",    // purple
   "oklch(0.75 0.15 60)",    // amber
   "oklch(0.65 0.2 25)",     // red
-  "oklch(0.7 0.15 200)",    // cyan
+  "oklch(0.7 0.18 250)",    // blue
   "oklch(0.7 0.18 330)",    // pink
 ];
 

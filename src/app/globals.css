@@ -57,8 +57,8 @@
   --card-foreground: oklch(0.95 0.01 260);
   --popover: oklch(0.16 0.015 260);
   --popover-foreground: oklch(0.95 0.01 260);
-  --primary: oklch(0.65 0.2 250);
-  --primary-foreground: oklch(0.98 0 0);
+  --primary: oklch(0.75 0.2 145);
+  --primary-foreground: oklch(0.1 0.02 145);
   --secondary: oklch(0.22 0.02 260);
   --secondary-foreground: oklch(0.9 0.01 260);
   --muted: oklch(0.2 0.015 260);
@@ -68,20 +68,20 @@
   --destructive: oklch(0.65 0.2 25);
   --border: oklch(0.28 0.02 260);
   --input: oklch(0.22 0.02 260);
-  --ring: oklch(0.65 0.2 250);
-  --chart-1: oklch(0.65 0.2 250);
+  --ring: oklch(0.75 0.2 145);
+  --chart-1: oklch(0.75 0.2 145);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.7 0.15 300);
   --chart-4: oklch(0.75 0.15 60);
   --chart-5: oklch(0.65 0.2 25);
   --sidebar: oklch(0.14 0.01 260);
   --sidebar-foreground: oklch(0.95 0.01 260);
-  --sidebar-primary: oklch(0.65 0.2 250);
+  --sidebar-primary: oklch(0.75 0.2 145);
   --sidebar-primary-foreground: oklch(0.95 0.01 260);
   --sidebar-accent: oklch(0.22 0.025 260);
   --sidebar-accent-foreground: oklch(0.95 0.01 260);
   --sidebar-border: oklch(0.28 0.02 260);
-  --sidebar-ring: oklch(0.65 0.2 250);
+  --sidebar-ring: oklch(0.75 0.2 145);
 }
 
 /* Dark mode — same values since we only do dark */
@@ -92,8 +92,8 @@
   --card-foreground: oklch(0.95 0.01 260);
   --popover: oklch(0.16 0.015 260);
   --popover-foreground: oklch(0.95 0.01 260);
-  --primary: oklch(0.65 0.2 250);
-  --primary-foreground: oklch(0.98 0 0);
+  --primary: oklch(0.75 0.2 145);
+  --primary-foreground: oklch(0.1 0.02 145);
   --secondary: oklch(0.22 0.02 260);
   --secondary-foreground: oklch(0.9 0.01 260);
   --muted: oklch(0.2 0.015 260);
@@ -103,20 +103,20 @@
   --destructive: oklch(0.65 0.2 25);
   --border: oklch(0.28 0.02 260);
   --input: oklch(0.22 0.02 260);
-  --ring: oklch(0.65 0.2 250);
-  --chart-1: oklch(0.65 0.2 250);
+  --ring: oklch(0.75 0.2 145);
+  --chart-1: oklch(0.75 0.2 145);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.7 0.15 300);
   --chart-4: oklch(0.75 0.15 60);
   --chart-5: oklch(0.65 0.2 25);
   --sidebar: oklch(0.14 0.01 260);
   --sidebar-foreground: oklch(0.95 0.01 260);
-  --sidebar-primary: oklch(0.65 0.2 250);
+  --sidebar-primary: oklch(0.75 0.2 145);
   --sidebar-primary-foreground: oklch(0.95 0.01 260);
   --sidebar-accent: oklch(0.22 0.025 260);
   --sidebar-accent-foreground: oklch(0.95 0.01 260);
   --sidebar-border: oklch(0.28 0.02 260);
-  --sidebar-ring: oklch(0.65 0.2 250);
+  --sidebar-ring: oklch(0.75 0.2 145);
 }
 
 @layer base {
@@ -141,15 +141,15 @@
 /* Smooth gradient backgrounds */
 .gradient-mesh {
   background:
-    radial-gradient(ellipse at 20% 50%, oklch(0.25 0.12 250 / 25%) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, oklch(0.25 0.1 300 / 20%) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 80%, oklch(0.25 0.1 162 / 12%) 0%, transparent 50%),
-    oklch(0.1 0.01 260);
+    radial-gradient(ellipse at 20% 50%, oklch(0.2 0.08 145 / 20%) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, oklch(0.2 0.06 160 / 15%) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, oklch(0.2 0.05 130 / 10%) 0%, transparent 50%),
+    oklch(0.1 0.01 145);
 }
 
 /* Glow effects */
 .glow-primary {
-  box-shadow: 0 0 20px oklch(0.65 0.2 250 / 20%), 0 0 60px oklch(0.65 0.2 250 / 8%);
+  box-shadow: 0 0 20px oklch(0.75 0.2 145 / 25%), 0 0 60px oklch(0.75 0.2 145 / 10%);
 }
 
 .glow-emerald {
