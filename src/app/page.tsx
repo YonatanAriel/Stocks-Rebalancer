@@ -40,7 +40,7 @@ export default async function HomePage() {
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed">
             Know exactly how to invest your new cash to keep your portfolio
-            perfectly balanced. Built for long‑term TASE investors.
+            perfectly balanced. Built especially for long‑term TASE investors.
           </p>
         </div>
 
