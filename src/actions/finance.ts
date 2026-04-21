@@ -23,11 +23,14 @@ export async function getAssetPrice(ticker: string): Promise<{ price: number | n
     // We can use the search API to find the best match
     const searchResult = await yf.search(ticker)
     if (searchResult.quotes && searchResult.quotes.length > 0) {
-      const bestMatchSymbol = searchResult.quotes[0].symbol
-      const fallbackQuote = await yf.quote(bestMatchSymbol)
+      const bestMatchSymbol = searchResult.quotes[0].symbol as string
       
-      if (fallbackQuote && fallbackQuote.regularMarketPrice) {
-        return { price: fallbackQuote.regularMarketPrice }
+      if (bestMatchSymbol) {
+        const fallbackQuote = await yf.quote(bestMatchSymbol)
+        
+        if (fallbackQuote && fallbackQuote.regularMarketPrice) {
+          return { price: fallbackQuote.regularMarketPrice }
+        }
       }
     }
 
