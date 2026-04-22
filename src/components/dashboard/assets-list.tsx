@@ -59,25 +59,19 @@ function AssetRow({
           {currentPct.toFixed(2)}%
         </div>
       </div>
-      <div className="text-right flex flex-col items-end relative group/price">
+      <div className="text-right flex flex-col items-end">
         <div className="text-sm font-black font-mono text-foreground">
           {pricePerSlice !== null ? `₪${pricePerSlice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
         </div>
         {isEstimated && <span className="text-[8px] text-orange-400 font-black uppercase tracking-widest italic mt-0.5">estimated</span>}
-        {isManualPrice && (
-          <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-primary/20 border border-primary/50 rounded-none text-[9px] font-black uppercase tracking-widest text-primary whitespace-nowrap opacity-0 group-hover/price:opacity-100 transition-opacity pointer-events-none z-50">
-            Manual Override
-          </div>
-        )}
+        {isManualPrice && <span className="text-[8px] text-primary font-black uppercase tracking-widest mt-0.5">manual</span>}
       </div>
       <div className="text-right text-sm font-black font-mono text-muted-foreground">{asset.shares_owned}</div>
-      <div className="text-right text-sm font-black text-foreground font-mono relative group/value">
-        ₪{(asset.currentValue || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-        {isManualPrice && (
-          <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-primary/20 border border-primary/50 rounded-none text-[9px] font-black uppercase tracking-widest text-primary whitespace-nowrap opacity-0 group-hover/value:opacity-100 transition-opacity pointer-events-none z-50">
-            Manual Override
-          </div>
-        )}
+      <div className="text-right flex flex-col items-end">
+        <div className="text-sm font-black text-foreground font-mono">
+          ₪{(asset.currentValue || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+        </div>
+        {isManualPrice && <span className="text-[8px] text-primary font-black uppercase tracking-widest mt-0.5">manual</span>}
       </div>
       <div className="flex justify-end gap-2 z-40">
         <button 

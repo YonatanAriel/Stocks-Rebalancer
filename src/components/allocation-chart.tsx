@@ -92,7 +92,7 @@ export function AllocationChart({
         {assets.map((a, i) => (
           <div
             key={a.ticker}
-            className="flex items-center justify-between text-xs group/legend relative"
+            className="flex items-center justify-between text-xs"
           >
             <div className="flex items-center gap-2">
               <div
@@ -101,24 +101,26 @@ export function AllocationChart({
               />
               <span className="text-muted-foreground">{a.ticker}</span>
             </div>
-            <div className="flex items-center gap-3 relative">
-              <span
-                className={
-                  Math.abs(a.currentPct - a.targetPct) < 1
-                    ? "text-emerald-400"
-                    : "text-yellow-400"
-                }
-              >
-                {a.currentPct.toFixed(1)}%
-              </span>
-              <span className="text-muted-foreground/60">
-                / {a.targetPct}%
-              </span>
-              {a.priceSource === 'manual' && (
-                <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-primary/20 border border-primary/50 rounded-none text-[9px] font-black uppercase tracking-widest text-primary whitespace-nowrap opacity-0 group-hover/legend:opacity-100 transition-opacity pointer-events-none z-50">
-                  Manual Override
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col items-end">
+                <div className="flex items-center gap-3">
+                  <span
+                    className={
+                      Math.abs(a.currentPct - a.targetPct) < 1
+                        ? "text-emerald-400"
+                        : "text-yellow-400"
+                    }
+                  >
+                    {a.currentPct.toFixed(1)}%
+                  </span>
+                  <span className="text-muted-foreground/60">
+                    / {a.targetPct}%
+                  </span>
                 </div>
-              )}
+                {a.priceSource === 'manual' && (
+                  <span className="text-[8px] text-primary font-black uppercase tracking-widest">manual</span>
+                )}
+              </div>
             </div>
           </div>
         ))}
