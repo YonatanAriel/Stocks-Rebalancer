@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { updateAsset, deleteAsset, addAsset } from "@/actions/portfolio";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -11,102 +10,170 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { TradingViewWidget } from "./tradingview-widget";
 import type { AssetWithValue, Asset } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { Pencil, X, Plus, RefreshCw } from "lucide-react";
+import { getAssetPrice } from "@/actions/finance";
 
-// ─── Asset Row ──────────────────────────────────────────────
-function AssetRow({
-  asset,
-  totalValue,
-  onEdit,
+function AssetRow({ 
+  asset, 
+  name,
+  totalValue, 
+  onEdit, 
   onDelete,
-}: {
-  asset: AssetWithValue;
-  totalValue: number;
-  onEdit: (asset: Asset) => void;
-  onDelete: (id: string) => void;
+  isExcluded,
+  onToggleExclude
+}: { 
+  asset: AssetWithValue & { priceSource?: 'manual' | 'scraped' }, 
+  name?: string,
+  totalValue: number, 
+  onEdit: (a: Asset) => void,
+  onDelete: (id: string) => void,
+  isExcluded?: boolean,
+  onToggleExclude?: () => void
 }) {
-  const currentPct =
-    totalValue > 0 && asset.currentValue
-      ? (asset.currentValue / totalValue) * 100
-      : 0;
+  const currentPct = totalValue > 0 ? ((asset.currentValue || 0) / totalValue) * 100 : 0;
+  const diff = currentPct - asset.target_percentage;
+  const isManualPrice = asset.priceSource === 'manual';
+  
+  // Calculate price per slice
+  let pricePerSlice = asset.price;
+  let isEstimated = false;
+  if (pricePerSlice === null && asset.shares_owned > 0 && (asset.currentValue || 0) > 0) {
+    pricePerSlice = (asset.currentValue || 0) / asset.shares_owned;
+    isEstimated = true;
+  }
 
   return (
-    <div className="grid grid-cols-[1fr_80px_80px_90px_60px] gap-2 items-center rounded-lg bg-muted/30 px-3 py-2.5 hover:bg-muted/50 transition-colors">
-      <div>
-        <span className="font-medium text-sm">{asset.ticker}</span>
-        <div className="text-xs text-muted-foreground">
-          {asset.price !== null
-            ? `₪${asset.price.toLocaleString("en-IL", { minimumFractionDigits: 2 })}`
-            : "—"}
-        </div>
+    <div className={`grid grid-cols-[1fr_100px_120px_100px_120px_60px_50px] gap-6 items-center p-6 bg-background/50 hover:bg-primary/[0.03] transition-all group border-b border-white/5 last:border-0 ${isExcluded ? 'opacity-50' : ''} relative`}>
+      <div className="flex flex-col min-w-0">
+        <span className={`text-base font-black uppercase tracking-tight truncate text-foreground group-hover:text-primary transition-colors font-heading ${isExcluded ? 'line-through' : ''}`}>{asset.ticker}</span>
+        <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest truncate opacity-50">{name || "NO METADATA"}</span>
       </div>
       <div className="text-right">
-        <span className="text-sm font-medium">{asset.target_percentage}%</span>
-        <div
-          className={`text-xs ${
-            Math.abs(currentPct - asset.target_percentage) < 1
-              ? "text-emerald-400"
-              : "text-yellow-400"
-          }`}
-        >
-          {currentPct.toFixed(1)}%
+        <div className="text-sm font-black text-foreground font-mono">{asset.target_percentage}%</div>
+        <div className={cn("text-[10px] font-black uppercase tracking-tighter font-mono", diff > 2 ? "text-orange-400" : diff < -2 ? "text-blue-400" : "text-primary")}>
+          {currentPct.toFixed(2)}%
         </div>
       </div>
-      <span className="text-sm text-right">{asset.shares_owned}</span>
-      <span className="text-sm font-medium text-right">
-        {asset.currentValue !== null
-          ? `₪${asset.currentValue.toLocaleString("en-IL", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
-          : "—"}
-      </span>
-      <div className="flex gap-1 justify-end">
-        <Button variant="ghost" size="icon-xs" onClick={() => onEdit(asset)} className="text-muted-foreground">
-          ✎
-        </Button>
-        <Button variant="ghost" size="icon-xs" onClick={() => onDelete(asset.id)} className="text-muted-foreground hover:text-destructive">
-          ×
-        </Button>
+      <div className="text-right flex flex-col items-end relative group/price">
+        <div className="text-sm font-black font-mono text-foreground">
+          {pricePerSlice !== null ? `₪${pricePerSlice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
+        </div>
+        {isEstimated && <span className="text-[8px] text-orange-400 font-black uppercase tracking-widest italic mt-0.5">estimated</span>}
+        {isManualPrice && (
+          <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-primary/20 border border-primary/50 rounded-none text-[9px] font-black uppercase tracking-widest text-primary whitespace-nowrap opacity-0 group-hover/price:opacity-100 transition-opacity pointer-events-none z-50">
+            Manual Override
+          </div>
+        )}
       </div>
+      <div className="text-right text-sm font-black font-mono text-muted-foreground">{asset.shares_owned}</div>
+      <div className="text-right text-sm font-black text-foreground font-mono">
+        ₪{(asset.currentValue || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+      </div>
+      <div className="flex justify-end gap-2 z-40">
+        <button 
+          type="button"
+          className="h-10 w-10 rounded-none opacity-0 group-hover:opacity-100 border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer flex items-center justify-center" 
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log("Edit button clicked for", asset.ticker);
+            onEdit(asset);
+          }}
+          style={{ pointerEvents: 'auto' }}
+        >
+          <Pencil className="h-4 w-4" />
+        </button>
+        <button 
+          type="button"
+          className="h-10 w-10 rounded-none opacity-0 group-hover:opacity-100 text-destructive border border-white/10 hover:border-destructive/50 hover:bg-destructive/5 transition-all cursor-pointer flex items-center justify-center" 
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log("Delete button clicked for", asset.ticker);
+            onDelete(asset.id);
+          }}
+          style={{ pointerEvents: 'auto' }}
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onToggleExclude?.();
+        }}
+        className={`h-10 rounded-none opacity-0 group-hover:opacity-100 border font-black text-[10px] uppercase tracking-widest transition-all cursor-pointer ${
+          isExcluded
+            ? 'bg-destructive/20 border-destructive/50 text-destructive'
+            : 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/20'
+        }`}
+        style={{ pointerEvents: 'auto' }}
+      >
+        {isExcluded ? 'OFF' : 'ON'}
+      </button>
     </div>
   );
 }
 
-// ─── Assets List Card ───────────────────────────────────────
-export function AssetsList({
-  assets,
+const formatWithCommas = (val: string) => {
+  const num = val.replace(/,/g, "");
+  if (!num || isNaN(Number(num))) return num;
+  return Number(num).toLocaleString();
+};
+
+export function AssetsList({ 
+  portfolioId, 
+  assets, 
   totalValue,
-  portfolioId,
-}: {
-  assets: AssetWithValue[];
-  totalValue: number;
-  portfolioId: string;
+  portfolioName,
+  names = {},
+  loadingPrices,
+  onRefresh,
+  showCalculator,
+  onToggleCalculator,
+  excludedAssets = new Set(),
+  onExcludedAssetsChange
+}: { 
+  portfolioId: string, 
+  assets: AssetWithValue[], 
+  totalValue: number,
+  portfolioName: string,
+  names?: Record<string, string>,
+  loadingPrices?: boolean,
+  onRefresh?: () => void,
+  showCalculator?: boolean,
+  onToggleCalculator?: () => void,
+  excludedAssets?: Set<string>,
+  onExcludedAssetsChange?: (excluded: Set<string>) => void
 }) {
   const router = useRouter();
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [editShares, setEditShares] = useState("");
   const [editPercentage, setEditPercentage] = useState("");
+  const [editManualValue, setEditManualValue] = useState<string>("");
   const [addingAsset, setAddingAsset] = useState(false);
   const [newTicker, setNewTicker] = useState("");
   const [newPercentage, setNewPercentage] = useState("");
   const [newShares, setNewShares] = useState("");
 
-  async function handleEditSave() {
+  async function handleUpdateAsset() {
     if (!editingAsset) return;
     try {
       await updateAsset(editingAsset.id, {
         shares_owned: parseFloat(editShares) || 0,
         target_percentage: parseFloat(editPercentage) || 0,
+        manual_value: editManualValue ? parseFloat(editManualValue) : null,
       });
       toast.success("Asset updated");
       setEditingAsset(null);
+      setEditManualValue("");
       router.refresh();
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Update failed");
@@ -123,10 +190,17 @@ export function AssetsList({
     }
   }
 
+  useEffect(() => {
+    const handleOpenAdd = () => setAddingAsset(true);
+    window.addEventListener('open-add-asset', handleOpenAdd);
+    return () => window.removeEventListener('open-add-asset', handleOpenAdd);
+  }, []);
+
   async function handleAddAsset() {
     if (!newTicker.trim() || !newPercentage) return;
     try {
-      await addAsset(portfolioId, newTicker.trim(), parseFloat(newPercentage), parseFloat(newShares) || 0);
+      const { name } = await getAssetPrice(newTicker.trim());
+      await addAsset(portfolioId, newTicker.trim(), parseFloat(newPercentage), parseFloat(newShares) || 0, name || undefined);
       toast.success("Asset added");
       setAddingAsset(false);
       setNewTicker("");
@@ -138,84 +212,294 @@ export function AssetsList({
     }
   }
 
+  const currentEditingPrice = editingAsset ? assets.find(a => a.id === editingAsset.id)?.price : null;
+
   return (
     <>
-      <Card className="glass border-border/50">
-        <CardHeader className="pb-3 flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Your Assets</CardTitle>
-          <Button variant="outline" size="sm" onClick={() => setAddingAsset(true)}>
-            + Add Asset
-          </Button>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-[1fr_80px_80px_90px_60px] gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
-            <span>Ticker</span>
-            <span className="text-right">Target</span>
-            <span className="text-right">Shares</span>
-            <span className="text-right">Value</span>
-            <span />
+      <Card className="h-full flex flex-col min-h-0 bg-background/40 border-white/10 rounded-none shadow-2xl overflow-hidden backdrop-blur-xl relative group">
+        
+        {/* Consolidated High-Density Header */}
+        <CardHeader className="flex-shrink-0 space-y-6 p-6 border-b border-white/10 relative z-10">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+            <div className="space-y-1">
+              <div className="flex items-center gap-3">
+                <div className="h-6 w-1 bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
+                <CardTitle className="text-2xl font-black uppercase tracking-[0.2em] text-primary text-glow font-heading">
+                  {portfolioName}
+                </CardTitle>
+              </div>
+              <div className="flex items-center gap-3 text-[10px] uppercase font-black tracking-widest text-muted-foreground opacity-60">
+                <span className="flex items-center gap-1.5 text-primary">
+                  <span className="h-1.5 w-1.5 bg-primary animate-pulse" />
+                  SYNCED
+                </span>
+                <span>•</span>
+                <span>{assets.length} UNITS</span>
+                <span>•</span>
+                <span className="text-foreground font-mono">
+                  Σ ₪{totalValue.toLocaleString(undefined, { minimumFractionDigits: 0 })}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-px bg-white/5 border border-white/10 p-1 relative z-50 pointer-events-auto" style={{ pointerEvents: 'auto' }}>
+              <button 
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log("REFRESH clicked");
+                  onRefresh && onRefresh();
+                }}
+                disabled={loadingPrices}
+                className="rounded-none h-12 px-6 text-[12px] font-black uppercase tracking-widest gap-2 hover:bg-primary/10 transition-all cursor-pointer flex items-center"
+                style={{ pointerEvents: 'auto' }}
+              >
+                <RefreshCw className={`h-4 w-4 ${loadingPrices ? "animate-spin" : ""}`} />
+                {loadingPrices ? "SYNC" : "REFRESH"}
+              </button>
+              <button 
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log("REBALANCE clicked");
+                  onToggleCalculator && onToggleCalculator();
+                }}
+                className="rounded-none h-12 px-8 bg-primary hover:bg-primary/90 text-black font-black uppercase text-[12px] tracking-widest shadow-[4px_4px_0px_0px_rgba(var(--primary),0.3)] hover:shadow-none transition-all cursor-pointer"
+                style={{ pointerEvents: 'auto' }}
+              >
+                {showCalculator ? "CLOSE" : "REBALANCE"}
+              </button>
+              <button 
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log("NEW clicked");
+                  setAddingAsset(true);
+                }}
+                className="rounded-none h-12 px-6 text-[12px] font-black uppercase tracking-widest hover:bg-white/10 transition-all border-l-2 border-white/10 cursor-pointer"
+                style={{ pointerEvents: 'auto' }}
+              >
+                NEW
+              </button>
+            </div>
           </div>
-          {assets.map((asset) => (
-            <AssetRow
-              key={asset.id}
-              asset={asset}
-              totalValue={totalValue}
-              onEdit={(a) => {
-                setEditingAsset(a);
-                setEditShares(String(a.shares_owned));
-                setEditPercentage(String(a.target_percentage));
-              }}
-              onDelete={handleDeleteAsset}
-            />
-          ))}
+        </CardHeader>
+
+        <div className="flex-shrink-0 grid grid-cols-[1fr_100px_120px_100px_120px_60px_50px] gap-6 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-6 py-4 border-b border-white/10 bg-white/[0.02] relative z-10 font-heading">
+          <span>Asset / Class</span>
+          <span className="text-right">Weight %</span>
+          <span className="text-right">Unit Rate</span>
+          <span className="text-right">Inventory</span>
+          <span className="text-right">Net Value</span>
+          <span />
+          <span className="text-center">Status</span>
+        </div>
+        <CardContent className="flex-1 overflow-y-auto custom-scrollbar p-0 relative z-10">
+          <div className="divide-y divide-white/[0.05]">
+            {assets.map((asset) => (
+              <AssetRow
+                key={asset.id}
+                asset={asset}
+                name={names[asset.ticker]}
+                totalValue={totalValue}
+                onEdit={(a) => {
+                  setEditingAsset(a);
+                  setEditShares(String(a.shares_owned));
+                  setEditPercentage(String(a.target_percentage));
+                  setEditManualValue(a.manual_value ? String(a.manual_value) : "");
+                }}
+                onDelete={handleDeleteAsset}
+                isExcluded={excludedAssets.has(asset.ticker)}
+                onToggleExclude={() => {
+                  const newExcluded = new Set(excludedAssets);
+                  if (newExcluded.has(asset.ticker)) {
+                    newExcluded.delete(asset.ticker);
+                  } else {
+                    newExcluded.add(asset.ticker);
+                  }
+                  onExcludedAssetsChange?.(newExcluded);
+                }}
+              />
+            ))}
+          </div>
         </CardContent>
       </Card>
 
-      {/* Edit Dialog */}
-      <Dialog open={!!editingAsset} onOpenChange={(open) => !open && setEditingAsset(null)}>
-        <DialogContent className="glass">
-          <DialogHeader>
-            <DialogTitle>Edit {editingAsset?.ticker}</DialogTitle>
-            <DialogDescription>Update target percentage and shares owned.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
-            <div className="space-y-2">
-              <Label>Target Percentage (%)</Label>
-              <Input type="number" min="0" max="100" step="0.1" value={editPercentage} onChange={(e) => setEditPercentage(e.target.value)} />
+      {editingAsset && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm pointer-events-auto" onClick={() => setEditingAsset(null)}>
+          <div className="max-w-md bg-background border border-white/20 rounded-none p-0 overflow-hidden shadow-2xl pointer-events-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-10 space-y-10 relative">
+              <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
+              <div className="space-y-2">
+                <h2 className="text-2xl font-black uppercase tracking-[0.3em] text-primary font-heading">Modify Position</h2>
+                <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground opacity-60">
+                  Updating {editingAsset?.ticker} parameters.
+                </p>
+              </div>
+              <div className="space-y-8">
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Target Allocation (%)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={editPercentage}
+                      onChange={(e) => setEditPercentage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleUpdateAsset();
+                        }
+                      }}
+                      className="h-14 bg-white/[0.03] border-white/30 focus:border-primary rounded-none font-black text-lg pointer-events-auto"
+                      style={{ pointerEvents: 'auto' }}
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Current Inventory</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={editShares}
+                      onChange={(e) => setEditShares(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleUpdateAsset();
+                        }
+                      }}
+                      className="h-14 bg-white/[0.03] border-white/30 focus:border-primary rounded-none font-black text-lg pointer-events-auto"
+                      style={{ pointerEvents: 'auto' }}
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Manual Value Override (₪)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={editManualValue}
+                      onChange={(e) => setEditManualValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleUpdateAsset();
+                        }
+                      }}
+                      placeholder="Auto-calculate"
+                      className="h-14 bg-white/[0.03] border-white/30 focus:border-primary rounded-none font-black text-lg placeholder:text-white/10 pointer-events-auto"
+                      style={{ pointerEvents: 'auto' }}
+                    />
+                  </div>
+                </div>
+                <button 
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log("Update Registry clicked");
+                    handleUpdateAsset();
+                  }}
+                  style={{ pointerEvents: 'auto' }}
+                  className="w-full h-16 bg-primary hover:bg-primary/90 text-black font-black uppercase tracking-[0.2em] rounded-none shadow-[8px_8px_0px_0px_rgba(var(--primary),0.3)] hover:shadow-none transition-all cursor-pointer"
+                >
+                  Update Registry
+                </button>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Shares Owned</Label>
-              <Input type="number" min="0" step="1" value={editShares} onChange={(e) => setEditShares(e.target.value)} />
-            </div>
-            <Button onClick={handleEditSave} className="w-full">Save Changes</Button>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
 
-      {/* Add Dialog */}
-      <Dialog open={addingAsset} onOpenChange={(open) => !open && setAddingAsset(false)}>
-        <DialogContent className="glass">
-          <DialogHeader>
-            <DialogTitle>Add New Asset</DialogTitle>
-            <DialogDescription>Enter the ticker, target %, and current shares.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
-            <div className="space-y-2">
-              <Label>Ticker / Security Number</Label>
-              <Input placeholder="e.g. 1159250" value={newTicker} onChange={(e) => setNewTicker(e.target.value)} />
+      {addingAsset && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm pointer-events-auto" onClick={() => setAddingAsset(false)}>
+          <div className="max-w-md bg-background border border-white/20 rounded-none p-0 overflow-hidden shadow-2xl pointer-events-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-10 space-y-10 relative">
+              <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
+              <div className="space-y-2">
+                <h2 className="text-2xl font-black uppercase tracking-[0.3em] text-primary font-heading">Initialize Asset</h2>
+                <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground opacity-60">
+                  Register a new unit into the index.
+                </p>
+              </div>
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleAddAsset();
+                }} 
+                className="space-y-8"
+              >
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Ticker / Security ID</Label>
+                    <Input 
+                      placeholder="e.g. 1159250" 
+                      required 
+                      value={newTicker}
+                      onChange={(e) => setNewTicker(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddAsset();
+                        }
+                      }}
+                      className="h-14 bg-white/[0.03] border-white/30 focus:border-primary rounded-none font-black text-lg placeholder:text-white/10 pointer-events-auto"
+                      style={{ pointerEvents: 'auto' }}
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Target Allocation (%)</Label>
+                    <Input 
+                      type="number" 
+                      step="0.01" 
+                      placeholder="0.00" 
+                      required 
+                      value={newPercentage}
+                      onChange={(e) => setNewPercentage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddAsset();
+                        }
+                      }}
+                      className="h-14 bg-white/[0.03] border-white/30 focus:border-primary rounded-none font-black text-lg placeholder:text-white/10 pointer-events-auto"
+                      style={{ pointerEvents: 'auto' }}
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Current Inventory</Label>
+                    <Input 
+                      type="number" 
+                      step="0.01" 
+                      placeholder="0" 
+                      required 
+                      value={newShares}
+                      onChange={(e) => setNewShares(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddAsset();
+                        }
+                      }}
+                      className="h-14 bg-white/[0.03] border-white/30 focus:border-primary rounded-none font-black text-lg placeholder:text-white/10 pointer-events-auto"
+                      style={{ pointerEvents: 'auto' }}
+                    />
+                  </div>
+                </div>
+                <button 
+                  type="submit"
+                  style={{ pointerEvents: 'auto' }}
+                  className="w-full h-16 bg-primary hover:bg-primary/90 text-black font-black uppercase tracking-[0.2em] rounded-none shadow-[8px_8px_0px_0px_rgba(var(--primary),0.3)] hover:shadow-none transition-all cursor-pointer"
+                >
+                  Finalize Registry
+                </button>
+              </form>
             </div>
-            <div className="space-y-2">
-              <Label>Target Percentage (%)</Label>
-              <Input type="number" min="0" max="100" step="0.1" value={newPercentage} onChange={(e) => setNewPercentage(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>Shares Owned</Label>
-              <Input type="number" min="0" step="1" value={newShares} onChange={(e) => setNewShares(e.target.value)} />
-            </div>
-            <Button onClick={handleAddAsset} className="w-full">Add Asset</Button>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </>
   );
 }
