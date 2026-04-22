@@ -196,10 +196,10 @@ export function AssetsList({
   }, []);
 
   async function handleAddAsset() {
-    if (!newTicker.trim() || !newPercentage) return;
+    if (!newTicker.trim()) return;
     try {
       const { name } = await getAssetPrice(newTicker.trim());
-      await addAsset(portfolioId, newTicker.trim(), parseFloat(newPercentage), parseFloat(newShares) || 0, name || undefined);
+      await addAsset(portfolioId, newTicker.trim(), parseFloat(newPercentage) || 0, parseFloat(newShares) || 0, name || undefined);
       toast.success("Asset added");
       setAddingAsset(false);
       setNewTicker("");
@@ -454,7 +454,6 @@ export function AssetsList({
                       type="number" 
                       step="0.01" 
                       placeholder="0.00" 
-                      required 
                       value={newPercentage}
                       onChange={(e) => setNewPercentage(e.target.value)}
                       onKeyDown={(e) => {
