@@ -16,12 +16,10 @@ export default async function DashboardPage() {
 
   const portfolios = await getPortfolios();
 
-  // If user has no portfolio yet, show setup wizard
   if (!portfolios || portfolios.length === 0) {
     return <SetupWizard />;
   }
 
-  // Show the first portfolio (we support one for now)
   const portfolio = portfolios[0];
 
   return <DashboardShell portfolio={portfolio} userEmail={user.email ?? ""} />;

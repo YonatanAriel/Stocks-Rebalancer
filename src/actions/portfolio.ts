@@ -31,7 +31,7 @@ export async function getPortfolios() {
   return data
 }
 
-export async function addAsset(portfolioId: string, ticker: string, targetPercentage: number, sharesOwned: number) {
+export async function addAsset(portfolioId: string, ticker: string, targetPercentage: number, sharesOwned: number, name?: string) {
   const supabase = await createClient()
   
   const { data, error } = await supabase
@@ -39,10 +39,12 @@ export async function addAsset(portfolioId: string, ticker: string, targetPercen
     .insert([{
       portfolio_id: portfolioId,
       ticker,
+      name,
       target_percentage: targetPercentage,
       shares_owned: sharesOwned
     }])
     .select()
+    .single()
 
   if (error) throw new Error(error.message)
   
@@ -50,7 +52,12 @@ export async function addAsset(portfolioId: string, ticker: string, targetPercen
   return data
 }
 
-export async function updateAsset(assetId: string, updates: { target_percentage?: number, shares_owned?: number }) {
+export async function updateAsset(assetId: string, updates: { 
+  target_percentage?: number, 
+  shares_owned?: number,
+  name?: string,
+  manual_value?: number | null 
+}) {
   const supabase = await createClient()
   
   const { data, error } = await supabase
@@ -58,6 +65,7 @@ export async function updateAsset(assetId: string, updates: { target_percentage?
     .update(updates)
     .eq('id', assetId)
     .select()
+    .single()
 
   if (error) throw new Error(error.message)
   

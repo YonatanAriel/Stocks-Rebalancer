@@ -35,7 +35,6 @@ export default function LoginPage() {
         setCheckEmail(true);
       }
     } catch {
-      // redirect() throws an error by design — this is expected
     } finally {
       setLoading(false);
     }
@@ -44,7 +43,6 @@ export default function LoginPage() {
   return (
     <main className="flex flex-1 items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm space-y-6">
-        {/* Logo */}
         <div className="flex flex-col items-center gap-3">
           <div className="relative">
             <div className="absolute -inset-3 rounded-full bg-primary/20 blur-xl" />

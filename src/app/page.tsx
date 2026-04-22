@@ -15,7 +15,6 @@ export default async function HomePage() {
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-4">
       <div className="mx-auto flex max-w-lg flex-col items-center text-center gap-8">
-        {/* Logo glow ring */}
         <div className="relative">
           <div className="absolute -inset-4 rounded-full bg-primary/20 blur-2xl" />
           <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl glass glow-primary">
