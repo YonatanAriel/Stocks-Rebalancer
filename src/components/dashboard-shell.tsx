@@ -77,7 +77,7 @@ export function DashboardShell({
           setPriceSource(prev => ({ ...prev, [asset.ticker]: data.isManual ? 'manual' : 'scraped' }));
         }
         if (data.name) {
-          setNames(prev => ({ ...prev, [asset.ticker]: data.name }));
+          setNames(prev => ({ ...prev, [asset.ticker]: data.name as string }));
         }
         // Add delay between requests (already 300ms in getAssetPrice, but add extra for safety)
         await new Promise(resolve => setTimeout(resolve, 200));
@@ -175,7 +175,7 @@ export function DashboardShell({
                   setPriceSource(prev => ({ ...prev, [ticker]: 'scraped' }));
                 }
                 if (name) {
-                  setNames(prev => ({ ...prev, [ticker]: name }));
+                  setNames(prev => ({ ...prev, [ticker]: name || '' }));
                 }
               }}
             />
