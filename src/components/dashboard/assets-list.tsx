@@ -163,6 +163,9 @@ export function AssetsList({
   const [newTicker, setNewTicker] = useState("");
   const [newPercentage, setNewPercentage] = useState("");
   const [newShares, setNewShares] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<'value' | 'ticker' | 'weight'>('value');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   async function handleUpdateAsset() {
     if (!editingAsset) return;
@@ -231,6 +234,31 @@ export function AssetsList({
 
   const currentEditingPrice = editingAsset ? assets.find(a => a.id === editingAsset.id)?.price : null;
 
+  // Filter and sort assets
+  const filteredAssets = assets.filter(asset => {
+    const searchLower = searchQuery.toLowerCase();
+    return asset.ticker.toLowerCase().includes(searchLower) || 
+           (names[asset.ticker]?.toLowerCase().includes(searchLower) ?? false);
+  });
+
+  const sortedAssets = [...filteredAssets].sort((a, b) => {
+    let aVal, bVal;
+    
+    if (sortBy === 'value') {
+      aVal = a.currentValue || 0;
+      bVal = b.currentValue || 0;
+    } else if (sortBy === 'ticker') {
+      aVal = a.ticker.localeCompare(b.ticker);
+      bVal = 0;
+    } else {
+      aVal = a.target_percentage;
+      bVal = b.target_percentage;
+    }
+    
+    if (typeof aVal === 'string') return aVal;
+    return sortOrder === 'desc' ? bVal - aVal : aVal - bVal;
+  });
+
   return (
     <>
       <Card className="h-full flex flex-col min-h-0 bg-background/40 border-white/10 rounded-none shadow-2xl overflow-hidden backdrop-blur-xl relative group">
@@ -265,7 +293,32 @@ export function AssetsList({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log("REFRESH clicked");
+                  setSearchQuery(searchQuery ? "" : " ");
+                }}
+                className="rounded-none h-12 px-6 text-[12px] font-black uppercase tracking-widest hover:bg-primary/10 transition-all cursor-pointer flex items-center"
+                style={{ pointerEvents: 'auto' }}
+                title="Search"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </button>
+              {searchQuery !== "" && (
+                <Input
+                  autoFocus
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onBlur={() => setSearchQuery("")}
+                  className="h-12 w-48 bg-white/[0.03] border-white/30 focus:border-primary rounded-none text-[12px] placeholder:text-white/20"
+                  style={{ pointerEvents: 'auto' }}
+                />
+              )}
+              <button 
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   onRefresh && onRefresh();
                 }}
                 disabled={loadingPrices}
@@ -280,7 +333,6 @@ export function AssetsList({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log("REBALANCE clicked");
                   onToggleCalculator && onToggleCalculator();
                 }}
                 className="rounded-none h-12 px-8 bg-primary hover:bg-primary/90 text-black font-black uppercase text-[12px] tracking-widest shadow-[4px_4px_0px_0px_rgba(var(--primary),0.3)] hover:shadow-none transition-all cursor-pointer"
@@ -293,7 +345,6 @@ export function AssetsList({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log("NEW clicked");
                   setAddingAsset(true);
                 }}
                 className="rounded-none h-12 px-6 text-[12px] font-black uppercase tracking-widest hover:bg-white/10 transition-all border-l-2 border-white/10 cursor-pointer"
@@ -306,17 +357,26 @@ export function AssetsList({
         </CardHeader>
 
         <div className="flex-shrink-0 grid grid-cols-[1fr_100px_120px_100px_120px_60px_50px] gap-6 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-6 py-4 border-b border-white/10 bg-white/[0.02] relative z-10 font-heading">
-          <span>Asset / Class</span>
-          <span className="text-right">Weight %</span>
+          <div className="flex items-center justify-between cursor-pointer hover:text-primary transition-colors group" onClick={() => { setSortBy('ticker'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}>
+            <span>Asset / Class</span>
+            <span className="text-[8px] opacity-0 group-hover:opacity-100">{sortBy === 'ticker' ? (sortOrder === 'desc' ? '↓' : '↑') : '↕'}</span>
+          </div>
+          <div className="text-right flex items-center justify-end cursor-pointer hover:text-primary transition-colors group" onClick={() => { setSortBy('weight'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}>
+            <span>Weight %</span>
+            <span className="text-[8px] opacity-0 group-hover:opacity-100 ml-1">{sortBy === 'weight' ? (sortOrder === 'desc' ? '↓' : '↑') : '↕'}</span>
+          </div>
           <span className="text-right">Unit Rate</span>
           <span className="text-right">Inventory</span>
-          <span className="text-right">Net Value</span>
+          <div className="text-right flex items-center justify-end cursor-pointer hover:text-primary transition-colors group" onClick={() => { setSortBy('value'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}>
+            <span>Net Value</span>
+            <span className="text-[8px] opacity-0 group-hover:opacity-100 ml-1">{sortBy === 'value' ? (sortOrder === 'desc' ? '↓' : '↑') : '↕'}</span>
+          </div>
           <span />
           <span className="text-center">Status</span>
         </div>
         <CardContent className="flex-1 overflow-y-auto custom-scrollbar p-0 relative z-10">
           <div className="divide-y divide-white/[0.05]">
-            {assets.map((asset) => (
+            {sortedAssets.map((asset) => (
               <AssetRow
                 key={asset.id}
                 asset={asset}
