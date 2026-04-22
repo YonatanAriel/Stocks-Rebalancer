@@ -267,7 +267,7 @@ export async function getAssetPrice(ticker: string): Promise<{ price: number | n
       const searchResult = await yf.search(ticker);
       if (searchResult.quotes && searchResult.quotes.length > 0) {
         const bestMatchSymbol = searchResult.quotes[0].symbol;
-        if (bestMatchSymbol) {
+        if (bestMatchSymbol && typeof bestMatchSymbol === 'string') {
           quote = await yf.quote(bestMatchSymbol);
         }
       }

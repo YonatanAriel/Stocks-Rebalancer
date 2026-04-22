@@ -60,9 +60,34 @@ export async function updateAsset(assetId: string, updates: {
 }) {
   const supabase = await createClient()
   
+  // Convert manual_value to manual_price_override
+  const updateData: any = { ...updates };
+  delete updateData.manual_value; // Remove manual_value from updates
+  
+  if (updates.manual_value !== undefined) {
+    if (updates.manual_value !== null) {
+      // Setting a manual value - calculate price per share
+      const { data: asset } = await supabase
+        .from('assets')
+        .select('shares_owned')
+        .eq('id', assetId)
+        .single();
+      
+      if (asset && asset.shares_owned > 0) {
+        const pricePerShare = updates.manual_value / asset.shares_owned;
+        updateData.manual_price_override = pricePerShare;
+        updateData.manual_price_set_at = new Date().toISOString();
+      }
+    } else {
+      // Clearing manual value
+      updateData.manual_price_override = null;
+      updateData.manual_price_set_at = null;
+    }
+  }
+  
   const { data, error } = await supabase
     .from('assets')
-    .update(updates)
+    .update(updateData)
     .eq('id', assetId)
     .select()
     .single()
