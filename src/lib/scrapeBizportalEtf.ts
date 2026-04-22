@@ -94,30 +94,52 @@ function collectLabelValuePairs($: cheerio.CheerioAPI) {
 export async function scrapeBizportalEtf(
   securityId: string
 ): Promise<BizportalEtfSnapshot> {
-  const sourceUrl = `https://www.bizportal.co.il/tradedfund/quote/profile/${securityId}`;
+  const urls = [
+    `https://www.bizportal.co.il/tradedfund/quote/profile/${securityId}`,
+    `https://www.bizportal.co.il/mutualfunds/quote/profile/${securityId}`,
+  ];
 
-  console.log(`[Bizportal] Fetching: ${sourceUrl}`);
+  let html = "";
+  let lastError: Error | null = null;
 
-  const res = await fetch(sourceUrl, {
-    headers: {
-      "user-agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-      "accept-language": "he-IL,he;q=0.9,en;q=0.8",
-      accept:
-        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-      referer: "https://www.bizportal.co.il/",
-    },
-    cache: "no-store",
-  });
+  for (const sourceUrl of urls) {
+    try {
+      console.log(`[Bizportal] Fetching: ${sourceUrl}`);
 
-  if (!res.ok) {
-    console.error(`[Bizportal] Request failed with status ${res.status}`);
-    throw new Error(`Bizportal request failed: ${res.status}`);
+      const res = await fetch(sourceUrl, {
+        headers: {
+          "user-agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+          "accept-language": "he-IL,he;q=0.9,en;q=0.8",
+          accept:
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          referer: "https://www.bizportal.co.il/",
+        },
+        cache: "no-store",
+        timeout: 10000, // 10 second timeout
+      });
+
+      if (!res.ok) {
+        console.log(`[Bizportal] Request failed with status ${res.status} for ${sourceUrl}`);
+        lastError = new Error(`Bizportal request failed: ${res.status}`);
+        continue;
+      }
+
+      html = await res.text();
+      console.log(`[Bizportal] HTML length: ${html.length} bytes`);
+      break; // Success, exit loop
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.log(`[Bizportal] Fetch failed for ${sourceUrl}: ${lastError.message}`);
+      continue;
+    }
   }
 
-  const html = await res.text();
-  console.log(`[Bizportal] HTML length: ${html.length} bytes`);
+  if (!html) {
+    throw lastError || new Error("Failed to fetch from Bizportal");
+  }
 
+  const sourceUrl = urls[0]; // Use first URL for reference
   const $ = cheerio.load(html);
 
   const rawPairs = collectLabelValuePairs($);
