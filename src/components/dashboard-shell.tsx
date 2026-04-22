@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { getAssetPrice } from "@/actions/finance";
-import { Button } from "@/components/ui/button";
 import { DashboardHeader } from "@/components/dashboard/header";
 import { AssetsList } from "@/components/dashboard/assets-list";
 import { RebalanceCalculator } from "@/components/dashboard/rebalance-calculator";
@@ -18,22 +17,68 @@ export function DashboardShell({
   userEmail: string;
 }) {
   const [prices, setPrices] = useState<PriceMap>({});
+  const [priceSource, setPriceSource] = useState<Record<string, 'manual' | 'scraped'>>({});
+  const [names, setNames] = useState<Record<string, string>>({});
   const [priceOverrides, setPriceOverrides] = useState<Record<string, string>>({});
-  const [loadingPrices, setLoadingPrices] = useState(true);
+  const [loadingPrices, setLoadingPrices] = useState(false);
   const [cashAmount, setCashAmount] = useState("");
   const [showCalculator, setShowCalculator] = useState(false);
+  const [excludedAssets, setExcludedAssets] = useState<Set<string>>(new Set());
 
-  // Fetch all prices on mount
+  // Initialize names from portfolio data if available
+  useEffect(() => {
+    const initialNames: Record<string, string> = {};
+    portfolio.assets.forEach(asset => {
+      if (asset.name) initialNames[asset.ticker] = asset.name;
+    });
+    setNames(prev => ({ ...initialNames, ...prev }));
+  }, [portfolio.assets]);
+
+  // Initialize with manual prices from DB
+  useEffect(() => {
+    const initialPrices: PriceMap = {};
+    const initialSource: Record<string, 'manual' | 'scraped'> = {};
+    
+    portfolio.assets.forEach((asset: any) => {
+      if (asset?.manual_price_override && asset?.manual_price_set_at) {
+        const minutesAgo = (Date.now() - new Date(asset.manual_price_set_at).getTime()) / 60000;
+        if (minutesAgo < 15) {
+          initialPrices[asset.ticker] = asset.manual_price_override;
+          initialSource[asset.ticker] = 'manual';
+        }
+      }
+    });
+    
+    setPrices(initialPrices);
+    setPriceSource(initialSource);
+  }, [portfolio.assets]);
+
+  // Fetch all prices on mount with sequential requests to avoid rate limiting
   const fetchPrices = useCallback(async () => {
     setLoadingPrices(true);
     const newPrices: PriceMap = {};
-    await Promise.all(
-      portfolio.assets.map(async (asset) => {
-        const result = await getAssetPrice(asset.ticker);
-        newPrices[asset.ticker] = result.price;
-      })
-    );
+    const newSource: Record<string, 'manual' | 'scraped'> = {};
+    const newNames: Record<string, string> = {};
+
+    // Fetch prices sequentially with delay to avoid rate limiting
+    for (const asset of portfolio.assets) {
+      try {
+        const data = await getAssetPrice(asset.ticker);
+        if (data.price) {
+          newPrices[asset.ticker] = data.price;
+          newSource[asset.ticker] = data.isManual ? 'manual' : 'scraped';
+        }
+        if (data.name) newNames[asset.ticker] = data.name;
+        // Add delay between requests (already 300ms in getAssetPrice, but add extra for safety)
+        await new Promise(resolve => setTimeout(resolve, 200));
+      } catch (e) {
+        console.error(`Failed to fetch price for ${asset.ticker}`, e);
+      }
+    }
+
     setPrices(newPrices);
+    setPriceSource(newSource);
+    setNames(prev => ({ ...prev, ...newNames }));
     setLoadingPrices(false);
   }, [portfolio.assets]);
 
@@ -41,78 +86,150 @@ export function DashboardShell({
     fetchPrices();
   }, [fetchPrices]);
 
-  // Compute effective prices (with overrides)
-  function getEffectivePrice(ticker: string): number | null {
-    const override = priceOverrides[ticker];
-    if (override && parseFloat(override) > 0) return parseFloat(override);
-    return prices[ticker] ?? null;
-  }
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Refresh: Alt + R
+      if (e.altKey && e.key.toLowerCase() === 'r') {
+        e.preventDefault();
+        fetchPrices();
+      }
+      // Calculator: Alt + C
+      if (e.altKey && e.key.toLowerCase() === 'c') {
+        e.preventDefault();
+        setShowCalculator(true);
+      }
+      // Add Asset: Alt + A
+      if (e.altKey && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('open-add-asset'));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [fetchPrices]);
 
-  const assetsWithValues: AssetWithValue[] = portfolio.assets.map((asset) => {
-    const price = getEffectivePrice(asset.ticker);
-    return { ...asset, price, currentValue: price ? asset.shares_owned * price : null };
-  });
+  const assetsWithValues = useMemo(() => {
+    return portfolio.assets.map((asset) => {
+      const price = prices[asset.ticker] ?? null;
+      const source = priceSource[asset.ticker] ?? 'scraped';
+      // Use manual_value from DB if it exists, otherwise calculate from price
+      const currentValue = asset.manual_value !== null && asset.manual_value !== undefined
+        ? asset.manual_value 
+        : (price !== null ? asset.shares_owned * price : null);
+        
+      return {
+        ...asset,
+        price,
+        currentValue,
+        priceSource: source,
+      } as AssetWithValue & { priceSource: 'manual' | 'scraped' };
+    });
+  }, [portfolio.assets, prices, priceSource]);
 
-  const totalValue = assetsWithValues.reduce((sum, a) => sum + (a.currentValue ?? 0), 0);
+  const totalValue = useMemo(() => {
+    return assetsWithValues.reduce((sum, asset) => sum + (excludedAssets.has(asset.ticker) ? 0 : (asset.currentValue || 0)), 0);
+  }, [assetsWithValues, excludedAssets]);
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <DashboardHeader userEmail={userEmail} />
+    <div className="h-screen flex flex-col bg-dot-pattern mesh-glow overflow-hidden">
+      <DashboardHeader userEmail={userEmail} onRefresh={fetchPrices} isLoading={loadingPrices} />
 
-      <main className="flex-1 mx-auto w-full max-w-5xl px-4 py-6 space-y-6">
-        {/* Portfolio title row */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">{portfolio.name}</h1>
-            <p className="text-sm text-muted-foreground">
-              {portfolio.assets.length} asset{portfolio.assets.length !== 1 ? "s" : ""} ·{" "}
-              {loadingPrices
-                ? "Loading prices…"
-                : `₪${totalValue.toLocaleString("en-IL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total value`}
-            </p>
+      <main className="flex-1 flex flex-col min-h-0 w-full overflow-hidden">
+        <div className="flex-1 min-h-0 grid gap-8 grid-cols-1 lg:grid-cols-[1fr_350px] px-6 py-6 overflow-hidden">
+          <div className="flex flex-col min-h-0 overflow-hidden">
+            <AssetsList 
+              assets={assetsWithValues} 
+              totalValue={totalValue} 
+              portfolioId={portfolio.id} 
+              portfolioName={portfolio.name}
+              names={names} 
+              loadingPrices={loadingPrices}
+              onRefresh={fetchPrices}
+              showCalculator={showCalculator}
+              onToggleCalculator={() => setShowCalculator(!showCalculator)}
+              excludedAssets={excludedAssets}
+              onExcludedAssetsChange={setExcludedAssets}
+            />
           </div>
-          <Button size="sm" onClick={() => setShowCalculator(!showCalculator)} className="glow-primary">
-            {showCalculator ? "Hide Calculator" : "💰 Invest New Cash"}
-          </Button>
-        </div>
 
-        {/* Assets + chart grid */}
-        <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-          <AssetsList assets={assetsWithValues} totalValue={totalValue} portfolioId={portfolio.id} />
-
-          <Card className="glass border-border/50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Allocation</CardTitle>
+          <div className="flex-shrink-0">
+            <Card className="bg-background/40 border-white/10 rounded-none shadow-xl border-t-4 border-primary overflow-hidden h-full backdrop-blur-xl">
+            <CardHeader className="p-6 border-b border-white/5 bg-white/[0.01]">
+              <CardTitle className="text-sm font-black uppercase tracking-widest text-primary font-heading">Target Allocation</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               {loadingPrices ? (
-                <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">Loading…</div>
+                <div className="flex h-48 items-center justify-center text-[10px] uppercase font-black tracking-widest text-muted-foreground animate-pulse">Scanning Market...</div>
               ) : (
                 <AllocationChart
-                  assets={assetsWithValues.map((a) => ({
-                    ticker: a.ticker,
-                    targetPct: a.target_percentage,
-                    currentPct: totalValue > 0 && a.currentValue ? (a.currentValue / totalValue) * 100 : 0,
-                  }))}
+                  assets={assetsWithValues
+                    .filter(a => !excludedAssets.has(a.ticker))
+                    .map((a) => ({
+                      ticker: a.ticker,
+                      targetPct: a.target_percentage,
+                      currentPct: totalValue > 0 && a.currentValue ? (a.currentValue / totalValue) * 100 : 0,
+                      priceSource: a.priceSource,
+                    }))}
                 />
               )}
             </CardContent>
           </Card>
         </div>
+      </div>
 
-        {/* Calculator panel */}
-        {showCalculator && (
-          <RebalanceCalculator
-            assets={portfolio.assets}
-            assetsWithValues={assetsWithValues}
-            totalValue={totalValue}
-            prices={prices}
-            cashAmount={cashAmount}
-            setCashAmount={setCashAmount}
-            priceOverrides={priceOverrides}
-            setPriceOverrides={setPriceOverrides}
-          />
-        )}
+      {showCalculator && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm pointer-events-auto" onClick={() => setShowCalculator(false)}>
+          <div className="max-w-5xl bg-background border-white/10 rounded-none max-h-[90vh] overflow-y-auto custom-scrollbar p-0 w-full mx-4 pointer-events-auto relative" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-background border-b border-white/10 p-8 flex items-start justify-between gap-8 z-10">
+              <div className="flex-1">
+                <h2 className="text-xl font-black uppercase tracking-[0.4em] text-primary">System Rebalance</h2>
+                <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">
+                  Optimizing capital distribution based on target weights.
+                </p>
+              </div>
+              <div className="flex items-center gap-3 flex-shrink-0">
+                <button
+                  onClick={fetchPrices}
+                  disabled={loadingPrices}
+                  className="rounded-none text-[10px] uppercase font-black tracking-widest border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all h-10 px-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+                  title="Refresh prices (Alt+R)"
+                >
+                  <svg className={`h-4 w-4 ${loadingPrices ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Refresh Prices
+                </button>
+                <button
+                  onClick={() => setShowCalculator(false)}
+                  className="rounded-none border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all h-10 w-10 cursor-pointer flex items-center justify-center flex-shrink-0"
+                  style={{ pointerEvents: 'auto' }}
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div className="p-8">
+              <RebalanceCalculator
+                assets={portfolio.assets}
+                assetsWithValues={assetsWithValues}
+                totalValue={totalValue}
+                prices={prices}
+                names={names}
+                cashAmount={cashAmount}
+                setCashAmount={setCashAmount}
+                priceOverrides={priceOverrides}
+                setPriceOverrides={setPriceOverrides}
+                excludedAssets={excludedAssets}
+                onExcludedAssetsChange={setExcludedAssets}
+                onRefreshPrices={fetchPrices}
+                isRefreshing={loadingPrices}
+              />
+            </div>
+          </div>
+        </div>
+      )}
       </main>
     </div>
   );
