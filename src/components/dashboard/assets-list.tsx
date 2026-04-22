@@ -364,7 +364,7 @@ export function AssetsList({
           </div>
         </CardHeader>
 
-        <div className="flex-shrink-0 grid grid-cols-[1fr_100px_120px_100px_120px_60px_50px]  text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-6 py-4 border-b border-white/10 bg-white/[0.02] relative z-10 font-heading">
+        <div className="flex-shrink-0 grid grid-cols-[1fr_100px_120px_100px_120px_60px_50px] gap-6  text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-6 py-4 border-b border-white/10 bg-white/[0.02] relative z-10 font-heading">
           <div className="flex items-center justify-between cursor-pointer hover:text-primary transition-colors group" onClick={() => { setSortBy('ticker'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}>
             <span>Asset / Class</span>
             <span className="text-[8px] opacity-0 group-hover:opacity-100">{sortBy === 'ticker' ? (sortOrder === 'desc' ? '↓' : '↑') : '↕'}</span>
