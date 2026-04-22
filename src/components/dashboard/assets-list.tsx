@@ -71,8 +71,13 @@ function AssetRow({
         )}
       </div>
       <div className="text-right text-sm font-black font-mono text-muted-foreground">{asset.shares_owned}</div>
-      <div className="text-right text-sm font-black text-foreground font-mono">
+      <div className="text-right text-sm font-black text-foreground font-mono relative group/value">
         ₪{(asset.currentValue || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+        {isManualPrice && (
+          <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-primary/20 border border-primary/50 rounded-none text-[9px] font-black uppercase tracking-widest text-primary whitespace-nowrap opacity-0 group-hover/value:opacity-100 transition-opacity pointer-events-none z-50">
+            Manual Override
+          </div>
+        )}
       </div>
       <div className="flex justify-end gap-2 z-40">
         <button 

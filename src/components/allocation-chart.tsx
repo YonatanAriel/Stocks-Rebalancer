@@ -68,10 +68,18 @@ export function AllocationChart({
               content={({ payload }) => {
                 if (!payload || !payload.length) return null;
                 const d = payload[0].payload;
+                const asset = assets.find(a => a.ticker === d.name);
+                const isManual = asset?.priceSource === 'manual';
                 return (
                   <div className="rounded-lg bg-popover px-3 py-2 text-xs shadow-lg border border-border">
-                    <span className="font-medium">{d.name}</span>:{" "}
-                    {d.value}%
+                    <div>
+                      <span className="font-medium">{d.name}</span>: {d.value}%
+                    </div>
+                    {isManual && (
+                      <div className="text-[9px] text-primary font-black uppercase tracking-widest mt-1">
+                        Manual Override
+                      </div>
+                    )}
                   </div>
                 );
               }}
@@ -93,7 +101,7 @@ export function AllocationChart({
               />
               <span className="text-muted-foreground">{a.ticker}</span>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 relative">
               <span
                 className={
                   Math.abs(a.currentPct - a.targetPct) < 1
@@ -106,12 +114,12 @@ export function AllocationChart({
               <span className="text-muted-foreground/60">
                 / {a.targetPct}%
               </span>
+              {a.priceSource === 'manual' && (
+                <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-primary/20 border border-primary/50 rounded-none text-[9px] font-black uppercase tracking-widest text-primary whitespace-nowrap opacity-0 group-hover/legend:opacity-100 transition-opacity pointer-events-none z-50">
+                  Manual Override
+                </div>
+              )}
             </div>
-            {a.priceSource === 'manual' && (
-              <div className="absolute -right-32 top-1/2 -translate-y-1/2 px-2 py-1 bg-primary/20 border border-primary/50 rounded-none text-[8px] font-black uppercase tracking-widest text-primary whitespace-nowrap opacity-0 group-hover/legend:opacity-100 transition-opacity pointer-events-none z-50">
-                Manual Override
-              </div>
-            )}
           </div>
         ))}
       </div>
