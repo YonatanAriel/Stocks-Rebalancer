@@ -27,7 +27,7 @@ export async function setManualPrice(securityId: string, price: number): Promise
         manual_price_override: price,
         manual_price_set_at: new Date().toISOString(),
       })
-      .eq('security_id', securityId);
+      .eq('ticker', securityId);
     
     if (error) {
       console.error(`[Finance] Error setting manual price:`, error);
@@ -51,7 +51,7 @@ export async function clearManualPrice(securityId: string): Promise<{ ok: boolea
         manual_price_override: null,
         manual_price_set_at: null,
       })
-      .eq('security_id', securityId);
+      .eq('ticker', securityId);
     
     if (error) {
       console.error(`[Finance] Error clearing manual price:`, error);
@@ -66,7 +66,7 @@ export async function clearManualPrice(securityId: string): Promise<{ ok: boolea
   }
 }
 
-async function getPriceFromBizportal(ticker: string): Promise<{ price: number | null; name: string | null }> {
+async function getPriceFromBizportal(ticker: string): Promise<{ price: number | null; name: string | null; assetType: string | null }> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const url = `${baseUrl}/api/etf/${ticker}`;
@@ -86,7 +86,7 @@ async function getPriceFromBizportal(ticker: string): Promise<{ price: number | 
       console.error(`[Finance] Bizportal API returned ${response.status}`);
       const text = await response.text();
       console.error(`[Finance] Response body (first 500 chars):`, text.substring(0, 500));
-      return { price: null, name: null };
+      return { price: null, name: null, assetType: null };
     }
     
     const contentType = response.headers.get('content-type');
@@ -94,7 +94,7 @@ async function getPriceFromBizportal(ticker: string): Promise<{ price: number | 
       console.error(`[Finance] Response is not JSON, content-type: ${contentType}`);
       const text = await response.text();
       console.error(`[Finance] Response body (first 500 chars):`, text.substring(0, 500));
-      return { price: null, name: null };
+      return { price: null, name: null, assetType: null };
     }
     
     const json = await response.json();
@@ -103,7 +103,7 @@ async function getPriceFromBizportal(ticker: string): Promise<{ price: number | 
     const { ok, data } = json;
     if (!ok || !data) {
       console.error('[Finance] Bizportal API returned invalid response structure');
-      return { price: null, name: null };
+      return { price: null, name: null, assetType: null };
     }
     
     console.log(`[Finance] Bizportal data keys:`, Object.keys(data));
@@ -131,14 +131,14 @@ async function getPriceFromBizportal(ticker: string): Promise<{ price: number | 
       // Israeli securities are quoted in agorot, convert to shekels
       price = price / 100;
       console.log(`[Finance] Got Bizportal price for ${ticker}: ₪${price} (converted from agorot)`);
-      return { price, name: data.name };
+      return { price, name: data.name, assetType: data.assetType };
     }
     
     console.log(`[Finance] Price extraction failed for ${ticker}`);
-    return { price: null, name: null };
+    return { price: null, name: null, assetType: null };
   } catch (error) {
     console.error('[Finance] Bizportal error:', error);
-    return { price: null, name: null };
+    return { price: null, name: null, assetType: null };
   }
 }
 
@@ -207,7 +207,7 @@ async function getPriceFromGoogleFinance(ticker: string): Promise<{ price: numbe
 
 
 
-export async function getAssetPrice(ticker: string): Promise<{ price: number | null; name: string | null; isManual?: boolean; error?: string }> {
+export async function getAssetPrice(ticker: string): Promise<{ price: number | null; name: string | null; assetType?: string | null; isManual?: boolean; error?: string }> {
   try {
     console.log(`[Finance] Fetching data for: ${ticker}`);
     
@@ -217,7 +217,7 @@ export async function getAssetPrice(ticker: string): Promise<{ price: number | n
       const { data: asset } = await supabase
         .from('assets')
         .select('manual_price_override, manual_price_set_at, name')
-        .eq('security_id', ticker)
+        .eq('ticker', ticker)
         .single();
       
       if (asset?.manual_price_override && asset?.manual_price_set_at) {
@@ -238,7 +238,7 @@ export async function getAssetPrice(ticker: string): Promise<{ price: number | n
     if (/^\d{6,8}$/.test(ticker)) {
       const bizResult = await getPriceFromBizportal(ticker);
       if (bizResult.price) {
-        return { price: bizResult.price, name: bizResult.name, isManual: false };
+        return { price: bizResult.price, name: bizResult.name, assetType: bizResult.assetType, isManual: false };
       }
     }
 

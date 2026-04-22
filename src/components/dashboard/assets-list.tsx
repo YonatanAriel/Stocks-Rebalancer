@@ -165,11 +165,26 @@ export function AssetsList({
   async function handleUpdateAsset() {
     if (!editingAsset) return;
     try {
-      await updateAsset(editingAsset.id, {
+      const updates: any = {
         shares_owned: parseFloat(editShares) || 0,
         target_percentage: parseFloat(editPercentage) || 0,
-        manual_value: editManualValue ? parseFloat(editManualValue) : null,
-      });
+      };
+      
+      // Handle manual price override
+      if (editManualValue) {
+        const totalValue = parseFloat(editManualValue);
+        const shares = parseFloat(editShares) || editingAsset.shares_owned;
+        if (shares > 0) {
+          updates.manual_price_override = totalValue / shares;
+          updates.manual_price_set_at = new Date().toISOString();
+        }
+      } else {
+        // Clear manual override
+        updates.manual_price_override = null;
+        updates.manual_price_set_at = null;
+      }
+      
+      await updateAsset(editingAsset.id, updates);
       toast.success("Asset updated");
       setEditingAsset(null);
       setEditManualValue("");
@@ -198,8 +213,8 @@ export function AssetsList({
   async function handleAddAsset() {
     if (!newTicker.trim()) return;
     try {
-      const { name } = await getAssetPrice(newTicker.trim());
-      await addAsset(portfolioId, newTicker.trim(), parseFloat(newPercentage) || 0, parseFloat(newShares) || 0, name || undefined);
+      const { name, assetType } = await getAssetPrice(newTicker.trim());
+      await addAsset(portfolioId, newTicker.trim(), parseFloat(newPercentage) || 0, parseFloat(newShares) || 0, name || undefined, assetType || undefined);
       toast.success("Asset added");
       setAddingAsset(false);
       setNewTicker("");
@@ -308,7 +323,11 @@ export function AssetsList({
                   setEditingAsset(a);
                   setEditShares(String(a.shares_owned));
                   setEditPercentage(String(a.target_percentage));
-                  setEditManualValue(a.manual_value ? String(a.manual_value) : "");
+                  // Calculate total value from manual price override if it exists
+                  const manualValue = a.manual_price_override && a.manual_price_set_at 
+                    ? a.manual_price_override * a.shares_owned 
+                    : null;
+                  setEditManualValue(manualValue ? String(manualValue) : "");
                 }}
                 onDelete={handleDeleteAsset}
                 isExcluded={excludedAssets.has(asset.ticker)}

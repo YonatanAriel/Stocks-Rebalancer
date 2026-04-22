@@ -56,19 +56,19 @@ export function DashboardShell({
   // Fetch all prices on mount with sequential requests to avoid rate limiting
   const fetchPrices = useCallback(async () => {
     setLoadingPrices(true);
-    const newPrices: PriceMap = {};
-    const newSource: Record<string, 'manual' | 'scraped'> = {};
-    const newNames: Record<string, string> = {};
 
     // Fetch prices sequentially with delay to avoid rate limiting
     for (const asset of portfolio.assets) {
       try {
         const data = await getAssetPrice(asset.ticker);
         if (data.price) {
-          newPrices[asset.ticker] = data.price;
-          newSource[asset.ticker] = data.isManual ? 'manual' : 'scraped';
+          // Update prices incrementally as each response arrives
+          setPrices(prev => ({ ...prev, [asset.ticker]: data.price }));
+          setPriceSource(prev => ({ ...prev, [asset.ticker]: data.isManual ? 'manual' : 'scraped' }));
         }
-        if (data.name) newNames[asset.ticker] = data.name;
+        if (data.name) {
+          setNames(prev => ({ ...prev, [asset.ticker]: data.name }));
+        }
         // Add delay between requests (already 300ms in getAssetPrice, but add extra for safety)
         await new Promise(resolve => setTimeout(resolve, 200));
       } catch (e) {
@@ -76,15 +76,12 @@ export function DashboardShell({
       }
     }
 
-    setPrices(newPrices);
-    setPriceSource(newSource);
-    setNames(prev => ({ ...prev, ...newNames }));
     setLoadingPrices(false);
-  }, [portfolio.assets]);
+  }, []); // Remove portfolio.assets from dependencies
 
   useEffect(() => {
     fetchPrices();
-  }, [fetchPrices]);
+  }, []); // Only run once on mount
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -112,10 +109,8 @@ export function DashboardShell({
     return portfolio.assets.map((asset) => {
       const price = prices[asset.ticker] ?? null;
       const source = priceSource[asset.ticker] ?? 'scraped';
-      // Use manual_value from DB if it exists, otherwise calculate from price
-      const currentValue = asset.manual_value !== null && asset.manual_value !== undefined
-        ? asset.manual_value 
-        : (price !== null ? asset.shares_owned * price : null);
+      // Calculate value from price × shares
+      const currentValue = price !== null ? asset.shares_owned * price : null;
         
       return {
         ...asset,
@@ -158,19 +153,20 @@ export function DashboardShell({
               <CardTitle className="text-sm font-black uppercase tracking-widest text-primary font-heading">Target Allocation</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              {loadingPrices ? (
-                <div className="flex h-48 items-center justify-center text-[10px] uppercase font-black tracking-widest text-muted-foreground animate-pulse">Scanning Market...</div>
-              ) : (
-                <AllocationChart
-                  assets={assetsWithValues
-                    .filter(a => !excludedAssets.has(a.ticker))
-                    .map((a) => ({
-                      ticker: a.ticker,
-                      targetPct: a.target_percentage,
-                      currentPct: totalValue > 0 && a.currentValue ? (a.currentValue / totalValue) * 100 : 0,
-                      priceSource: a.priceSource,
-                    }))}
-                />
+              <AllocationChart
+                assets={assetsWithValues
+                  .filter(a => !excludedAssets.has(a.ticker))
+                  .map((a) => ({
+                    ticker: a.ticker,
+                    targetPct: a.target_percentage,
+                    currentPct: totalValue > 0 && a.currentValue ? (a.currentValue / totalValue) * 100 : 0,
+                    priceSource: a.priceSource,
+                  }))}
+              />
+              {loadingPrices && (
+                <div className="mt-4 text-center text-[9px] uppercase font-black tracking-widest text-primary animate-pulse">
+                  Updating prices...
+                </div>
               )}
             </CardContent>
           </Card>

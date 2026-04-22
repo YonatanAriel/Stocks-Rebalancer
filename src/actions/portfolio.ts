@@ -31,7 +31,7 @@ export async function getPortfolios() {
   return data
 }
 
-export async function addAsset(portfolioId: string, ticker: string, targetPercentage: number, sharesOwned: number, name?: string) {
+export async function addAsset(portfolioId: string, ticker: string, targetPercentage: number, sharesOwned: number, name?: string, assetType?: string) {
   const supabase = await createClient()
   
   const { data, error } = await supabase
@@ -40,6 +40,7 @@ export async function addAsset(portfolioId: string, ticker: string, targetPercen
       portfolio_id: portfolioId,
       ticker,
       name,
+      asset_type: assetType,
       target_percentage: targetPercentage,
       shares_owned: sharesOwned
     }])
@@ -56,38 +57,14 @@ export async function updateAsset(assetId: string, updates: {
   target_percentage?: number, 
   shares_owned?: number,
   name?: string,
-  manual_value?: number | null 
+  manual_price_override?: number | null,
+  manual_price_set_at?: string | null
 }) {
   const supabase = await createClient()
   
-  // Convert manual_value to manual_price_override
-  const updateData: any = { ...updates };
-  delete updateData.manual_value; // Remove manual_value from updates
-  
-  if (updates.manual_value !== undefined) {
-    if (updates.manual_value !== null) {
-      // Setting a manual value - calculate price per share
-      const { data: asset } = await supabase
-        .from('assets')
-        .select('shares_owned')
-        .eq('id', assetId)
-        .single();
-      
-      if (asset && asset.shares_owned > 0) {
-        const pricePerShare = updates.manual_value / asset.shares_owned;
-        updateData.manual_price_override = pricePerShare;
-        updateData.manual_price_set_at = new Date().toISOString();
-      }
-    } else {
-      // Clearing manual value
-      updateData.manual_price_override = null;
-      updateData.manual_price_set_at = null;
-    }
-  }
-  
   const { data, error } = await supabase
     .from('assets')
-    .update(updateData)
+    .update(updates)
     .eq('id', assetId)
     .select()
     .single()

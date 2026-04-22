@@ -4,6 +4,7 @@ export type BizportalEtfSnapshot = {
   securityId: string;
   sourceUrl: string;
   name: string | null;
+  assetType: string | null;
   asOf: string | null;
   unitValueText: string | null;
   changeText: string | null;
@@ -66,6 +67,18 @@ function extractPriceFromRawPairs(rawPairs: Record<string, string>): string | nu
     }
   }
   
+  // For mutual funds, try to find price in the values
+  for (const [key, value] of Object.entries(rawPairs)) {
+    // Look for patterns like "1,108.46" (price format)
+    if (key.includes("שווי") || key.includes("מחיר")) {
+      const match = value.match(/(\d{1,3}(?:,\d{3})*\.?\d+)/);
+      if (match) {
+        console.log(`[Bizportal] Found price in value for key "${key}": "${match[1]}"`);
+        return match[1];
+      }
+    }
+  }
+  
   console.log(`[Bizportal] No price found in raw pairs`);
   return null;
 }
@@ -94,15 +107,17 @@ function collectLabelValuePairs($: cheerio.CheerioAPI) {
 export async function scrapeBizportalEtf(
   securityId: string
 ): Promise<BizportalEtfSnapshot> {
+  // Try both ETF and mutual fund URLs
   const urls = [
-    `https://www.bizportal.co.il/tradedfund/quote/profile/${securityId}`,
-    `https://www.bizportal.co.il/mutualfunds/quote/profile/${securityId}`,
+    { url: `https://www.bizportal.co.il/tradedfund/quote/profile/${securityId}`, type: 'ETF' },
+    { url: `https://www.bizportal.co.il/mutualfunds/quote/profile/${securityId}`, type: 'Mutual Fund' },
   ];
 
   let html = "";
+  let assetType: string | null = null;
   let lastError: Error | null = null;
 
-  for (const sourceUrl of urls) {
+  for (const { url: sourceUrl, type } of urls) {
     try {
       console.log(`[Bizportal] Fetching: ${sourceUrl}`);
 
@@ -126,7 +141,8 @@ export async function scrapeBizportalEtf(
       }
 
       html = await res.text();
-      console.log(`[Bizportal] HTML length: ${html.length} bytes`);
+      assetType = type; // Set the type based on which URL succeeded
+      console.log(`[Bizportal] HTML length: ${html.length} bytes, type: ${type}`);
       break; // Success, exit loop
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
@@ -139,7 +155,7 @@ export async function scrapeBizportalEtf(
     throw lastError || new Error("Failed to fetch from Bizportal");
   }
 
-  const sourceUrl = urls[0]; // Use first URL for reference
+  const sourceUrl = urls[0].url; // Use first URL for reference
   const $ = cheerio.load(html);
 
   const rawPairs = collectLabelValuePairs($);
@@ -159,6 +175,8 @@ export async function scrapeBizportalEtf(
   const unitValueText =
     (pickValueNearLabel($, "שווי יחידה") !== "--" ? pickValueNearLabel($, "שווי יחידה") : null) ||
     (rawPairs["שווי יחידה"] !== "--" ? rawPairs["שווי יחידה"] : null) ||
+    (pickValueNearLabel($, "מחיר פדיון") !== "--" ? pickValueNearLabel($, "מחיר פדיון") : null) ||
+    (rawPairs["מחיר פדיון"] !== "--" ? rawPairs["מחיר פדיון"] : null) ||
     extractPriceFromRawPairs(rawPairs) ||
     null;
   console.log(`[Bizportal] unitValueText: ${unitValueText}`);
@@ -194,6 +212,7 @@ export async function scrapeBizportalEtf(
     securityId,
     sourceUrl,
     name,
+    assetType,
     asOf,
     unitValueText,
     changeText,
