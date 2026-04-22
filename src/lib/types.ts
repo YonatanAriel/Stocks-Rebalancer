@@ -8,6 +8,7 @@ export interface Asset {
   shares_owned: number;
   manual_price_override?: number | null;
   manual_price_set_at?: string | null;
+  is_active?: boolean;
 }
 
 export interface Portfolio {

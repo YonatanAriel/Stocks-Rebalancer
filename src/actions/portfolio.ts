@@ -72,7 +72,7 @@ export async function updateAsset(assetId: string, updates: {
 
   if (error) throw new Error(error.message)
   
-  revalidatePath('/dashboard')
+  // Don't revalidate to avoid losing scraped prices
   return data
 }
 
@@ -88,7 +88,7 @@ export async function toggleAssetActive(assetId: string, isActive: boolean) {
 
   if (error) throw new Error(error.message)
   
-  revalidatePath('/dashboard')
+  // Don't revalidate path to avoid losing scraped prices
   return data
 }
 

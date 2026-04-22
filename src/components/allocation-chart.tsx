@@ -30,6 +30,15 @@ export function AllocationChart({
 }: {
   assets: AssetAllocation[];
 }) {
+  // Handle empty assets
+  if (!assets || assets.length === 0) {
+    return (
+      <div className="flex h-48 items-center justify-center text-[10px] uppercase font-black tracking-widest text-muted-foreground">
+        No active assets
+      </div>
+    );
+  }
+
   const currentData = assets.map((a, i) => ({
     name: a.ticker,
     value: parseFloat(a.currentPct.toFixed(1)),

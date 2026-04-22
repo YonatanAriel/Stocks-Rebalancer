@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { updateAsset, deleteAsset, addAsset } from "@/actions/portfolio";
+import { updateAsset, deleteAsset, addAsset, toggleAssetActive } from "@/actions/portfolio";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -331,14 +331,27 @@ export function AssetsList({
                 }}
                 onDelete={handleDeleteAsset}
                 isExcluded={excludedAssets.has(asset.ticker)}
-                onToggleExclude={() => {
+                onToggleExclude={async () => {
                   const newExcluded = new Set(excludedAssets);
-                  if (newExcluded.has(asset.ticker)) {
+                  const isCurrentlyExcluded = newExcluded.has(asset.ticker);
+                  
+                  if (isCurrentlyExcluded) {
                     newExcluded.delete(asset.ticker);
                   } else {
                     newExcluded.add(asset.ticker);
                   }
+                  
+                  // Update local state immediately for responsive UI
                   onExcludedAssetsChange?.(newExcluded);
+                  
+                  // Persist to database (without refreshing the page)
+                  try {
+                    await toggleAssetActive(asset.id, isCurrentlyExcluded);
+                  } catch (error) {
+                    toast.error("Failed to update asset status");
+                    // Revert on error
+                    onExcludedAssetsChange?.(excludedAssets);
+                  }
                 }}
               />
             ))}
