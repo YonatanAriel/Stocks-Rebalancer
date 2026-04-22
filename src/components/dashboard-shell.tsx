@@ -23,7 +23,16 @@ export function DashboardShell({
   const [loadingPrices, setLoadingPrices] = useState(false);
   const [cashAmount, setCashAmount] = useState("");
   const [showCalculator, setShowCalculator] = useState(false);
-  const [excludedAssets, setExcludedAssets] = useState<Set<string>>(new Set());
+  const [excludedAssets, setExcludedAssets] = useState<Set<string>>(() => {
+    // Initialize from database
+    const excluded = new Set<string>();
+    portfolio.assets.forEach(asset => {
+      if (asset.is_active === false) {
+        excluded.add(asset.ticker);
+      }
+    });
+    return excluded;
+  });
 
   // Initialize names from portfolio data if available
   useEffect(() => {
