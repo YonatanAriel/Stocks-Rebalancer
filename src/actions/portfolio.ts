@@ -58,13 +58,30 @@ export async function updateAsset(assetId: string, updates: {
   shares_owned?: number,
   name?: string,
   manual_price_override?: number | null,
-  manual_price_set_at?: string | null
+  manual_price_set_at?: string | null,
+  is_active?: boolean
 }) {
   const supabase = await createClient()
   
   const { data, error } = await supabase
     .from('assets')
     .update(updates)
+    .eq('id', assetId)
+    .select()
+    .single()
+
+  if (error) throw new Error(error.message)
+  
+  revalidatePath('/dashboard')
+  return data
+}
+
+export async function toggleAssetActive(assetId: string, isActive: boolean) {
+  const supabase = await createClient()
+  
+  const { data, error } = await supabase
+    .from('assets')
+    .update({ is_active: isActive })
     .eq('id', assetId)
     .select()
     .single()
