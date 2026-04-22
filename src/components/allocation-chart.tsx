@@ -12,12 +12,13 @@ interface AssetAllocation {
   ticker: string;
   targetPct: number;
   currentPct: number;
+  priceSource?: 'manual' | 'scraped';
 }
 
 const COLORS = [
   "oklch(0.75 0.2 145)",    // green (primary)
   "oklch(0.7 0.15 200)",    // teal
-  "oklch(0.7 0.15 300)",    // purple
+  "oklch(0.75 0.18 180)",   // cyan
   "oklch(0.75 0.15 60)",    // amber
   "oklch(0.65 0.2 25)",     // red
   "oklch(0.7 0.18 250)",    // blue
@@ -43,7 +44,6 @@ export function AllocationChart({
 
   return (
     <div className="space-y-4">
-      {/* Current allocation donut */}
       <div>
         <p className="text-xs text-muted-foreground mb-2 text-center">
           Current Allocation
@@ -80,12 +80,11 @@ export function AllocationChart({
         </ResponsiveContainer>
       </div>
 
-      {/* Legend */}
       <div className="space-y-1.5">
         {assets.map((a, i) => (
           <div
             key={a.ticker}
-            className="flex items-center justify-between text-xs"
+            className="flex items-center justify-between text-xs group/legend relative"
           >
             <div className="flex items-center gap-2">
               <div
@@ -108,6 +107,11 @@ export function AllocationChart({
                 / {a.targetPct}%
               </span>
             </div>
+            {a.priceSource === 'manual' && (
+              <div className="absolute -right-32 top-1/2 -translate-y-1/2 px-2 py-1 bg-primary/20 border border-primary/50 rounded-none text-[8px] font-black uppercase tracking-widest text-primary whitespace-nowrap opacity-0 group-hover/legend:opacity-100 transition-opacity pointer-events-none z-50">
+                Manual Override
+              </div>
+            )}
           </div>
         ))}
       </div>
