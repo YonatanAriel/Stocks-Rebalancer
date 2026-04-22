@@ -17,7 +17,7 @@ export default async function HomePage() {
       <div className="mx-auto flex max-w-lg flex-col items-center text-center gap-8">
         <div className="relative">
           <div className="absolute -inset-4 rounded-full bg-primary/20 blur-2xl" />
-          <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl glass glow-primary">
+          <div className="relative flex h-20 w-20 items-center justify-center rounded-none glass glow-primary">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
