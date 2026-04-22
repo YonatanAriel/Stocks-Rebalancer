@@ -300,7 +300,7 @@ export function AssetsList({
                         setShowSearch(false);
                       }
                     }}
-                    className="h-12 w-48 bg-transparent border-0 rounded-none text-[12px] placeholder:text-white/20 px-4"
+                    className="h-12 w-48 bg-transparent border border-primary rounded-none text-[12px] placeholder:text-white/20 px-4"
                     style={{ pointerEvents: 'auto' }}
                   />
                 </div>
