@@ -138,7 +138,8 @@ export function AssetsList({
   showCalculator,
   onToggleCalculator,
   excludedAssets = new Set(),
-  onExcludedAssetsChange
+  onExcludedAssetsChange,
+  onAssetAdded
 }: { 
   portfolioId: string, 
   assets: AssetWithValue[], 
@@ -150,7 +151,8 @@ export function AssetsList({
   showCalculator?: boolean,
   onToggleCalculator?: () => void,
   excludedAssets?: Set<string>,
-  onExcludedAssetsChange?: (excluded: Set<string>) => void
+  onExcludedAssetsChange?: (excluded: Set<string>) => void,
+  onAssetAdded?: (ticker: string, price: number | null, name: string | null) => void
 }) {
   const router = useRouter();
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
@@ -188,7 +190,6 @@ export function AssetsList({
       toast.success("Asset updated");
       setEditingAsset(null);
       setEditManualValue("");
-      router.refresh();
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Update failed");
     }
@@ -198,7 +199,6 @@ export function AssetsList({
     try {
       await deleteAsset(id);
       toast.success("Asset removed");
-      router.refresh();
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Delete failed");
     }
@@ -213,14 +213,17 @@ export function AssetsList({
   async function handleAddAsset() {
     if (!newTicker.trim()) return;
     try {
-      const { name, assetType } = await getAssetPrice(newTicker.trim());
-      await addAsset(portfolioId, newTicker.trim(), parseFloat(newPercentage) || 0, parseFloat(newShares) || 0, name || undefined, assetType || undefined);
+      const { name, price } = await getAssetPrice(newTicker.trim());
+      await addAsset(portfolioId, newTicker.trim(), parseFloat(newPercentage) || 0, parseFloat(newShares) || 0, name || undefined);
+      
+      // Notify parent to update local state immediately
+      onAssetAdded?.(newTicker.trim(), price, name);
+      
       toast.success("Asset added");
       setAddingAsset(false);
       setNewTicker("");
       setNewPercentage("");
       setNewShares("");
-      router.refresh();
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Add failed");
     }

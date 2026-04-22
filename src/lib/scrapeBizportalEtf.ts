@@ -4,7 +4,6 @@ export type BizportalEtfSnapshot = {
   securityId: string;
   sourceUrl: string;
   name: string | null;
-  assetType: string | null;
   asOf: string | null;
   unitValueText: string | null;
   changeText: string | null;
@@ -114,10 +113,9 @@ export async function scrapeBizportalEtf(
   ];
 
   let html = "";
-  let assetType: string | null = null;
   let lastError: Error | null = null;
 
-  for (const { url: sourceUrl, type } of urls) {
+  for (const { url: sourceUrl } of urls) {
     try {
       console.log(`[Bizportal] Fetching: ${sourceUrl}`);
 
@@ -141,8 +139,7 @@ export async function scrapeBizportalEtf(
       }
 
       html = await res.text();
-      assetType = type; // Set the type based on which URL succeeded
-      console.log(`[Bizportal] HTML length: ${html.length} bytes, type: ${type}`);
+      console.log(`[Bizportal] HTML length: ${html.length} bytes`);
       break; // Success, exit loop
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
@@ -212,7 +209,6 @@ export async function scrapeBizportalEtf(
     securityId,
     sourceUrl,
     name,
-    assetType,
     asOf,
     unitValueText,
     changeText,

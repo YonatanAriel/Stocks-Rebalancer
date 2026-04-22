@@ -23,6 +23,7 @@ export function DashboardShell({
   const [loadingPrices, setLoadingPrices] = useState(false);
   const [cashAmount, setCashAmount] = useState("");
   const [showCalculator, setShowCalculator] = useState(false);
+  const [portfolioAssets, setPortfolioAssets] = useState(portfolio.assets);
   const [excludedAssets, setExcludedAssets] = useState<Set<string>>(() => {
     // Initialize from database
     const excluded = new Set<string>();
@@ -115,7 +116,7 @@ export function DashboardShell({
   }, [fetchPrices]);
 
   const assetsWithValues = useMemo(() => {
-    return portfolio.assets.map((asset) => {
+    return portfolioAssets.map((asset) => {
       const price = prices[asset.ticker] ?? null;
       const source = priceSource[asset.ticker] ?? 'scraped';
       // Calculate value from price × shares
@@ -128,7 +129,7 @@ export function DashboardShell({
         priceSource: source,
       } as AssetWithValue & { priceSource: 'manual' | 'scraped' };
     });
-  }, [portfolio.assets, prices, priceSource]);
+  }, [portfolioAssets, prices, priceSource]);
 
   const totalValue = useMemo(() => {
     return assetsWithValues.reduce((sum, asset) => sum + (excludedAssets.has(asset.ticker) ? 0 : (asset.currentValue || 0)), 0);
@@ -153,6 +154,30 @@ export function DashboardShell({
               onToggleCalculator={() => setShowCalculator(!showCalculator)}
               excludedAssets={excludedAssets}
               onExcludedAssetsChange={setExcludedAssets}
+              onAssetAdded={(ticker, price, name) => {
+                // Add new asset to the list immediately
+                const newAsset: any = {
+                  id: `temp-${Date.now()}`, // Temporary ID until refresh
+                  portfolio_id: portfolio.id,
+                  ticker,
+                  name,
+                  target_percentage: 0,
+                  shares_owned: 0,
+                  manual_price_override: null,
+                  manual_price_set_at: null,
+                  is_active: true,
+                };
+                setPortfolioAssets(prev => [...prev, newAsset]);
+                
+                // Update prices
+                if (price) {
+                  setPrices(prev => ({ ...prev, [ticker]: price }));
+                  setPriceSource(prev => ({ ...prev, [ticker]: 'scraped' }));
+                }
+                if (name) {
+                  setNames(prev => ({ ...prev, [ticker]: name }));
+                }
+              }}
             />
           </div>
 

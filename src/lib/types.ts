@@ -3,7 +3,6 @@ export interface Asset {
   portfolio_id: string;
   ticker: string;
   name?: string;
-  asset_type?: string | null;
   target_percentage: number;
   shares_owned: number;
   manual_price_override?: number | null;
