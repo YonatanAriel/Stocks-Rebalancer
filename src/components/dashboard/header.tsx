@@ -34,7 +34,7 @@ export function DashboardHeader({
           <div className="flex items-center gap-4">
             <Scale className="w-10 h-10 text-primary flex-shrink-0" strokeWidth={2} />
             {/* Desktop: Show full branding */}
-            <div className="hidden md:flex flex-col">
+            <div className="hidden mobile:flex flex-col">
               <span className="text-2xl font-black uppercase tracking-[0.4em] text-primary font-heading text-glow">REBALANCER</span>
               <span className="text-[8px] text-muted-foreground uppercase font-black tracking-[0.2em] opacity-40">Quant-Grade Portfolio Terminal</span>
             </div>
@@ -49,9 +49,9 @@ export function DashboardHeader({
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-3 flex-1 md:flex-initial justify-end">
+          <div className="flex items-center gap-3 flex-1 mobile:flex-initial justify-end">
             {/* Mobile: Search bar that expands in available space */}
-            <div className="flex md:hidden items-center flex-1 justify-end gap-2 min-w-0">
+            <div className="flex mobile:hidden items-center flex-1 justify-end gap-2 min-w-0">
               {/* Responsive spacer - small on tiny screens, larger on bigger screens */}
               <div className={`transition-all duration-300 ${searchOpen ? 'w-2 xs:w-4 sm:w-8' : 'flex-1'}`} />
               
@@ -112,7 +112,7 @@ export function DashboardHeader({
             </div>
 
             {/* Desktop: Full buttons */}
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden mobile:flex items-center gap-3">
               <div className="h-8 w-px bg-white/10" />
               <button
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -138,7 +138,7 @@ export function DashboardHeader({
       {/* Mobile Drawer */}
       {drawerOpen && (
         <div 
-          className="fixed inset-0 z-[60] md:hidden"
+          className="fixed inset-0 z-[60] mobile:hidden"
           onClick={() => setDrawerOpen(false)}
         >
           {/* Backdrop */}
