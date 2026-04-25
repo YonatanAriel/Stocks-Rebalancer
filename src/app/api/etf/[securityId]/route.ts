@@ -9,7 +9,12 @@ export async function GET(
   { params }: { params: Promise<{ securityId: string }> }
 ) {
   const { securityId } = await params;
-  console.log(`[API] ETF endpoint called with securityId: ${securityId}`);
+  const startTime = Date.now();
+  console.log(`[API] ========== START REQUEST ==========`);
+  console.log(`[API] securityId: ${securityId}`);
+  console.log(`[API] Environment: ${process.env.VERCEL_ENV || 'local'}`);
+  console.log(`[API] Region: ${process.env.VERCEL_REGION || 'unknown'}`);
+  console.log(`[API] Timestamp: ${new Date().toISOString()}`);
 
   try {
     // Race between scraping and timeout
@@ -20,7 +25,11 @@ export async function GET(
       )
     ]);
     
-    console.log(`[API] Scraping successful, returning data`);
+    const duration = Date.now() - startTime;
+    console.log(`[API] ✓ SUCCESS - Duration: ${duration}ms`);
+    console.log(`[API] Data summary: name=${data.name}, unitValue=${data.unitValueText}`);
+    console.log(`[API] ========== END REQUEST ==========`);
+    
     return NextResponse.json({ ok: true, data }, { 
       status: 200,
       headers: {
@@ -28,12 +37,23 @@ export async function GET(
       }
     });
   } catch (error) {
+    const duration = Date.now() - startTime;
     const errorMsg = error instanceof Error ? error.message : "Unknown error";
-    console.error(`[API] Scraping failed: ${errorMsg}`);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    console.error(`[API] ✗ FAILED - Duration: ${duration}ms`);
+    console.error(`[API] Error: ${errorMsg}`);
+    if (errorStack) {
+      console.error(`[API] Stack: ${errorStack}`);
+    }
+    console.log(`[API] ========== END REQUEST ==========`);
+    
     return NextResponse.json(
       {
         ok: false,
         error: errorMsg,
+        duration,
+        securityId,
       },
       { status: 500 }
     );

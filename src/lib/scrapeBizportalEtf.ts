@@ -106,6 +106,9 @@ function collectLabelValuePairs($: cheerio.CheerioAPI) {
 export async function scrapeBizportalEtf(
   securityId: string
 ): Promise<BizportalEtfSnapshot> {
+  const fetchStartTime = Date.now();
+  console.log(`[Bizportal] ===== SCRAPING START: ${securityId} =====`);
+  
   // Try both ETF and mutual fund URLs
   const urls = [
     { url: `https://www.bizportal.co.il/tradedfund/quote/profile/${securityId}`, type: 'ETF' },
@@ -114,10 +117,12 @@ export async function scrapeBizportalEtf(
 
   let html = "";
   let lastError: Error | null = null;
+  let successUrl = "";
 
-  for (const { url: sourceUrl } of urls) {
+  for (const { url: sourceUrl, type } of urls) {
+    const urlStartTime = Date.now();
     try {
-      console.log(`[Bizportal] Fetching: ${sourceUrl}`);
+      console.log(`[Bizportal] Attempting ${type}: ${sourceUrl}`);
 
       const res = await fetch(sourceUrl, {
         headers: {
@@ -131,42 +136,61 @@ export async function scrapeBizportalEtf(
         cache: "no-store",
       });
 
+      const fetchDuration = Date.now() - urlStartTime;
+      console.log(`[Bizportal] Fetch completed in ${fetchDuration}ms - Status: ${res.status}`);
+
       if (!res.ok) {
-        console.log(`[Bizportal] Request failed with status ${res.status} for ${sourceUrl}`);
+        console.log(`[Bizportal] ✗ ${type} failed with status ${res.status}`);
         lastError = new Error(`Bizportal request failed: ${res.status}`);
         continue;
       }
 
       html = await res.text();
-      console.log(`[Bizportal] HTML length: ${html.length} bytes`);
+      const textDuration = Date.now() - urlStartTime;
+      console.log(`[Bizportal] ✓ ${type} success - HTML: ${html.length} bytes in ${textDuration}ms`);
+      successUrl = sourceUrl;
       break; // Success, exit loop
     } catch (error) {
+      const errorDuration = Date.now() - urlStartTime;
       lastError = error instanceof Error ? error : new Error(String(error));
-      console.log(`[Bizportal] Fetch failed for ${sourceUrl}: ${lastError.message}`);
+      console.error(`[Bizportal] ✗ ${type} exception after ${errorDuration}ms: ${lastError.message}`);
+      if (error instanceof Error && error.stack) {
+        console.error(`[Bizportal] Stack: ${error.stack.split('\n').slice(0, 3).join('\n')}`);
+      }
       continue;
     }
   }
 
   if (!html) {
+    const totalDuration = Date.now() - fetchStartTime;
+    console.error(`[Bizportal] ✗✗✗ ALL URLS FAILED after ${totalDuration}ms`);
+    console.error(`[Bizportal] Last error: ${lastError?.message}`);
     throw lastError || new Error("Failed to fetch from Bizportal");
   }
 
-  const sourceUrl = urls[0].url; // Use first URL for reference
+  console.log(`[Bizportal] Using URL: ${successUrl}`);
+
+  console.log(`[Bizportal] Using URL: ${successUrl}`);
+  const sourceUrl = successUrl || urls[0].url; // Use successful URL or first URL for reference
   const $ = cheerio.load(html);
 
   const rawPairs = collectLabelValuePairs($);
   console.log(`[Bizportal] Collected ${Object.keys(rawPairs).length} label-value pairs`);
-  console.log(`[Bizportal] Raw pairs keys:`, Object.keys(rawPairs).slice(0, 10));
+  if (Object.keys(rawPairs).length > 0) {
+    console.log(`[Bizportal] Sample keys:`, Object.keys(rawPairs).slice(0, 5));
+  } else {
+    console.warn(`[Bizportal] ⚠ WARNING: No label-value pairs found!`);
+  }
 
   const name =
     clean($("h1").first().text()) ||
     clean($("title").text()?.split(" - ")[0]) ||
     null;
-  console.log(`[Bizportal] Name: ${name}`);
+  console.log(`[Bizportal] Name: "${name}"`);
 
   const asOf =
     pickValueNearLabel($, "נכון ל") || rawPairs["נכון ל"] || null;
-  console.log(`[Bizportal] asOf: ${asOf}`);
+  console.log(`[Bizportal] asOf: "${asOf}"`);
 
   const unitValueText =
     (pickValueNearLabel($, "שווי יחידה") !== "--" ? pickValueNearLabel($, "שווי יחידה") : null) ||
@@ -175,34 +199,26 @@ export async function scrapeBizportalEtf(
     (rawPairs["מחיר פדיון"] !== "--" ? rawPairs["מחיר פדיון"] : null) ||
     extractPriceFromRawPairs(rawPairs) ||
     null;
-  console.log(`[Bizportal] unitValueText: ${unitValueText}`);
+  console.log(`[Bizportal] unitValueText: "${unitValueText}"`);
 
   const changeText = pickValueNearLabel($, "שינוי") || null;
-  console.log(`[Bizportal] changeText: ${changeText}`);
-
   const turnoverText =
     pickValueNearLabel($, "תמורה") || rawPairs["תמורה"] || null;
-  console.log(`[Bizportal] turnoverText: ${turnoverText}`);
-
   const monthReturnText =
     pickValueNearLabel($, "% החודש") || rawPairs["% החודש"] || null;
-  console.log(`[Bizportal] monthReturnText: ${monthReturnText}`);
-
   const yearReturnText =
     pickValueNearLabel($, "% השנה") || rawPairs["% השנה"] || null;
-  console.log(`[Bizportal] yearReturnText: ${yearReturnText}`);
-
   const threeMonthReturnText =
     pickValueNearLabel($, "% 3 חודשים") ||
     rawPairs["% 3 חודשים"] ||
     null;
-  console.log(`[Bizportal] threeMonthReturnText: ${threeMonthReturnText}`);
-
   const twelveMonthReturnText =
     pickValueNearLabel($, "% 12 חודשים") ||
     rawPairs["% 12 חודשים"] ||
     null;
-  console.log(`[Bizportal] twelveMonthReturnText: ${twelveMonthReturnText}`);
+
+  const totalDuration = Date.now() - fetchStartTime;
+  console.log(`[Bizportal] ===== SCRAPING COMPLETE: ${totalDuration}ms =====`);
 
   return {
     securityId,
