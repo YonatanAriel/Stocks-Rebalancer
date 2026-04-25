@@ -28,7 +28,7 @@ function PerformanceBar({ label, value, isPositive }: { label: string; value: st
         </span>
       </div>
       {isNum && (
-        <div className="h-1 bg-white/5 border border-white/10 overflow-hidden">
+        <div className="h-1 bg-white/5 border border-border overflow-hidden">
           <div 
             className={`h-full transition-all ${numValue >= 0 ? 'bg-primary' : 'bg-destructive'}`}
             style={{ width: `${barWidth}%` }}
@@ -134,7 +134,7 @@ export function StockDetailModal(props: StockDetailModalProps) {
                 Your Position
               </h3>
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white/[0.02] border border-primary/20 p-4 hover:border-primary/40 transition-colors">
+                <div className="bg-white/[0.02] border border-border p-4 hover:border-primary/40 transition-colors">
                   <div className="text-[9px] uppercase tracking-widest font-black text-muted-foreground mb-2">
                     Shares Owned
                   </div>
@@ -143,7 +143,7 @@ export function StockDetailModal(props: StockDetailModalProps) {
                   </div>
                 </div>
                 
-                <div className="bg-white/[0.02] border border-primary/20 p-4 hover:border-primary/40 transition-colors">
+                <div className="bg-white/[0.02] border border-border p-4 hover:border-primary/40 transition-colors">
                   <div className="text-[9px] uppercase tracking-widest font-black text-muted-foreground mb-2">
                     Current Value
                   </div>
@@ -152,7 +152,7 @@ export function StockDetailModal(props: StockDetailModalProps) {
                   </div>
                 </div>
                 
-                <div className="bg-white/[0.02] border border-primary/20 p-4 hover:border-primary/40 transition-colors">
+                <div className="bg-white/[0.02] border border-border p-4 hover:border-primary/40 transition-colors">
                   <div className="text-[9px] uppercase tracking-widest font-black text-muted-foreground mb-2">
                     Target Allocation
                   </div>
@@ -161,7 +161,7 @@ export function StockDetailModal(props: StockDetailModalProps) {
                   </div>
                 </div>
                 
-                <div className={`bg-white/[0.02] border p-4 hover:border-opacity-40 transition-colors ${Math.abs(deviation) > 2 ? 'border-orange-400/30' : 'border-primary/20'}`}>
+                <div className={`bg-white/[0.02] border p-4 hover:border-opacity-40 transition-colors ${Math.abs(deviation) > 2 ? 'border-orange-400/30' : 'border-border'}`}>
                   <div className="text-[9px] uppercase tracking-widest font-black text-muted-foreground mb-2">
                     Current Allocation
                   </div>
@@ -215,9 +215,9 @@ export function StockDetailModal(props: StockDetailModalProps) {
                 </div>
                 
                 {(detailData.performance.standardDeviation || detailData.performance.sharpeRatio) && (
-                  <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-white/10">
+                  <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-border">
                     {detailData.performance.standardDeviation && detailData.performance.standardDeviation !== '--' && (
-                      <div className="bg-white/[0.02] border border-primary/20 p-4 hover:border-primary/40 transition-colors">
+                      <div className="bg-white/[0.02] border border-border p-4 hover:border-primary/40 transition-colors">
                         <div className="text-[9px] uppercase tracking-widest font-black text-muted-foreground mb-2">
                           Std Deviation (Volatility)
                         </div>
@@ -225,7 +225,7 @@ export function StockDetailModal(props: StockDetailModalProps) {
                       </div>
                     )}
                     {detailData.performance.sharpeRatio && detailData.performance.sharpeRatio !== '--' && (
-                      <div className="bg-white/[0.02] border border-primary/20 p-4 hover:border-primary/40 transition-colors">
+                      <div className="bg-white/[0.02] border border-border p-4 hover:border-primary/40 transition-colors">
                         <div className="text-[9px] uppercase tracking-widest font-black text-muted-foreground mb-2">Sharpe Ratio</div>
                         <div className="text-lg font-black font-mono text-foreground">{detailData.performance.sharpeRatio}</div>
                       </div>
@@ -245,25 +245,25 @@ export function StockDetailModal(props: StockDetailModalProps) {
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   {detailData.overview.marketCap && (
-                    <div className="bg-white/[0.02] border border-primary/20 p-4 hover:border-primary/40 transition-colors">
+                    <div className="bg-white/[0.02] border border-border p-4 hover:border-primary/40 transition-colors">
                       <div className="text-[9px] uppercase tracking-widest font-black text-muted-foreground mb-2">Market Cap</div>
                       <div className="text-lg font-black font-mono text-foreground">{detailData.overview.marketCap}</div>
                     </div>
                   )}
                   {detailData.overview.volume && (
-                    <div className="bg-white/[0.02] border border-primary/20 p-4 hover:border-primary/40 transition-colors">
+                    <div className="bg-white/[0.02] border border-border p-4 hover:border-primary/40 transition-colors">
                       <div className="text-[9px] uppercase tracking-widest font-black text-muted-foreground mb-2">Volume</div>
                       <div className="text-lg font-black font-mono text-foreground">{detailData.overview.volume}</div>
                     </div>
                   )}
                   {detailData.overview.high52Week && (
-                    <div className="bg-white/[0.02] border border-primary/20 p-4 hover:border-primary/40 transition-colors">
+                    <div className="bg-white/[0.02] border border-border p-4 hover:border-primary/40 transition-colors">
                       <div className="text-[9px] uppercase tracking-widest font-black text-muted-foreground mb-2">52W High</div>
                       <div className="text-lg font-black font-mono text-primary">₪{detailData.overview.high52Week.toFixed(2)}</div>
                     </div>
                   )}
                   {detailData.overview.low52Week && (
-                    <div className="bg-white/[0.02] border border-primary/20 p-4 hover:border-primary/40 transition-colors">
+                    <div className="bg-white/[0.02] border border-border p-4 hover:border-primary/40 transition-colors">
                       <div className="text-[9px] uppercase tracking-widest font-black text-muted-foreground mb-2">52W Low</div>
                       <div className="text-lg font-black font-mono text-destructive">₪{detailData.overview.low52Week.toFixed(2)}</div>
                     </div>
@@ -279,25 +279,25 @@ export function StockDetailModal(props: StockDetailModalProps) {
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   {detailData.fund.aum && (
-                    <div className="bg-white/[0.02] border border-primary/20 p-4 hover:border-primary/40 transition-colors">
+                    <div className="bg-white/[0.02] border border-border p-4 hover:border-primary/40 transition-colors">
                       <div className="text-[9px] uppercase tracking-widest font-black text-muted-foreground mb-2">AUM</div>
                       <div className="text-lg font-black font-mono text-foreground">{detailData.fund.aum}</div>
                     </div>
                   )}
                   {detailData.fund.fees && (
-                    <div className="bg-white/[0.02] border border-primary/20 p-4 hover:border-primary/40 transition-colors">
+                    <div className="bg-white/[0.02] border border-border p-4 hover:border-primary/40 transition-colors">
                       <div className="text-[9px] uppercase tracking-widest font-black text-muted-foreground mb-2">Fees</div>
                       <div className="text-lg font-black font-mono text-foreground">{detailData.fund.fees}</div>
                     </div>
                   )}
                   {detailData.fund.inceptionDate && (
-                    <div className="bg-white/[0.02] border border-primary/20 p-4 hover:border-primary/40 transition-colors">
+                    <div className="bg-white/[0.02] border border-border p-4 hover:border-primary/40 transition-colors">
                       <div className="text-[9px] uppercase tracking-widest font-black text-muted-foreground mb-2">Inception</div>
                       <div className="text-lg font-black font-mono text-foreground">{detailData.fund.inceptionDate}</div>
                     </div>
                   )}
                   {detailData.fund.custodian && (
-                    <div className="bg-white/[0.02] border border-primary/20 p-4 hover:border-primary/40 transition-colors">
+                    <div className="bg-white/[0.02] border border-border p-4 hover:border-primary/40 transition-colors">
                       <div className="text-[9px] uppercase tracking-widest font-black text-muted-foreground mb-2">Custodian</div>
                       <div className="text-lg font-black font-mono text-foreground">{detailData.fund.custodian}</div>
                     </div>

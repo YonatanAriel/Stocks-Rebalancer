@@ -247,8 +247,8 @@ export function DashboardShell({
 
           {/* Hide allocation chart on mobile (below 995px) */}
           <div className="hidden portfolio:flex min-h-0 flex-col overflow-hidden">
-            <Card className="bg-background/40 border-white/10 rounded-none shadow-xl border-t-4 border-primary backdrop-blur-xl flex flex-col h-full overflow-hidden">
-            <CardHeader className="flex-shrink-0 p-6 border-b border-white/5 bg-white/[0.01]">
+            <Card className="bg-background/40 border-border rounded-none shadow-xl border-t-4 border-primary backdrop-blur-xl flex flex-col h-full overflow-hidden">
+            <CardHeader className="flex-shrink-0 p-6 border-b border-border bg-white/[0.01]">
               <CardTitle className="text-sm font-black uppercase tracking-widest text-primary font-heading">Target Allocation</CardTitle>
             </CardHeader>
             <CardContent className="flex-1 overflow-y-auto custom-scrollbar p-6">
@@ -273,14 +273,14 @@ export function DashboardShell({
           setShowCalculator(false);
           updateURL({ calculator: null });
         }}>
-          <div className="max-w-5xl bg-background border-white/10 rounded-none max-h-[90vh] overflow-y-auto custom-scrollbar touch-pan-y p-0 w-full mx-4 pointer-events-auto relative" 
+          <div className="max-w-5xl bg-background border-border rounded-none max-h-[90vh] overflow-y-auto custom-scrollbar touch-pan-y p-0 w-full mx-4 pointer-events-auto relative" 
             onClick={(e) => e.stopPropagation()}
             style={{
               WebkitOverflowScrolling: 'touch',
               overscrollBehavior: 'contain'
             }}
           >
-            <div className="sticky top-0 bg-background border-b border-white/10 p-8 flex items-start justify-between gap-8 z-10">
+            <div className="sticky top-0 bg-background border-b border-border p-8 flex items-start justify-between gap-8 z-10">
               <div className="flex-1">
                 <h2 className="text-xl font-black uppercase tracking-[0.4em] text-primary">System Rebalance</h2>
                 <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">
@@ -291,7 +291,7 @@ export function DashboardShell({
                 <button
                   onClick={fetchPrices}
                   disabled={loadingPrices}
-                  className="rounded-none text-[10px] uppercase font-black tracking-widest border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all h-10 px-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+                  className="rounded-none text-[10px] uppercase font-black tracking-widest border border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all h-10 px-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
                   title="Refresh prices (Alt+R)"
                 >
                   <svg className={`h-4 w-4 ${loadingPrices ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -304,7 +304,7 @@ export function DashboardShell({
                     setShowCalculator(false);
                     updateURL({ calculator: null });
                   }}
-                  className="rounded-none border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all h-10 w-10 cursor-pointer flex items-center justify-center flex-shrink-0"
+                  className="rounded-none border border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all h-10 w-10 cursor-pointer flex items-center justify-center flex-shrink-0"
                   style={{ pointerEvents: 'auto' }}
                 >
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -337,14 +337,14 @@ export function DashboardShell({
       {/* Allocation Chart Modal (for mobile) */}
       {showAllocation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm pointer-events-auto" onClick={() => setShowAllocation(false)}>
-          <div className="max-w-2xl w-full bg-background border border-white/20 rounded-none max-h-[90vh] overflow-y-auto custom-scrollbar touch-pan-y mx-4 pointer-events-auto" 
+          <div className="max-w-2xl w-full bg-background border border-border rounded-none max-h-[90vh] overflow-y-auto custom-scrollbar touch-pan-y mx-4 pointer-events-auto" 
             onClick={(e) => e.stopPropagation()}
             style={{
               WebkitOverflowScrolling: 'touch',
               overscrollBehavior: 'contain'
             }}
           >
-            <div className="sticky top-0 bg-background border-b border-white/10 p-6 flex items-center justify-between z-10">
+            <div className="sticky top-0 bg-background border-b border-border p-6 flex items-center justify-between z-10">
               <div>
                 <h2 className="text-xl font-black uppercase tracking-[0.3em] text-primary font-heading">Target Allocation</h2>
                 <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground opacity-60">
@@ -353,7 +353,7 @@ export function DashboardShell({
               </div>
               <button
                 onClick={() => setShowAllocation(false)}
-                className="rounded-none border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all h-10 w-10 cursor-pointer flex items-center justify-center flex-shrink-0"
+                className="rounded-none border border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all h-10 w-10 cursor-pointer flex items-center justify-center flex-shrink-0"
                 style={{ pointerEvents: 'auto' }}
               >
                 <X className="h-5 w-5" />
