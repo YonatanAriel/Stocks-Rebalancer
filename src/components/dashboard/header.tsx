@@ -30,7 +30,7 @@ export function DashboardHeader({
     <>
       <header className="sticky top-0 z-50 glass border-b border-white/10 bg-background/80 backdrop-blur-2xl">
         <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-6">
-          {/* Left: Logo */}
+          {/* Left: Logo + Global Terminal grouped together */}
           <div className="flex items-center gap-4">
             <Scale className="w-10 h-10 text-primary flex-shrink-0" strokeWidth={2} />
             {/* Desktop: Show full branding */}
@@ -38,13 +38,13 @@ export function DashboardHeader({
               <span className="text-2xl font-black uppercase tracking-[0.4em] text-primary font-heading text-glow">REBALANCER</span>
               <span className="text-[8px] text-muted-foreground uppercase font-black tracking-[0.2em] opacity-40">Quant-Grade Portfolio Terminal</span>
             </div>
-          </div>
-
-          {/* Desktop: Global Terminal */}
-          <div className="hidden lg:flex items-center gap-10">
-            <div className="h-8 w-px bg-white/10" />
-            <div className="flex flex-col">
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary font-heading text-glow">Global Terminal</span>
+            
+            {/* Desktop: Global Terminal - now part of left group */}
+            <div className="hidden lg:flex items-center gap-8">
+              <div className=" ml-1 h-8 w-px bg-white/10" />
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary font-heading text-glow">Global Terminal</span>
+              </div>
             </div>
           </div>
 
