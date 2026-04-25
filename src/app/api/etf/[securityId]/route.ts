@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { scrapeBizportalEtf } from "@/lib/scrapeBizportalEtf";
 
+// 8-second timeout to stay under Vercel's 10s limit
+const SCRAPING_TIMEOUT = 8000;
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ securityId: string }> }
@@ -9,7 +12,14 @@ export async function GET(
   console.log(`[API] ETF endpoint called with securityId: ${securityId}`);
 
   try {
-    const data = await scrapeBizportalEtf(securityId);
+    // Race between scraping and timeout
+    const data = await Promise.race([
+      scrapeBizportalEtf(securityId),
+      new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Scraping timeout after 8 seconds')), SCRAPING_TIMEOUT)
+      )
+    ]);
+    
     console.log(`[API] Scraping successful, returning data`);
     return NextResponse.json({ ok: true, data }, { 
       status: 200,

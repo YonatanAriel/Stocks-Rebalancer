@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { getAssetPrice } from "@/actions/finance";
+import { getAssetPrice, fetchPricesInParallel } from "@/actions/finance";
 import { DashboardHeader } from "@/components/dashboard/header";
 import { AssetsList } from "@/components/dashboard/assets-list";
 import { RebalanceCalculator } from "@/components/dashboard/rebalance-calculator";
@@ -63,31 +63,41 @@ export function DashboardShell({
     setPriceSource(initialSource);
   }, [portfolio.assets]);
 
-  // Fetch all prices on mount with sequential requests to avoid rate limiting
+  // Fetch all prices on mount with parallel requests
   const fetchPrices = useCallback(async () => {
     setLoadingPrices(true);
 
-    // Fetch prices sequentially with delay to avoid rate limiting
-    for (const asset of portfolio.assets) {
-      try {
-        const data = await getAssetPrice(asset.ticker);
+    try {
+      // Extract all tickers
+      const tickers = portfolioAssets.map(asset => asset.ticker);
+      
+      // Fetch all prices in parallel with concurrency limit
+      const results = await fetchPricesInParallel(tickers);
+      
+      // Update state with all results at once
+      const newPrices: PriceMap = {};
+      const newPriceSource: Record<string, 'manual' | 'scraped'> = {};
+      const newNames: Record<string, string> = {};
+      
+      Object.entries(results).forEach(([ticker, data]) => {
         if (data.price) {
-          // Update prices incrementally as each response arrives
-          setPrices(prev => ({ ...prev, [asset.ticker]: data.price }));
-          setPriceSource(prev => ({ ...prev, [asset.ticker]: data.isManual ? 'manual' : 'scraped' }));
+          newPrices[ticker] = data.price;
+          newPriceSource[ticker] = data.isManual ? 'manual' : 'scraped';
         }
         if (data.name) {
-          setNames(prev => ({ ...prev, [asset.ticker]: data.name as string }));
+          newNames[ticker] = data.name;
         }
-        // Add delay between requests (already 300ms in getAssetPrice, but add extra for safety)
-        await new Promise(resolve => setTimeout(resolve, 200));
-      } catch (e) {
-        console.error(`Failed to fetch price for ${asset.ticker}`, e);
-      }
+      });
+      
+      setPrices(prev => ({ ...prev, ...newPrices }));
+      setPriceSource(prev => ({ ...prev, ...newPriceSource }));
+      setNames(prev => ({ ...prev, ...newNames }));
+    } catch (e) {
+      console.error('Failed to fetch prices', e);
+    } finally {
+      setLoadingPrices(false);
     }
-
-    setLoadingPrices(false);
-  }, []); // Remove portfolio.assets from dependencies
+  }, []); // Empty deps - use portfolioAssets from state
 
   useEffect(() => {
     fetchPrices();

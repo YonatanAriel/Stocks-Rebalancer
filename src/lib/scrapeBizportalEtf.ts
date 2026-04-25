@@ -53,13 +53,13 @@ function pickValueNearLabel($: cheerio.CheerioAPI, label: string) {
 
 function extractPriceFromRawPairs(rawPairs: Record<string, string>): string | null {
   // Look for keys that contain the price pattern (number with optional comma)
-  // The price is typically in a key like "ISHARES CORE S&P 500 UCITS ETF 228,2500.58%שווי יחידה-- נכון ל"
+  // The price is typically in a key like "ISHARES CORE S&P 500 UCITS ETF 228,750-0.58%שווי יחידה-- נכון ל"
   console.log(`[Bizportal] Searching for price in ${Object.keys(rawPairs).length} raw pairs`);
   
   for (const key of Object.keys(rawPairs)) {
-    // Match pattern: number with commas followed by optional decimals, then % and Hebrew text
-    // e.g., "15,4200.46%" or "228,2500.58%"
-    const match = key.match(/(\d{1,3}(?:,\d{3})*)\d*\.?\d*%/);
+    // Match pattern: number with commas and optional decimals, followed by minus/plus and percentage
+    // e.g., "228,750-0.58%" or "34,050-0.73%"
+    const match = key.match(/(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[+-]?\d*\.?\d*%/);
     if (match) {
       console.log(`[Bizportal] Found price in key: "${key.substring(0, 80)}" -> "${match[1]}"`);
       return match[1];
@@ -129,7 +129,6 @@ export async function scrapeBizportalEtf(
           referer: "https://www.bizportal.co.il/",
         },
         cache: "no-store",
-        timeout: 10000, // 10 second timeout
       });
 
       if (!res.ok) {

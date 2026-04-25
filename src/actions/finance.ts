@@ -6,6 +6,25 @@ import { createClient } from '@/utils/supabase/server'
 // yahoo-finance2 v3 requires instantiation
 const yf = new YahooFinance()
 
+// Request timeout constant (8 seconds to stay under Vercel's 10s limit)
+const REQUEST_TIMEOUT = 8000;
+
+// Helper function to create a timeout promise
+function createTimeout(ms: number): Promise<never> {
+  return new Promise((_, reject) => 
+    setTimeout(() => reject(new Error('Request timeout')), ms)
+  );
+}
+
+// Helper function to chunk array for parallel processing
+function chunkArray<T>(array: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
+
 async function getUsdIlsRate(): Promise<number> {
   try {
     const quote = await yf.quote('ILS=X');
@@ -72,9 +91,8 @@ async function getPriceFromBizportal(ticker: string): Promise<{ price: number | 
     const url = `${baseUrl}/api/etf/${ticker}`;
     console.log(`[Finance] Bizportal URL: ${url}`);
     
-    const response = await fetch(url, {
-      cache: 'no-store'
-    });
+    // Fetch without timeout here - timeout is handled at API route level
+    const response = await fetch(url, { cache: 'no-store' });
     
     console.log(`[Finance] Response status: ${response.status}`);
     console.log(`[Finance] Response headers:`, {
@@ -231,10 +249,7 @@ export async function getAssetPrice(ticker: string): Promise<{ price: number | n
       console.log(`[Finance] Could not check manual override:`, dbError);
     }
     
-    // 2. Add delay to prevent rate limiting (stagger requests)
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // 3. Handle Israeli numeric tickers with Bizportal
+    // 2. Handle Israeli numeric tickers with Bizportal
     if (/^\d{6,8}$/.test(ticker)) {
       const bizResult = await getPriceFromBizportal(ticker);
       if (bizResult.price) {
@@ -242,7 +257,7 @@ export async function getAssetPrice(ticker: string): Promise<{ price: number | n
       }
     }
 
-    // 4. Try Google Finance for international stocks
+    // 3. Try Google Finance for international stocks
     const gfResult = await getPriceFromGoogleFinance(ticker);
     if (gfResult.price) {
       let price = gfResult.price;
@@ -259,7 +274,7 @@ export async function getAssetPrice(ticker: string): Promise<{ price: number | n
       return { price, name: gfResult.name, isManual: false };
     }
 
-    // 5. Fallback to Yahoo Finance
+    // 4. Fallback to Yahoo Finance
     let quote;
     try {
       quote = await yf.quote(ticker);
@@ -297,3 +312,57 @@ export async function getAssetPrice(ticker: string): Promise<{ price: number | n
   }
 }
 
+
+
+// Parallel price fetching with concurrency limit
+const CONCURRENT_REQUESTS = 3;
+
+export async function fetchPricesInParallel(
+  tickers: string[]
+): Promise<Record<string, { price: number | null; name: string | null; isManual?: boolean; error?: string }>> {
+  const results: Record<string, { price: number | null; name: string | null; isManual?: boolean; error?: string }> = {};
+  
+  // Split tickers into chunks for parallel processing
+  const chunks = chunkArray(tickers, CONCURRENT_REQUESTS);
+  
+  console.log(`[Finance] Fetching ${tickers.length} prices in ${chunks.length} batches of ${CONCURRENT_REQUESTS}`);
+  
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
+    
+    // Fetch chunk in parallel using Promise.allSettled
+    const promises = chunk.map(ticker => 
+      getAssetPrice(ticker)
+        .then(result => ({ ticker, result }))
+        .catch(error => ({ 
+          ticker, 
+          result: { 
+            price: null, 
+            name: null, 
+            error: error.message,
+            isManual: false 
+          } 
+        }))
+    );
+    
+    const chunkResults = await Promise.allSettled(promises);
+    
+    // Process results
+    chunkResults.forEach(promiseResult => {
+      if (promiseResult.status === 'fulfilled') {
+        const { ticker, result } = promiseResult.value;
+        results[ticker] = result;
+      } else {
+        console.error(`[Finance] Unexpected error in parallel fetch:`, promiseResult.reason);
+      }
+    });
+    
+    // Add small delay between batches (except for last batch)
+    if (i < chunks.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  }
+  
+  console.log(`[Finance] Completed fetching ${tickers.length} prices`);
+  return results;
+}
