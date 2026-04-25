@@ -16,6 +16,7 @@ import type { AssetWithValue, Asset } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Pencil, X, RefreshCw } from "lucide-react";
 import { getAssetPrice } from "@/actions/finance";
+import { StockDetailModal } from "@/components/stock-detail-modal";
 
 function AssetRow({ 
   asset, 
@@ -24,7 +25,8 @@ function AssetRow({
   onEdit, 
   onDelete,
   isExcluded,
-  onToggleExclude
+  onToggleExclude,
+  onAssetClick
 }: { 
   asset: AssetWithValue & { priceSource?: 'manual' | 'scraped' }, 
   name?: string,
@@ -32,7 +34,8 @@ function AssetRow({
   onEdit: (a: Asset) => void,
   onDelete: (id: string) => void,
   isExcluded?: boolean,
-  onToggleExclude?: () => void
+  onToggleExclude?: () => void,
+  onAssetClick?: (asset: AssetWithValue) => void
 }) {
   const currentPct = totalValue > 0 ? ((asset.currentValue || 0) / totalValue) * 100 : 0;
   const diff = currentPct - asset.target_percentage;
@@ -48,7 +51,13 @@ function AssetRow({
 
   return (
     <div className={`grid grid-cols-[1fr_100px_120px_100px_120px_60px_50px] gap-6 items-center p-6 bg-background/50 hover:bg-primary/[0.03] transition-all group border-b border-white/5 last:border-0 ${isExcluded ? 'opacity-50' : ''} relative`}>
-      <div className="flex flex-col min-w-0">
+      <div 
+        className="flex flex-col min-w-0 cursor-pointer"
+        onClick={(e) => {
+          e.stopPropagation();
+          onAssetClick?.(asset);
+        }}
+      >
         <span className={`text-base font-black uppercase tracking-tight truncate text-foreground group-hover:text-primary transition-colors font-heading ${isExcluded ? 'line-through' : ''}`}>{asset.ticker}</span>
         <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest truncate opacity-50">{name || "NO METADATA"}</span>
       </div>
@@ -160,6 +169,7 @@ export function AssetsList({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showSearch, setShowSearch] = useState(false);
   const [searchClicked, setSearchClicked] = useState(false);
+  const [selectedAsset, setSelectedAsset] = useState<AssetWithValue | null>(null);
   
   // Refs for auto-focus
   const editPercentageRef = useRef<HTMLInputElement>(null);
@@ -456,6 +466,7 @@ export function AssetsList({
                     onExcludedAssetsChange?.(excludedAssets);
                   }
                 }}
+                onAssetClick={(asset) => setSelectedAsset(asset)}
               />
             ))}
           </div>
@@ -635,6 +646,14 @@ export function AssetsList({
           </div>
         </div>
       )}
+      
+      <StockDetailModal
+        asset={selectedAsset}
+        isOpen={!!selectedAsset}
+        onClose={() => setSelectedAsset(null)}
+        totalValue={totalValue}
+        assetName={selectedAsset ? names[selectedAsset.ticker] : undefined}
+      />
     </>
   );
 }

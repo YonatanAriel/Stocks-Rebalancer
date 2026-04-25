@@ -26,3 +26,39 @@ export interface AssetWithValue extends Asset {
 export interface PriceMap {
   [ticker: string]: number | null;
 }
+
+export interface StockDetail {
+  ticker: string;
+  name: string;
+  price: number;
+  change?: number;
+  changePercent?: number;
+  lastUpdated?: string;
+  
+  overview?: {
+    marketCap?: string;
+    volume?: string;
+    avgVolume?: string;
+    high52Week?: number;
+    low52Week?: number;
+    beta?: number;
+    peRatio?: number;
+    dividendYield?: number;
+  };
+  
+  performance?: {
+    oneMonth?: string;
+    threeMonth?: string;
+    ytd?: string;
+    oneYear?: string;
+    standardDeviation?: string;
+    sharpeRatio?: string;
+  };
+  
+  fund?: {
+    aum?: string;
+    fees?: string;
+    inceptionDate?: string;
+    custodian?: string;
+  };
+}
