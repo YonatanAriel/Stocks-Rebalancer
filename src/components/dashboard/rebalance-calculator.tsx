@@ -143,6 +143,11 @@ export function RebalanceCalculator({
   isRefreshing?: boolean;
 }) {
   const [expandedOption, setExpandedOption] = React.useState<'A' | 'B' | null>(null);
+  const cashInputRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    setTimeout(() => cashInputRef.current?.focus(), 100);
+  }, []);
 
   const effectiveAssetsWithValues = assetsWithValues.map(a => {
     const override = priceOverrides[a.ticker];
@@ -170,6 +175,7 @@ export function RebalanceCalculator({
         <div className="flex-shrink-0 space-y-4 p-8 bg-primary/5 border-l-4 border-primary">
           <Label className="text-sm uppercase tracking-[0.3em] font-black text-primary font-heading">01. Capital Injection (₪)</Label>
           <Input
+            ref={cashInputRef}
             placeholder="5,000"
             value={cashAmount ? Number(cashAmount).toLocaleString() : ""}
             onChange={(e) => {

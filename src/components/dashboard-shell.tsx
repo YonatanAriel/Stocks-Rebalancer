@@ -206,12 +206,8 @@ export function DashboardShell({
                     currentPct: totalValue > 0 && a.currentValue ? (a.currentValue / totalValue) * 100 : 0,
                     priceSource: a.priceSource,
                   }))}
+                isLoading={loadingPrices}
               />
-              {loadingPrices && (
-                <div className="mt-4 text-center text-[9px] uppercase font-black tracking-widest text-primary animate-pulse">
-                  Updating prices...
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>

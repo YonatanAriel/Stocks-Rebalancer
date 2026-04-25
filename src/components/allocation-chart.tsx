@@ -7,6 +7,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
+import { SpicyLoadingSpinner } from "./spicy-loading-spinner";
 
 interface AssetAllocation {
   ticker: string;
@@ -16,20 +17,27 @@ interface AssetAllocation {
 }
 
 const COLORS = [
-  "oklch(0.75 0.2 145)",    // green (primary)
-  "oklch(0.7 0.15 200)",    // teal
-  "oklch(0.75 0.18 180)",   // cyan
-  "oklch(0.75 0.15 60)",    // amber
-  "oklch(0.65 0.2 25)",     // red
-  "oklch(0.7 0.18 250)",    // blue
-  "oklch(0.7 0.18 330)",    // pink
+  "oklch(0.75 0.2 145)",
+  "oklch(0.7 0.15 200)",
+  "oklch(0.75 0.18 180)",
+  "oklch(0.75 0.15 60)",
+  "oklch(0.65 0.2 25)",
+  "oklch(0.7 0.18 250)",
+  "oklch(0.7 0.18 330)",
 ];
 
 export function AllocationChart({
   assets,
+  isLoading = false,
 }: {
   assets: AssetAllocation[];
+  isLoading?: boolean;
 }) {
+  // Show loading spinner while data is being fetched
+  if (isLoading) {
+    return <SpicyLoadingSpinner />;
+  }
+
   // Handle empty assets
   if (!assets || assets.length === 0) {
     return (
