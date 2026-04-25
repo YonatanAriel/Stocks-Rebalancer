@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createPortfolio, addAsset } from "@/actions/portfolio";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,7 @@ interface AssetRow {
 
 export function SetupWizard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState(1);
   const [portfolioName, setPortfolioName] = useState("My Portfolio");
   const [assets, setAssets] = useState<AssetRow[]>([
@@ -38,6 +39,30 @@ export function SetupWizard() {
   ]);
   const [loading, setLoading] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+  const updateURL = (params: Record<string, string | null>) => {
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    Object.entries(params).forEach(([key, value]) => {
+      if (value === null) {
+        current.delete(key);
+      } else {
+        current.set(key, value);
+      }
+    });
+    const search = current.toString();
+    const query = search ? `?${search}` : '';
+    router.push(`${window.location.pathname}${query}`, { scroll: false });
+  };
+
+  useEffect(() => {
+    const stepParam = searchParams.get('step');
+    if (stepParam) {
+      const stepNum = parseInt(stepParam, 10);
+      if (stepNum >= 1 && stepNum <= 2) {
+        setStep(stepNum);
+      }
+    }
+  }, [searchParams]);
 
   function addRow() {
     setAssets([
@@ -150,7 +175,10 @@ export function SetupWizard() {
                   placeholder="e.g., Retirement Fund"
                 />
               </div>
-              <Button onClick={() => setStep(2)} className="w-full h-10">
+              <Button onClick={() => {
+                setStep(2);
+                updateURL({ step: '2' });
+              }} className="w-full h-10">
                 Continue
               </Button>
             </CardContent>
@@ -245,7 +273,10 @@ export function SetupWizard() {
               <div className="flex gap-3">
                 <Button
                   variant="ghost"
-                  onClick={() => setStep(1)}
+                  onClick={() => {
+                    setStep(1);
+                    updateURL({ step: '1' });
+                  }}
                   className="flex-1"
                 >
                   Back

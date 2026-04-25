@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getAssetPrice, fetchPricesInParallel } from "@/actions/finance";
 import { DashboardHeader } from "@/components/dashboard/header";
 import { AssetsList } from "@/components/dashboard/assets-list";
@@ -16,6 +17,8 @@ export function DashboardShell({
   portfolio: Portfolio;
   userEmail: string;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [prices, setPrices] = useState<PriceMap>({});
   const [priceSource, setPriceSource] = useState<Record<string, 'manual' | 'scraped'>>({});
   const [names, setNames] = useState<Record<string, string>>({});
@@ -34,6 +37,29 @@ export function DashboardShell({
     });
     return excluded;
   });
+
+  // Helper function for URL management
+  const updateURL = (params: Record<string, string | null>) => {
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    Object.entries(params).forEach(([key, value]) => {
+      if (value === null) {
+        current.delete(key);
+      } else {
+        current.set(key, value);
+      }
+    });
+    const search = current.toString();
+    const query = search ? `?${search}` : '';
+    router.push(`${window.location.pathname}${query}`, { scroll: false });
+  };
+
+  // Sync URL params with calculator state
+  useEffect(() => {
+    const calculator = searchParams.get('calculator');
+    if (calculator === 'open') {
+      setShowCalculator(true);
+    }
+  }, [searchParams]);
 
   // Initialize names from portfolio data if available
   useEffect(() => {
@@ -114,6 +140,7 @@ export function DashboardShell({
       if (e.altKey && e.key.toLowerCase() === 'c') {
         e.preventDefault();
         setShowCalculator(true);
+        updateURL({ calculator: 'open' });
       }
       // Add Asset: Alt + A
       if (e.altKey && e.key.toLowerCase() === 'a') {
@@ -161,7 +188,11 @@ export function DashboardShell({
               loadingPrices={loadingPrices}
               onRefresh={fetchPrices}
               showCalculator={showCalculator}
-              onToggleCalculator={() => setShowCalculator(!showCalculator)}
+              onToggleCalculator={() => {
+                const newState = !showCalculator;
+                setShowCalculator(newState);
+                updateURL({ calculator: newState ? 'open' : null });
+              }}
               excludedAssets={excludedAssets}
               onExcludedAssetsChange={setExcludedAssets}
               onAssetAdded={(ticker, price, name) => {
@@ -217,7 +248,10 @@ export function DashboardShell({
       </div>
 
       {showCalculator && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm pointer-events-auto" onClick={() => setShowCalculator(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm pointer-events-auto" onClick={() => {
+          setShowCalculator(false);
+          updateURL({ calculator: null });
+        }}>
           <div className="max-w-5xl bg-background border-white/10 rounded-none max-h-[90vh] overflow-y-auto custom-scrollbar p-0 w-full mx-4 pointer-events-auto relative" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 bg-background border-b border-white/10 p-8 flex items-start justify-between gap-8 z-10">
               <div className="flex-1">
@@ -239,7 +273,10 @@ export function DashboardShell({
                   Refresh Prices
                 </button>
                 <button
-                  onClick={() => setShowCalculator(false)}
+                  onClick={() => {
+                    setShowCalculator(false);
+                    updateURL({ calculator: null });
+                  }}
                   className="rounded-none border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all h-10 w-10 cursor-pointer flex items-center justify-center flex-shrink-0"
                   style={{ pointerEvents: 'auto' }}
                 >

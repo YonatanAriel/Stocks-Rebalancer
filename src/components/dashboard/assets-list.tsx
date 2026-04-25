@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { updateAsset, deleteAsset, addAsset, toggleAssetActive } from "@/actions/portfolio";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -161,6 +161,7 @@ export function AssetsList({
   onAssetDeleted?: (id: string) => void
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [editShares, setEditShares] = useState("");
   const [editPercentage, setEditPercentage] = useState("");
@@ -181,6 +182,46 @@ export function AssetsList({
   const editPercentageRef = useRef<HTMLInputElement>(null);
   const newTickerRef = useRef<HTMLInputElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Helper functions for URL management
+  const updateURL = (params: Record<string, string | null>) => {
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    Object.entries(params).forEach(([key, value]) => {
+      if (value === null) {
+        current.delete(key);
+      } else {
+        current.set(key, value);
+      }
+    });
+    const search = current.toString();
+    const query = search ? `?${search}` : '';
+    router.push(`${window.location.pathname}${query}`, { scroll: false });
+  };
+
+  // Sync URL params with modal state
+  useEffect(() => {
+    const modal = searchParams.get('modal');
+    const assetId = searchParams.get('assetId');
+    const ticker = searchParams.get('ticker');
+
+    if (modal === 'detail' && ticker) {
+      const asset = assets.find(a => a.ticker === ticker);
+      if (asset) setSelectedAsset(asset);
+    } else if (modal === 'edit' && assetId) {
+      const asset = assets.find(a => a.id === assetId);
+      if (asset) {
+        setEditingAsset(asset);
+        setEditShares(String(asset.shares_owned));
+        setEditPercentage(String(asset.target_percentage));
+        const manualValue = asset.manual_price_override && asset.manual_price_set_at 
+          ? asset.manual_price_override * asset.shares_owned 
+          : null;
+        setEditManualValue(manualValue ? String(manualValue) : "");
+      }
+    } else if (modal === 'add') {
+      setAddingAsset(true);
+    }
+  }, [searchParams, assets]);
 
   async function handleUpdateAsset() {
     if (!editingAsset) return;
@@ -208,6 +249,7 @@ export function AssetsList({
       toast.success("Asset updated");
       setEditingAsset(null);
       setEditManualValue("");
+      updateURL({ modal: null, assetId: null });
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Update failed");
     }
@@ -269,6 +311,7 @@ export function AssetsList({
       setNewTicker("");
       setNewPercentage("");
       setNewShares("");
+      updateURL({ modal: null });
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Add failed");
     }
@@ -402,6 +445,7 @@ export function AssetsList({
                   e.preventDefault();
                   e.stopPropagation();
                   setAddingAsset(true);
+                  updateURL({ modal: 'add' });
                 }}
                 className="rounded-none h-12 px-6 text-[12px] font-black uppercase tracking-widest hover:bg-white/10 transition-all border-l-2 border-white/10 cursor-pointer"
                 style={{ pointerEvents: 'auto' }}
@@ -453,6 +497,7 @@ export function AssetsList({
                     ? a.manual_price_override * a.shares_owned 
                     : null;
                   setEditManualValue(manualValue ? String(manualValue) : "");
+                  updateURL({ modal: 'edit', assetId: a.id });
                 }}
                 onDelete={handleDeleteAsset}
                 onDeleteClick={(id, ticker) => setDeleteConfirm({ id, ticker })}
@@ -479,7 +524,10 @@ export function AssetsList({
                     onExcludedAssetsChange?.(excludedAssets);
                   }
                 }}
-                onAssetClick={(asset) => setSelectedAsset(asset)}
+                onAssetClick={(asset) => {
+                  setSelectedAsset(asset);
+                  updateURL({ modal: 'detail', ticker: asset.ticker });
+                }}
               />
             ))}
           </div>
@@ -487,7 +535,10 @@ export function AssetsList({
       </Card>
 
       {editingAsset && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm pointer-events-auto" onClick={() => setEditingAsset(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm pointer-events-auto" onClick={() => {
+          setEditingAsset(null);
+          updateURL({ modal: null, assetId: null });
+        }}>
           <div className="max-w-md bg-background border border-white/20 rounded-none p-0 overflow-hidden shadow-2xl pointer-events-auto" onClick={(e) => e.stopPropagation()}>
             <div className="p-10 space-y-10 relative">
               <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
@@ -573,7 +624,13 @@ export function AssetsList({
       )}
 
       {addingAsset && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm pointer-events-auto" onClick={() => setAddingAsset(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm pointer-events-auto" onClick={() => {
+          setAddingAsset(false);
+          setNewTicker("");
+          setNewPercentage("");
+          setNewShares("");
+          updateURL({ modal: null });
+        }}>
           <div className="max-w-md bg-background border border-white/20 rounded-none p-0 overflow-hidden shadow-2xl pointer-events-auto" onClick={(e) => e.stopPropagation()}>
             <div className="p-10 space-y-10 relative">
               <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
@@ -663,7 +720,10 @@ export function AssetsList({
       <StockDetailModal
         asset={selectedAsset}
         isOpen={!!selectedAsset}
-        onClose={() => setSelectedAsset(null)}
+        onClose={() => {
+          setSelectedAsset(null);
+          updateURL({ modal: null, ticker: null });
+        }}
         totalValue={totalValue}
         assetName={selectedAsset ? names[selectedAsset.ticker] : undefined}
       />
