@@ -30,7 +30,7 @@ export function DashboardHeader({
 
   return (
     <>
-      <header className="sticky top-0 z-50 glass border-b border-white/10 bg-background/80 backdrop-blur-2xl">
+      <header className="sticky top-0 z-50 glass border-b border-border bg-background/80 backdrop-blur-2xl">
         <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-6">
           {/* Left: Logo + Global Terminal grouped together */}
           <div className="flex items-center gap-4">
@@ -42,7 +42,7 @@ export function DashboardHeader({
             </div>
             
             <div className="hidden lg:flex items-center gap-8">
-              <div className=" ml-1 h-8 w-px bg-white/10" />
+              <div className=" ml-1 h-8 w-px bg-border" />
               <div className="flex flex-col">
                 <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary font-heading text-glow">Global Terminal</span>
               </div>
@@ -57,7 +57,7 @@ export function DashboardHeader({
               <div className={`transition-all duration-300 ${searchOpen ? 'w-2 xs:w-4 sm:w-8' : 'flex-1'}`} />
               
               {/* Search button that expands into search bar */}
-              <div className={`flex items-center border border-white/10 rounded-none transition-all duration-300 ease-in-out ${searchOpen ? 'flex-1 border-primary bg-background/50' : 'w-10 hover:border-primary/50 hover:bg-primary/5'}`}>
+              <div className={`flex items-center border border-border rounded-none transition-all duration-300 ease-in-out ${searchOpen ? 'flex-1 border-primary bg-background/50' : 'w-10 hover:border-primary/50 hover:bg-primary/5'}`}>
                 {/* Input field - expands from right to left */}
                 {searchOpen && (
                   <div className="flex-1 flex items-center gap-2 px-3 overflow-hidden animate-in slide-in-from-right-5 duration-300">
@@ -97,7 +97,7 @@ export function DashboardHeader({
               <button
                 onClick={onRefresh}
                 disabled={isLoading}
-                className="hidden xs:flex h-10 w-10 rounded-none items-center justify-center border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer disabled:opacity-50 flex-shrink-0"
+                className="hidden xs:flex h-10 w-10 rounded-none items-center justify-center border border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer disabled:opacity-50 flex-shrink-0"
                 title="Refresh"
               >
                 <RefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
@@ -105,7 +105,7 @@ export function DashboardHeader({
               
               <button
                 onClick={() => setDrawerOpen(true)}
-                className="h-10 w-10 rounded-none flex items-center justify-center border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer flex-shrink-0"
+                className="h-10 w-10 rounded-none flex items-center justify-center border border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer flex-shrink-0"
                 title="Menu"
               >
                 <Menu className="h-5 w-5" />
@@ -114,10 +114,10 @@ export function DashboardHeader({
 
             {/* Desktop: Full buttons */}
             <div className="hidden mobile:flex items-center gap-3">
-              <div className="h-8 w-px bg-white/10" />
+              <div className="h-8 w-px bg-border" />
               <button
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="h-10 w-10 rounded-none flex items-center justify-center border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer"
+                className="h-10 w-10 rounded-none flex items-center justify-center border border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer"
               >
                 <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                 <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -126,7 +126,7 @@ export function DashboardHeader({
               <form action={signout}>
                 <button 
                   type="submit" 
-                  className="rounded-none text-[10px] uppercase font-black tracking-widest border border-white/10 hover:border-destructive/50 hover:bg-destructive/5 hover:text-destructive transition-all h-10 px-6 cursor-pointer whitespace-nowrap"
+                  className="rounded-none text-[10px] uppercase font-black tracking-widest border border-border hover:border-destructive/50 hover:bg-destructive/5 hover:text-destructive transition-all h-10 px-6 cursor-pointer whitespace-nowrap"
                 >
                   Terminate Session
                 </button>
@@ -147,18 +147,18 @@ export function DashboardHeader({
           
           {/* Drawer */}
           <div 
-            className="absolute top-0 right-0 h-full w-80 max-w-[85vw] bg-background border-l border-white/10 shadow-2xl flex flex-col"
+            className="absolute top-0 right-0 h-full w-80 max-w-[85vw] bg-background border-l border-border shadow-2xl flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Drawer Header */}
-            <div className="flex items-center justify-between p-6 border-b border-white/10 flex-shrink-0">
+            <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
               <div className="flex items-center gap-3">
                 <Scale className="w-6 h-6 text-primary" strokeWidth={2} />
                 <span className="text-sm font-black uppercase tracking-widest text-primary">Menu</span>
               </div>
               <button
                 onClick={() => setDrawerOpen(false)}
-                className="h-10 w-10 rounded-none flex items-center justify-center border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer"
+                className="h-10 w-10 rounded-none flex items-center justify-center border border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -173,7 +173,7 @@ export function DashboardHeader({
                   setDrawerOpen(false);
                 }}
                 disabled={isLoading}
-                className="xs:hidden flex items-center gap-4 w-full p-4 rounded-none border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all text-left disabled:opacity-50"
+                className="xs:hidden flex items-center gap-4 w-full p-4 rounded-none border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left disabled:opacity-50"
               >
                 <RefreshCw className={`h-5 w-5 text-primary ${isLoading ? 'animate-spin' : ''}`} />
                 <div className="flex flex-col">
@@ -188,7 +188,7 @@ export function DashboardHeader({
                   onAllocation?.();
                   setDrawerOpen(false);
                 }}
-                className="portfolio:hidden flex items-center gap-4 w-full p-4 rounded-none border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
+                className="portfolio:hidden flex items-center gap-4 w-full p-4 rounded-none border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
               >
                 <svg className="h-5 w-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
@@ -206,7 +206,7 @@ export function DashboardHeader({
                   onRebalance?.();
                   setDrawerOpen(false);
                 }}
-                className="flex items-center gap-4 w-full p-4 rounded-none border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
+                className="flex items-center gap-4 w-full p-4 rounded-none border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
               >
                 <Calculator className="h-5 w-5 text-primary" />
                 <div className="flex flex-col">
@@ -215,14 +215,14 @@ export function DashboardHeader({
                 </div>
               </button>
 
-              <div className="h-px bg-white/10 my-2" />
+              <div className="h-px bg-border my-2" />
 
               {/* Theme Toggle */}
               <button
                 onClick={() => {
                   setTheme(theme === "dark" ? "light" : "dark");
                 }}
-                className="flex items-center gap-4 w-full p-4 rounded-none border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
+                className="flex items-center gap-4 w-full p-4 rounded-none border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
               >
                 <div className="relative h-5 w-5">
                   <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -236,10 +236,10 @@ export function DashboardHeader({
             </div>
 
             {/* Bottom Section: User Info + Terminate Session - Fixed at bottom */}
-            <div className="border-t border-white/10 flex-shrink-0">
+            <div className="border-t border-border flex-shrink-0">
               <div className="p-6 space-y-3">
                 {/* User Info */}
-                <div className="text-xs text-muted-foreground space-y-1 pb-3 border-b border-white/10">
+                <div className="text-xs text-muted-foreground space-y-1 pb-3 border-b border-border">
                   <div className="font-black uppercase tracking-widest">Logged in as</div>
                   <div className="text-primary truncate">{userEmail}</div>
                 </div>
@@ -248,7 +248,7 @@ export function DashboardHeader({
                 <form action={signout} className="w-full">
                   <button
                     type="submit"
-                    className="flex items-center gap-4 w-full p-4 rounded-none border border-white/10 hover:border-destructive/50 hover:bg-destructive/5 hover:text-destructive transition-all text-left"
+                    className="flex items-center gap-4 w-full p-4 rounded-none border border-border hover:border-destructive/50 hover:bg-destructive/5 hover:text-destructive transition-all text-left"
                   >
                     <LogOut className="h-5 w-5" />
                     <div className="flex flex-col">

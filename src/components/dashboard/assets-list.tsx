@@ -63,7 +63,7 @@ function AssetRow({
     <>
       {/* Desktop/Tablet: Grid layout (900px and up) */}
       <div 
-        className={`hidden mobile:grid grid-cols-[1fr_100px_120px_100px_120px_60px_50px] gap-6 items-center p-6 mobile:p-4 bg-background/50 hover:bg-primary/[0.03] transition-all group border-b border-white/5 last:border-0 ${isExcluded ? 'opacity-50' : ''} ${isDragging ? 'opacity-50 bg-primary/10' : ''} relative cursor-grab active:cursor-grabbing`}
+        className={`hidden mobile:grid grid-cols-[1fr_100px_120px_100px_120px_60px_50px] gap-6 items-center p-6 mobile:p-4 bg-background/50 hover:bg-primary/[0.03] transition-all group border-b border-border last:border-0 ${isExcluded ? 'opacity-50' : ''} ${isDragging ? 'opacity-50 bg-primary/10' : ''} relative cursor-grab active:cursor-grabbing`}
         draggable
         onDragStart={onDragStart}
         onDragOver={onDragOver}
@@ -102,7 +102,7 @@ function AssetRow({
         <div className="flex justify-end gap-2 z-40">
           <button 
             type="button"
-            className="h-10 w-10 rounded-none opacity-0 group-hover:opacity-100 border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer flex items-center justify-center" 
+            className="h-10 w-10 rounded-none opacity-0 group-hover:opacity-100 border border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer flex items-center justify-center" 
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -115,7 +115,7 @@ function AssetRow({
           </button>
           <button 
             type="button"
-            className="h-10 w-10 rounded-none opacity-0 group-hover:opacity-100 text-destructive border border-white/10 hover:border-destructive/50 hover:bg-destructive/5 transition-all cursor-pointer flex items-center justify-center" 
+            className="h-10 w-10 rounded-none opacity-0 group-hover:opacity-100 text-destructive border border-border hover:border-destructive/50 hover:bg-destructive/5 transition-all cursor-pointer flex items-center justify-center" 
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -147,7 +147,7 @@ function AssetRow({
 
       {/* Mobile: Compact Card layout (below 900px) */}
       <div 
-        className={`mobile:hidden flex flex-col p-4 bg-background/50 hover:bg-primary/[0.03] transition-all group border-b border-white/5 last:border-0 ${isExcluded ? 'opacity-50' : ''} ${isDragging ? 'opacity-50 bg-primary/10' : ''} relative cursor-grab active:cursor-grabbing`}
+        className={`mobile:hidden flex flex-col p-4 bg-background/50 hover:bg-primary/[0.03] transition-all group border-b border-border last:border-0 ${isExcluded ? 'opacity-50' : ''} ${isDragging ? 'opacity-50 bg-primary/10' : ''} relative cursor-grab active:cursor-grabbing`}
         draggable
         onDragStart={onDragStart}
         onDragOver={onDragOver}
@@ -177,7 +177,7 @@ function AssetRow({
           <div className="hidden xs:flex gap-1.5 z-40 flex-shrink-0">
             <button 
               type="button"
-              className="h-8 w-8 rounded-none mobile:opacity-0 mobile:group-hover:opacity-100 border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer flex items-center justify-center" 
+              className="h-8 w-8 rounded-none mobile:opacity-0 mobile:group-hover:opacity-100 border border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer flex items-center justify-center" 
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -189,7 +189,7 @@ function AssetRow({
             </button>
             <button 
               type="button"
-              className="h-8 w-8 rounded-none mobile:opacity-0 mobile:group-hover:opacity-100 text-destructive border border-white/10 hover:border-destructive/50 hover:bg-destructive/5 transition-all cursor-pointer flex items-center justify-center" 
+              className="h-8 w-8 rounded-none mobile:opacity-0 mobile:group-hover:opacity-100 text-destructive border border-border hover:border-destructive/50 hover:bg-destructive/5 transition-all cursor-pointer flex items-center justify-center" 
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -253,7 +253,7 @@ function AssetRow({
           <div className="flex gap-1.5 z-40">
             <button 
               type="button"
-              className="h-8 w-8 rounded-none text-destructive border border-white/10 hover:border-destructive/50 hover:bg-destructive/5 transition-all cursor-pointer flex items-center justify-center" 
+              className="h-8 w-8 rounded-none text-destructive border border-border hover:border-destructive/50 hover:bg-destructive/5 transition-all cursor-pointer flex items-center justify-center" 
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -265,7 +265,7 @@ function AssetRow({
             </button>
             <button 
               type="button"
-              className="h-8 w-8 rounded-none border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer flex items-center justify-center" 
+              className="h-8 w-8 rounded-none border border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer flex items-center justify-center" 
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -612,10 +612,10 @@ export function AssetsList({
 
   return (
     <>
-      <Card className="h-full flex flex-col overflow-hidden bg-background/40 border-white/10 rounded-none shadow-2xl backdrop-blur-xl relative group">
+      <Card className="h-full flex flex-col overflow-hidden bg-background/40 border-border rounded-none shadow-2xl backdrop-blur-xl relative group">
         
         {/* Consolidated High-Density Header */}
-        <CardHeader className="flex-shrink-0 space-y-6 p-6 pt-0 pr-0 sm-mobile:py-0 border-b border-white/10 relative z-10">
+        <CardHeader className="flex-shrink-0 space-y-6 p-6 pt-0 pr-0 sm-mobile:py-0 border-b border-border relative z-10">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div className="space-y-1 flex-1 min-w-0">
               {/* Desktop: Vertical layout */}
@@ -668,7 +668,7 @@ export function AssetsList({
                     setAddingAsset(true);
                     updateURL({ modal: 'add' });
                   }}
-                  className="h-10 px-4 xs:px-3 rounded-none bg-black border border-primary hover:bg-primary/10 text-primary font-black uppercase text-[10px] tracking-widest transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0"
+                  className="h-10 px-4 xs:px-3 rounded-none bg-background border border-primary hover:bg-primary/10 text-primary font-black uppercase text-[10px] tracking-widest transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0"
                   style={{ pointerEvents: 'auto' }}
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -710,7 +710,7 @@ export function AssetsList({
                     setAddingAsset(true);
                     updateURL({ modal: 'add' });
                   }}
-                  className="h-10 px-4 xs:px-3 rounded-none bg-black border border-primary hover:bg-primary/10 text-primary font-black uppercase text-[10px] tracking-widest transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0"
+                  className="h-10 px-4 xs:px-3 rounded-none bg-background border border-primary hover:bg-primary/10 text-primary font-black uppercase text-[10px] tracking-widest transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0"
                   style={{ pointerEvents: 'auto' }}
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -721,7 +721,7 @@ export function AssetsList({
               </div>
             </div>
 
-            <div className="hidden mobile:flex pr-0 items-center gap-px bg-white/5 border border-white/10 p-1 relative z-50 pointer-events-auto" style={{ pointerEvents: 'auto' }}>
+            <div className="hidden mobile:flex pr-0 items-center gap-px bg-white/5 border border-border p-1 relative z-50 pointer-events-auto" style={{ pointerEvents: 'auto' }}>
               {/* Desktop: Search with hover */}
               <div className="hidden mobile:flex items-center relative group overflow-hidden mr-auto" onMouseLeave={() => !searchQuery && !searchClicked && setShowSearch(false)}>
                 <div className={`transition-all   duration-300 ease-out overflow-hidden ${showSearch ? 'w-48' : 'w-0'}`}>
@@ -791,7 +791,7 @@ export function AssetsList({
                   setAddingAsset(true);
                   updateURL({ modal: 'add' });
                 }}
-                className="hidden mobile:flex rounded-none h-12 px-6 text-[12px] font-black uppercase tracking-widest hover:bg-white/10 transition-all border-l-2 border-white/10 cursor-pointer items-center justify-center"
+                className="hidden mobile:flex rounded-none h-12 px-6 text-[12px] font-black uppercase tracking-widest hover:bg-white/10 transition-all border-l-2 border-border cursor-pointer items-center justify-center"
                 style={{ pointerEvents: 'auto' }}
               >
                 NEW
@@ -801,7 +801,7 @@ export function AssetsList({
         </CardHeader>
 
         {/* Table header - only show on desktop/tablet (900px+) */}
-        <div className="hidden mobile:grid flex-shrink-0 grid-cols-[1fr_100px_120px_100px_120px_60px_50px] gap-6  text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-6 py-4 border-b border-white/10 bg-white/[0.02] relative z-10 font-heading">
+        <div className="hidden mobile:grid flex-shrink-0 grid-cols-[1fr_100px_120px_100px_120px_60px_50px] gap-6  text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-6 py-4 border-b border-border bg-white/[0.02] relative z-10 font-heading">
           <div className="flex items-center justify-between cursor-pointer hover:text-primary transition-colors group" onClick={() => { setSortBy('ticker'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}>
             <span>Asset / Class</span>
             <span className="text-[8px] opacity-0 group-hover:opacity-100">{sortBy === 'ticker' ? (sortOrder === 'desc' ? '↓' : '↑') : '↕'}</span>
@@ -832,7 +832,7 @@ export function AssetsList({
             overscrollBehavior: 'contain'
           }}
         >
-          <div className="divide-y divide-white/[0.05]">
+          <div className="divide-y divide-border">
             {sortedAssets.map((asset) => (
               <AssetRow
                 key={asset.id}
@@ -894,7 +894,7 @@ export function AssetsList({
           setEditingAsset(null);
           updateURL({ modal: null, assetId: null });
         }}>
-          <div className="max-w-md bg-background border border-white/20 rounded-none p-0 overflow-hidden shadow-2xl pointer-events-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="max-w-md bg-background border border-border rounded-none p-0 overflow-hidden shadow-2xl pointer-events-auto" onClick={(e) => e.stopPropagation()}>
             <div className="p-10 space-y-10 relative">
               <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
               <div className="space-y-2">
@@ -919,7 +919,7 @@ export function AssetsList({
                           handleUpdateAsset();
                         }
                       }}
-                      className="h-14 bg-white/[0.03] border-white/30 focus:border-primary rounded-none font-black text-lg pointer-events-auto"
+                      className="h-14 bg-white/[0.03] border-border focus:border-primary rounded-none font-black text-lg pointer-events-auto"
                       style={{ pointerEvents: 'auto' }}
                     />
                   </div>
@@ -936,7 +936,7 @@ export function AssetsList({
                           handleUpdateAsset();
                         }
                       }}
-                      className="h-14 bg-white/[0.03] border-white/30 focus:border-primary rounded-none font-black text-lg pointer-events-auto"
+                      className="h-14 bg-white/[0.03] border-border focus:border-primary rounded-none font-black text-lg pointer-events-auto"
                       style={{ pointerEvents: 'auto' }}
                     />
                   </div>
@@ -954,7 +954,7 @@ export function AssetsList({
                         }
                       }}
                       placeholder="Auto-calculate"
-                      className="h-14 bg-white/[0.03] border-white/30 focus:border-primary rounded-none font-black text-lg placeholder:text-white/10 pointer-events-auto"
+                      className="h-14 bg-white/[0.03] border-border focus:border-primary rounded-none font-black text-lg placeholder:text-white/10 pointer-events-auto"
                       style={{ pointerEvents: 'auto' }}
                     />
                   </div>
@@ -986,7 +986,7 @@ export function AssetsList({
           setNewShares("");
           updateURL({ modal: null });
         }}>
-          <div className="max-w-md bg-background border border-white/20 rounded-none p-0 overflow-hidden shadow-2xl pointer-events-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="max-w-md bg-background border border-border rounded-none p-0 overflow-hidden shadow-2xl pointer-events-auto" onClick={(e) => e.stopPropagation()}>
             <div className="p-10 space-y-10 relative">
               <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
               <div className="space-y-2">
@@ -1017,7 +1017,7 @@ export function AssetsList({
                           handleAddAsset();
                         }
                       }}
-                      className="h-14 bg-white/[0.03] border-white/30 focus:border-primary rounded-none font-black text-lg placeholder:text-white/10 pointer-events-auto"
+                      className="h-14 bg-white/[0.03] border-border focus:border-primary rounded-none font-black text-lg placeholder:text-white/10 pointer-events-auto"
                       style={{ pointerEvents: 'auto' }}
                     />
                   </div>
@@ -1035,7 +1035,7 @@ export function AssetsList({
                           handleAddAsset();
                         }
                       }}
-                      className="h-14 bg-white/[0.03] border-white/30 focus:border-primary rounded-none font-black text-lg placeholder:text-white/10 pointer-events-auto"
+                      className="h-14 bg-white/[0.03] border-border focus:border-primary rounded-none font-black text-lg placeholder:text-white/10 pointer-events-auto"
                       style={{ pointerEvents: 'auto' }}
                     />
                   </div>
@@ -1054,7 +1054,7 @@ export function AssetsList({
                           handleAddAsset();
                         }
                       }}
-                      className="h-14 bg-white/[0.03] border-white/30 focus:border-primary rounded-none font-black text-lg placeholder:text-white/10 pointer-events-auto"
+                      className="h-14 bg-white/[0.03] border-border focus:border-primary rounded-none font-black text-lg placeholder:text-white/10 pointer-events-auto"
                       style={{ pointerEvents: 'auto' }}
                     />
                   </div>
@@ -1102,7 +1102,7 @@ export function AssetsList({
               <div className="flex gap-3">
                 <button
                   onClick={() => setDeleteConfirm(null)}
-                  className="flex-1 h-14 bg-white/5 hover:bg-white/10 border border-white/20 text-foreground font-black uppercase text-sm tracking-widest transition-all"
+                  className="flex-1 h-14 bg-white/5 hover:bg-white/10 border border-border text-foreground font-black uppercase text-sm tracking-widest transition-all"
                 >
                   Cancel
                 </button>
