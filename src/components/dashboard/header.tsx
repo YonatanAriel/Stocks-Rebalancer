@@ -200,21 +200,6 @@ export function DashboardHeader({
                 </div>
               </button>
 
-              {/* New Asset */}
-              <button
-                onClick={() => {
-                  onNewAsset?.();
-                  setDrawerOpen(false);
-                }}
-                className="flex items-center gap-4 w-full p-4 rounded-none border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
-              >
-                <Plus className="h-5 w-5 text-primary" />
-                <div className="flex flex-col">
-                  <span className="text-sm font-black uppercase tracking-widest">New Asset</span>
-                  <span className="text-xs text-muted-foreground">Add to portfolio</span>
-                </div>
-              </button>
-
               {/* Rebalance */}
               <button
                 onClick={() => {
