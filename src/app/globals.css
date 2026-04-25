@@ -47,6 +47,7 @@
   --radius-3xl: 0;
   --radius-4xl: 0;
   --breakpoint-xs: 400px;
+  --breakpoint-sm-mobile: 750px;
   --breakpoint-mobile: 995px;
   --breakpoint-portfolio: 1360px;
 }

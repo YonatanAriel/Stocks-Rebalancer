@@ -34,10 +34,10 @@ export function DashboardHeader({
           <div className="flex items-center gap-4">
             <Scale className="w-10 h-10 text-primary flex-shrink-0" strokeWidth={2} />
             {/* Desktop: Show full branding */}
-            <div className="hidden mobile:flex flex-col">
+            <div className="hidden sm-mobile:flex flex-col">
               <span className="text-2xl font-black uppercase tracking-[0.4em] text-primary font-heading text-glow">REBALANCER</span>
               <span className="text-[8px] text-muted-foreground uppercase font-black tracking-[0.2em] opacity-40">Quant-Grade Portfolio Terminal</span>
-            </div>t
+            </div>
           </div>
 
           {/* Right: Actions */}
