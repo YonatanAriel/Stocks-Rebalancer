@@ -109,13 +109,7 @@ export async function scrapeBizportalEtf(
   const fetchStartTime = Date.now();
   console.log(`[Bizportal] ===== SCRAPING START: ${securityId} =====`);
   
-  // Rotate user agents to avoid blocking
-  const userAgents = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0",
-  ];
+  const scraperApiKey = process.env.SCRAPER_API_KEY;
   
   // Try both ETF and mutual fund URLs
   const urls = [
@@ -128,60 +122,57 @@ export async function scrapeBizportalEtf(
   let successUrl = "";
 
   for (const { url: sourceUrl, type } of urls) {
-    // Retry up to 3 times with different user agents
-    for (let attempt = 0; attempt < 3; attempt++) {
-      const urlStartTime = Date.now();
-      const userAgent = userAgents[attempt % userAgents.length];
+    const urlStartTime = Date.now();
+    
+    try {
+      console.log(`[Bizportal] Attempting ${type}: ${sourceUrl}`);
       
-      try {
-        console.log(`[Bizportal] Attempt ${attempt + 1}/3 - ${type}: ${sourceUrl}`);
-
-        const res = await fetch(sourceUrl, {
+      let fetchUrl: string;
+      let fetchOptions: RequestInit;
+      
+      if (scraperApiKey) {
+        fetchUrl = `http://api.scraperapi.com?api_key=${scraperApiKey}&url=${encodeURIComponent(sourceUrl)}&country_code=il`;
+        fetchOptions = {
+          method: 'GET',
+          cache: 'no-store' as RequestCache,
+        };
+        console.log(`[Bizportal] Using ScraperAPI proxy`);
+      } else {
+        fetchUrl = sourceUrl;
+        fetchOptions = {
           headers: {
-            "user-agent": userAgent,
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
             "accept-language": "he-IL,he;q=0.9,en;q=0.8",
             "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "referer": "https://www.bizportal.co.il/",
-            "cache-control": "no-cache",
-            "pragma": "no-cache",
           },
-          cache: "no-store",
-        });
+          cache: 'no-store' as RequestCache,
+        };
+        console.warn(`[Bizportal] ⚠ No SCRAPER_API_KEY - using direct fetch (may fail in production)`);
+      }
 
-        const fetchDuration = Date.now() - urlStartTime;
-        console.log(`[Bizportal] Fetch completed in ${fetchDuration}ms - Status: ${res.status}`);
+      const res = await fetch(fetchUrl, fetchOptions);
 
-        if (!res.ok) {
-          console.log(`[Bizportal] ✗ ${type} attempt ${attempt + 1} failed with status ${res.status}`);
-          lastError = new Error(`Bizportal request failed: ${res.status}`);
-          
-          // Add delay before retry
-          if (attempt < 2) {
-            await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500));
-          }
-          continue;
-        }
+      const fetchDuration = Date.now() - urlStartTime;
+      console.log(`[Bizportal] Fetch completed in ${fetchDuration}ms - Status: ${res.status}`);
 
-        html = await res.text();
-        const textDuration = Date.now() - urlStartTime;
-        console.log(`[Bizportal] ✓ ${type} success - HTML: ${html.length} bytes in ${textDuration}ms`);
-        successUrl = sourceUrl;
-        break; // Success, exit retry loop
-      } catch (error) {
-        const errorDuration = Date.now() - urlStartTime;
-        lastError = error instanceof Error ? error : new Error(String(error));
-        console.error(`[Bizportal] ✗ ${type} attempt ${attempt + 1} exception after ${errorDuration}ms: ${lastError.message}`);
-        
-        // Add delay before retry
-        if (attempt < 2) {
-          await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500));
-        }
+      if (!res.ok) {
+        console.log(`[Bizportal] ✗ ${type} failed with status ${res.status}`);
+        lastError = new Error(`Bizportal request failed: ${res.status}`);
         continue;
       }
+
+      html = await res.text();
+      const textDuration = Date.now() - urlStartTime;
+      console.log(`[Bizportal] ✓ ${type} success - HTML: ${html.length} bytes in ${textDuration}ms`);
+      successUrl = sourceUrl;
+      break; // Success, exit loop
+    } catch (error) {
+      const errorDuration = Date.now() - urlStartTime;
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.error(`[Bizportal] ✗ ${type} exception after ${errorDuration}ms: ${lastError.message}`);
+      continue;
     }
-    
-    // If we got HTML, break out of URL loop
-    if (html) break;
   }
 
   if (!html) {
