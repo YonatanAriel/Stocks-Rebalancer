@@ -382,7 +382,7 @@ export function AssetsList({
 
             <div className="flex pr-0 items-center gap-px bg-white/5 border border-white/10 p-1 relative z-50 pointer-events-auto" style={{ pointerEvents: 'auto' }}>
               {/* Desktop: Search with hover */}
-              <div className="hidden md:flex items-center relative group overflow-hidden mr-auto" onMouseLeave={() => !searchQuery && !searchClicked && setShowSearch(false)}>
+              <div className="hidden mobile:flex items-center relative group overflow-hidden mr-auto" onMouseLeave={() => !searchQuery && !searchClicked && setShowSearch(false)}>
                 <div className={`transition-all   duration-300 ease-out overflow-hidden ${showSearch ? 'w-48' : 'w-0'}`}>
                   <Input
                     ref={searchInputRef}
@@ -424,7 +424,7 @@ export function AssetsList({
                   onRefresh && onRefresh();
                 }}
                 disabled={loadingPrices}
-                className="hidden md:flex rounded-none h-12 px-6 text-[12px] font-black uppercase tracking-widest gap-2 hover:bg-primary/10 transition-all cursor-pointer items-center justify-center"
+                className="hidden mobile:flex rounded-none h-12 px-6 text-[12px] font-black uppercase tracking-widest gap-2 hover:bg-primary/10 transition-all cursor-pointer items-center justify-center"
                 style={{ pointerEvents: 'auto' }}
               >
                 <RefreshCw className={`h-4 w-4 ${loadingPrices ? "animate-spin" : ""}`} />
@@ -437,7 +437,7 @@ export function AssetsList({
                   e.stopPropagation();
                   onToggleCalculator && onToggleCalculator();
                 }}
-                className="hidden md:flex rounded-none h-12 px-8 bg-primary hover:bg-primary/90 text-black font-black uppercase text-[12px] tracking-widest shadow-[4px_4px_0px_0px_rgba(var(--primary),0.3)] hover:shadow-none transition-all cursor-pointer items-center justify-center"
+                className="hidden mobile:flex rounded-none h-12 px-8 bg-primary hover:bg-primary/90 text-black font-black uppercase text-[12px] tracking-widest shadow-[4px_4px_0px_0px_rgba(var(--primary),0.3)] hover:shadow-none transition-all cursor-pointer items-center justify-center"
                 style={{ pointerEvents: 'auto' }}
               >
                 {showCalculator ? "CLOSE" : "REBALANCE"}
@@ -450,7 +450,7 @@ export function AssetsList({
                   setAddingAsset(true);
                   updateURL({ modal: 'add' });
                 }}
-                className="hidden md:flex rounded-none h-12 px-6 text-[12px] font-black uppercase tracking-widest hover:bg-white/10 transition-all border-l-2 border-white/10 cursor-pointer items-center justify-center"
+                className="hidden mobile:flex rounded-none h-12 px-6 text-[12px] font-black uppercase tracking-widest hover:bg-white/10 transition-all border-l-2 border-white/10 cursor-pointer items-center justify-center"
                 style={{ pointerEvents: 'auto' }}
               >
                 NEW

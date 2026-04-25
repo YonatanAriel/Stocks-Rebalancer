@@ -37,15 +37,7 @@ export function DashboardHeader({
             <div className="hidden mobile:flex flex-col">
               <span className="text-2xl font-black uppercase tracking-[0.4em] text-primary font-heading text-glow">REBALANCER</span>
               <span className="text-[8px] text-muted-foreground uppercase font-black tracking-[0.2em] opacity-40">Quant-Grade Portfolio Terminal</span>
-            </div>
-            
-            {/* Desktop: Global Terminal - now part of left group */}
-            <div className="hidden lg:flex items-center gap-8">
-              <div className=" ml-1 h-8 w-px bg-white/10" />
-              <div className="flex flex-col">
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary font-heading text-glow">Global Terminal</span>
-              </div>
-            </div>
+            </div>t
           </div>
 
           {/* Right: Actions */}
@@ -125,7 +117,7 @@ export function DashboardHeader({
               <form action={signout}>
                 <button 
                   type="submit" 
-                  className="rounded-none text-[10px] uppercase font-black tracking-widest border border-white/10 hover:border-destructive/50 hover:bg-destructive/5 hover:text-destructive transition-all h-10 px-6 cursor-pointer"
+                  className="rounded-none text-[10px] uppercase font-black tracking-widest border border-white/10 hover:border-destructive/50 hover:bg-destructive/5 hover:text-destructive transition-all h-10 px-6 cursor-pointer whitespace-nowrap"
                 >
                   Terminate Session
                 </button>
