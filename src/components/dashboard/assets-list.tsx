@@ -234,7 +234,7 @@ function AssetRow({
                 e.stopPropagation();
                 onToggleExclude?.();
               }}
-              className={`h-6 px-2 rounded-none opacity-0 group-hover:opacity-100 border font-black text-[8px] uppercase tracking-widest transition-all cursor-pointer ${
+              className={`h-6 px-2 rounded-none border font-black text-[8px] uppercase tracking-widest transition-all cursor-pointer ${
                 isExcluded
                   ? 'bg-destructive/20 border-destructive/50 text-destructive'
                   : 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/20'
@@ -608,17 +608,17 @@ export function AssetsList({
                 </div>
               </div>
 
-              {/* Mobile (<700px): Much smaller text, vertical layout */}
+              {/* Mobile (<700px): Bigger text, vertical layout */}
               <div className="flex sm-mobile:hidden flex-col gap-2 min-w-0">
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="h-4 w-1 bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)] flex-shrink-0" />
-                  <CardTitle className="text-sm font-black uppercase tracking-[0.15em] text-primary text-glow font-heading whitespace-nowrap">
+                  <div className="h-5 w-1 bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)] flex-shrink-0" />
+                  <CardTitle className="text-base font-black uppercase tracking-[0.15em] text-primary text-glow font-heading whitespace-nowrap">
                     {portfolioName}
                   </CardTitle>
                 </div>
-                <div className="flex items-center gap-2 text-[8px] uppercase font-black tracking-widest text-muted-foreground opacity-60 ml-3">
+                <div className="flex items-center gap-2 text-[9px] uppercase font-black tracking-widest text-muted-foreground opacity-60 ml-3">
                   <span className="flex items-center gap-1 text-primary">
-                    <span className="h-1 w-1 bg-primary animate-pulse" />
+                    <span className="h-1.5 w-1.5 bg-primary animate-pulse" />
                     SYNCED
                   </span>
                   <span>•</span>

@@ -182,6 +182,24 @@ export function DashboardHeader({
                 </div>
               </button>
 
+              {/* Target Allocation (only on mobile - below 1360px) */}
+              <button
+                onClick={() => {
+                  onAllocation?.();
+                  setDrawerOpen(false);
+                }}
+                className="portfolio:hidden flex items-center gap-4 w-full p-4 rounded-none border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
+              >
+                <svg className="h-5 w-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                </svg>
+                <div className="flex flex-col">
+                  <span className="text-sm font-black uppercase tracking-widest">Target Allocation</span>
+                  <span className="text-xs text-muted-foreground">View distribution</span>
+                </div>
+              </button>
+
               {/* New Asset */}
               <button
                 onClick={() => {

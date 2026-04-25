@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { X } from "lucide-react";
 import { getAssetPrice, fetchPricesInParallel } from "@/actions/finance";
 import { DashboardHeader } from "@/components/dashboard/header";
 import { AssetsList } from "@/components/dashboard/assets-list";
