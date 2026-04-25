@@ -273,7 +273,9 @@ export function AssetsList({
   useEffect(() => {
     const handleOpenAdd = () => setAddingAsset(true);
     window.addEventListener('open-add-asset', handleOpenAdd);
-    return () => window.removeEventListener('open-add-asset', handleOpenAdd);
+    return () => {
+      window.removeEventListener('open-add-asset', handleOpenAdd);
+    };
   }, []);
 
   // Auto-focus for Edit Asset Modal
@@ -352,7 +354,7 @@ export function AssetsList({
 
   return (
     <>
-      <Card className="h-full flex flex-col min-h-0 bg-background/40 border-white/10 rounded-none shadow-2xl overflow-hidden backdrop-blur-xl relative group">
+      <Card className="h-full flex flex-col overflow-hidden bg-background/40 border-white/10 rounded-none shadow-2xl backdrop-blur-xl relative group">
         
         {/* Consolidated High-Density Header */}
         <CardHeader className="flex-shrink-0 space-y-6 p-6 pr-0 border-b border-white/10 relative z-10">
@@ -379,7 +381,8 @@ export function AssetsList({
             </div>
 
             <div className="flex pr-0 items-center gap-px bg-white/5 border border-white/10 p-1 relative z-50 pointer-events-auto" style={{ pointerEvents: 'auto' }}>
-              <div className="flex   items-center relative group overflow-hidden mr-auto" onMouseLeave={() => !searchQuery && !searchClicked && setShowSearch(false)}>
+              {/* Desktop: Search with hover */}
+              <div className="hidden md:flex items-center relative group overflow-hidden mr-auto" onMouseLeave={() => !searchQuery && !searchClicked && setShowSearch(false)}>
                 <div className={`transition-all   duration-300 ease-out overflow-hidden ${showSearch ? 'w-48' : 'w-0'}`}>
                   <Input
                     ref={searchInputRef}
@@ -421,7 +424,7 @@ export function AssetsList({
                   onRefresh && onRefresh();
                 }}
                 disabled={loadingPrices}
-                className="rounded-none h-12 px-6 text-[12px] font-black uppercase tracking-widest gap-2 hover:bg-primary/10 transition-all cursor-pointer flex items-center"
+                className="hidden md:flex rounded-none h-12 px-6 text-[12px] font-black uppercase tracking-widest gap-2 hover:bg-primary/10 transition-all cursor-pointer items-center justify-center"
                 style={{ pointerEvents: 'auto' }}
               >
                 <RefreshCw className={`h-4 w-4 ${loadingPrices ? "animate-spin" : ""}`} />
@@ -434,7 +437,7 @@ export function AssetsList({
                   e.stopPropagation();
                   onToggleCalculator && onToggleCalculator();
                 }}
-                className="rounded-none h-12 px-8 bg-primary hover:bg-primary/90 text-black font-black uppercase text-[12px] tracking-widest shadow-[4px_4px_0px_0px_rgba(var(--primary),0.3)] hover:shadow-none transition-all cursor-pointer"
+                className="hidden md:flex rounded-none h-12 px-8 bg-primary hover:bg-primary/90 text-black font-black uppercase text-[12px] tracking-widest shadow-[4px_4px_0px_0px_rgba(var(--primary),0.3)] hover:shadow-none transition-all cursor-pointer items-center justify-center"
                 style={{ pointerEvents: 'auto' }}
               >
                 {showCalculator ? "CLOSE" : "REBALANCE"}
@@ -447,7 +450,7 @@ export function AssetsList({
                   setAddingAsset(true);
                   updateURL({ modal: 'add' });
                 }}
-                className="rounded-none h-12 px-6 text-[12px] font-black uppercase tracking-widest hover:bg-white/10 transition-all border-l-2 border-white/10 cursor-pointer"
+                className="hidden md:flex rounded-none h-12 px-6 text-[12px] font-black uppercase tracking-widest hover:bg-white/10 transition-all border-l-2 border-white/10 cursor-pointer items-center justify-center"
                 style={{ pointerEvents: 'auto' }}
               >
                 NEW
@@ -480,7 +483,13 @@ export function AssetsList({
           <span />
           <span className="text-center">Status</span>
         </div>
-        <CardContent className="flex-1 overflow-y-auto custom-scrollbar p-0 relative z-10">
+        <CardContent 
+          className="flex-1 overflow-y-auto custom-scrollbar touch-pan-y p-0 relative z-10"
+          style={{
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehavior: 'contain'
+          }}
+        >
           <div className="divide-y divide-white/[0.05]">
             {sortedAssets.map((asset) => (
               <AssetRow

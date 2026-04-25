@@ -27,6 +27,7 @@ export function DashboardShell({
   const [cashAmount, setCashAmount] = useState("");
   const [showCalculator, setShowCalculator] = useState(false);
   const [portfolioAssets, setPortfolioAssets] = useState(portfolio.assets);
+  const [searchQuery, setSearchQuery] = useState("");
   const [excludedAssets, setExcludedAssets] = useState<Set<string>>(() => {
     // Initialize from database
     const excluded = new Set<string>();
@@ -173,12 +174,26 @@ export function DashboardShell({
   }, [assetsWithValues, excludedAssets]);
 
   return (
-    <div className="h-screen flex flex-col bg-dot-pattern mesh-glow overflow-hidden">
-      <DashboardHeader userEmail={userEmail} onRefresh={fetchPrices} isLoading={loadingPrices} />
+    <div className="h-[100dvh] flex flex-col bg-dot-pattern mesh-glow overflow-hidden">
+      <DashboardHeader 
+        userEmail={userEmail} 
+        onRefresh={fetchPrices} 
+        isLoading={loadingPrices}
+        onNewAsset={() => {
+          window.dispatchEvent(new CustomEvent('open-add-asset'));
+        }}
+        onRebalance={() => {
+          setShowCalculator(true);
+          updateURL({ calculator: 'open' });
+        }}
+        onSearch={() => {
+          // Search is handled in the header component itself
+        }}
+      />
 
-      <main className="flex-1 flex flex-col min-h-0 w-full overflow-hidden">
-        <div className="flex-1 min-h-0 grid gap-8 grid-cols-1 lg:grid-cols-[1fr_350px] px-6 py-6 overflow-hidden">
-          <div className="flex flex-col min-h-0 overflow-hidden">
+      <main className="flex-1 min-h-0 overflow-hidden">
+        <div className="h-full grid gap-8 grid-cols-1 lg:grid-cols-[1fr_350px] px-6 py-6 overflow-hidden">
+          <div className="min-h-0 overflow-hidden">
             <AssetsList 
               assets={assetsWithValues} 
               totalValue={totalValue} 
@@ -225,12 +240,12 @@ export function DashboardShell({
             />
           </div>
 
-          <div className="flex-shrink-0">
-            <Card className="bg-background/40 border-white/10 rounded-none shadow-xl border-t-4 border-primary overflow-hidden h-full backdrop-blur-xl">
-            <CardHeader className="p-6 border-b border-white/5 bg-white/[0.01]">
+          <div className="min-h-0 flex flex-col overflow-hidden">
+            <Card className="bg-background/40 border-white/10 rounded-none shadow-xl border-t-4 border-primary backdrop-blur-xl flex flex-col h-full overflow-hidden">
+            <CardHeader className="flex-shrink-0 p-6 border-b border-white/5 bg-white/[0.01]">
               <CardTitle className="text-sm font-black uppercase tracking-widest text-primary font-heading">Target Allocation</CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="flex-1 overflow-y-auto custom-scrollbar p-6">
               <AllocationChart
                 assets={assetsWithValues
                   .filter(a => !excludedAssets.has(a.ticker))
@@ -252,7 +267,13 @@ export function DashboardShell({
           setShowCalculator(false);
           updateURL({ calculator: null });
         }}>
-          <div className="max-w-5xl bg-background border-white/10 rounded-none max-h-[90vh] overflow-y-auto custom-scrollbar p-0 w-full mx-4 pointer-events-auto relative" onClick={(e) => e.stopPropagation()}>
+          <div className="max-w-5xl bg-background border-white/10 rounded-none max-h-[90vh] overflow-y-auto custom-scrollbar touch-pan-y p-0 w-full mx-4 pointer-events-auto relative" 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehavior: 'contain'
+            }}
+          >
             <div className="sticky top-0 bg-background border-b border-white/10 p-8 flex items-start justify-between gap-8 z-10">
               <div className="flex-1">
                 <h2 className="text-xl font-black uppercase tracking-[0.4em] text-primary">System Rebalance</h2>
