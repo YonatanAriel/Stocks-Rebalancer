@@ -176,7 +176,7 @@ function AssetRow({
           <div className="flex gap-1.5 z-40 flex-shrink-0">
             <button 
               type="button"
-              className="h-8 w-8 rounded-none opacity-0 group-hover:opacity-100 border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer flex items-center justify-center" 
+              className="h-8 w-8 rounded-none mobile:opacity-0 mobile:group-hover:opacity-100 border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer flex items-center justify-center" 
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -188,7 +188,7 @@ function AssetRow({
             </button>
             <button 
               type="button"
-              className="h-8 w-8 rounded-none opacity-0 group-hover:opacity-100 text-destructive border border-white/10 hover:border-destructive/50 hover:bg-destructive/5 transition-all cursor-pointer flex items-center justify-center" 
+              className="h-8 w-8 rounded-none mobile:opacity-0 mobile:group-hover:opacity-100 text-destructive border border-white/10 hover:border-destructive/50 hover:bg-destructive/5 transition-all cursor-pointer flex items-center justify-center" 
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
