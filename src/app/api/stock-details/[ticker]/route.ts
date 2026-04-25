@@ -36,13 +36,23 @@ export async function GET(
       try {
         const bizData = await scrapeBizportalEtf(ticker);
         
-        // Add performance data if available
-        if (bizData.monthReturnText || bizData.threeMonthReturnText || bizData.yearReturnText || bizData.twelveMonthReturnText) {
+        if (bizData.monthReturnText || bizData.threeMonthReturnText || bizData.yearReturnText || bizData.twelveMonthReturnText || bizData.standardDeviationText || bizData.sharpeRatioText) {
+          const cleanValue = (value: string | null | undefined) => {
+            if (!value) return value;
+            return value
+              .replace(/[\u0590-\u05FF]/g, '') // Remove all Hebrew characters
+              .replace(/[():]/g, '') // Remove parentheses and colons
+              .replace(/\s+/g, ' ') // Normalize whitespace
+              .trim();
+          };
+          
           detailData.performance = {
             oneMonth: bizData.monthReturnText,
             threeMonth: bizData.threeMonthReturnText,
             ytd: bizData.yearReturnText,
             oneYear: bizData.twelveMonthReturnText,
+            standardDeviation: cleanValue(bizData.standardDeviationText),
+            sharpeRatio: cleanValue(bizData.sharpeRatioText),
           };
         }
         
@@ -59,11 +69,11 @@ export async function GET(
           detailData.lastUpdated = bizData.asOf;
         }
         
-        // Add turnover/volume if available
         if (bizData.turnoverText) {
+          const volumeMatch = bizData.turnoverText.match(/^([\d,]+)/);
           detailData.overview = {
             ...detailData.overview,
-            volume: bizData.turnoverText,
+            volume: volumeMatch ? volumeMatch[1] : bizData.turnoverText,
           };
         }
       } catch (error) {

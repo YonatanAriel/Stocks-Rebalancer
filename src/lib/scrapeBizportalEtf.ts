@@ -12,6 +12,8 @@ export type BizportalEtfSnapshot = {
   yearReturnText: string | null;
   threeMonthReturnText: string | null;
   twelveMonthReturnText: string | null;
+  standardDeviationText: string | null;
+  sharpeRatioText: string | null;
   rawPairs: Record<string, string>;
 };
 
@@ -230,6 +232,18 @@ export async function scrapeBizportalEtf(
     pickValueNearLabel($, "% 12 חודשים") ||
     rawPairs["% 12 חודשים"] ||
     null;
+  
+  const standardDeviationText =
+    pickValueNearLabel($, "סטיית תקן") || 
+    rawPairs["סטיית תקן"] || 
+    null;
+  
+  const sharpeRatioText =
+    pickValueNearLabel($, "שארפ (שנה)") || 
+    rawPairs["שארפ (שנה)"] ||
+    pickValueNearLabel($, "שארפ") || 
+    rawPairs["שארפ"] ||
+    null;
 
   const totalDuration = Date.now() - fetchStartTime;
   console.log(`[Bizportal] ===== SCRAPING COMPLETE: ${totalDuration}ms =====`);
@@ -246,6 +260,8 @@ export async function scrapeBizportalEtf(
     yearReturnText,
     threeMonthReturnText,
     twelveMonthReturnText,
+    standardDeviationText,
+    sharpeRatioText,
     rawPairs,
   };
 }
