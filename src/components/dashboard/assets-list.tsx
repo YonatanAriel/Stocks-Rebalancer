@@ -153,7 +153,7 @@ function AssetRow({
         onDragOver={onDragOver}
         onDrop={onDrop}
       >
-        {/* Top row: Ticker + Value + Actions */}
+        {/* Top row: Ticker + Value + Actions (400px+) */}
         <div className="flex items-center justify-between gap-3 mb-2">
           <div 
             className="flex flex-col min-w-0 flex-1 cursor-pointer"
@@ -173,7 +173,8 @@ function AssetRow({
             {isManualPrice && <span className="text-[7px] text-primary font-black uppercase tracking-widest">manual</span>}
           </div>
 
-          <div className="flex gap-1.5 z-40 flex-shrink-0">
+          {/* Action buttons - hidden on xs (400px and below) */}
+          <div className="hidden xs:flex gap-1.5 z-40 flex-shrink-0">
             <button 
               type="button"
               className="h-8 w-8 rounded-none mobile:opacity-0 mobile:group-hover:opacity-100 border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer flex items-center justify-center" 
@@ -201,8 +202,8 @@ function AssetRow({
           </div>
         </div>
 
-        {/* Bottom row: Details in compact grid */}
-        <div className="grid grid-cols-4 gap-3 text-[9px] uppercase font-black tracking-widest">
+        {/* Second row: Details in compact grid */}
+        <div className="grid grid-cols-3 xs:grid-cols-4 gap-3 text-[9px] uppercase font-black tracking-widest mb-2 xs:mb-0">
           <div className="flex flex-col">
             <span className="text-muted-foreground opacity-50 mb-0.5">Weight</span>
             <span className="text-foreground font-mono">{asset.target_percentage}%</span>
@@ -225,7 +226,8 @@ function AssetRow({
             <span className="text-foreground font-mono">{asset.shares_owned}</span>
           </div>
           
-          <div className="flex flex-col items-end">
+          {/* Status column - only show on 400px+ */}
+          <div className="hidden xs:flex flex-col items-end">
             <span className="text-muted-foreground opacity-50 mb-0.5">Status</span>
             <button
               type="button"
@@ -244,6 +246,54 @@ function AssetRow({
               {isExcluded ? 'OFF' : 'ON'}
             </button>
           </div>
+        </div>
+
+        {/* Third row: Action buttons for xs screens (400px and below) */}
+        <div className="flex xs:hidden items-center justify-between gap-2">
+          <div className="flex gap-1.5 z-40">
+            <button 
+              type="button"
+              className="h-8 w-8 rounded-none text-destructive border border-white/10 hover:border-destructive/50 hover:bg-destructive/5 transition-all cursor-pointer flex items-center justify-center" 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onDeleteClick?.(asset.id, asset.ticker);
+              }}
+              style={{ pointerEvents: 'auto' }}
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+            <button 
+              type="button"
+              className="h-8 w-8 rounded-none border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer flex items-center justify-center" 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onEdit(asset);
+              }}
+              style={{ pointerEvents: 'auto' }}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          
+          {/* Status toggle for xs screens */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleExclude?.();
+            }}
+            className={`h-8 px-3 rounded-none border font-black text-[8px] uppercase tracking-widest transition-all cursor-pointer ${
+              isExcluded
+                ? 'bg-destructive/20 border-destructive/50 text-destructive'
+                : 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/20'
+            }`}
+            style={{ pointerEvents: 'auto' }}
+          >
+            {isExcluded ? 'OFF' : 'ON'}
+          </button>
         </div>
       </div>
     </>
@@ -618,13 +668,13 @@ export function AssetsList({
                     setAddingAsset(true);
                     updateURL({ modal: 'add' });
                   }}
-                  className="h-10 px-4 rounded-none bg-black border border-primary hover:bg-primary/10 text-primary font-black uppercase text-[10px] tracking-widest transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0"
+                  className="h-10 px-4 xs:px-3 rounded-none bg-black border border-primary hover:bg-primary/10 text-primary font-black uppercase text-[10px] tracking-widest transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0"
                   style={{ pointerEvents: 'auto' }}
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
-                  NEW
+                  <span className="hidden xs:inline">NEW</span>
                 </button>
               </div>
 
@@ -660,13 +710,13 @@ export function AssetsList({
                     setAddingAsset(true);
                     updateURL({ modal: 'add' });
                   }}
-                  className="h-10 px-4 rounded-none bg-black border border-primary hover:bg-primary/10 text-primary font-black uppercase text-[10px] tracking-widest transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0"
+                  className="h-10 px-4 xs:px-3 rounded-none bg-black border border-primary hover:bg-primary/10 text-primary font-black uppercase text-[10px] tracking-widest transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0"
                   style={{ pointerEvents: 'auto' }}
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
-                  NEW
+                  <span className="hidden xs:inline">NEW</span>
                 </button>
               </div>
             </div>
