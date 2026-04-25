@@ -588,24 +588,44 @@ export function AssetsList({
                 </span>
               </div>
 
-              {/* Tablet (700px-995px): Horizontal layout with smaller text */}
-              <div className="hidden sm-mobile:flex mobile:hidden items-center gap-3 min-w-0 flex-wrap">
-                <div className="h-5 w-1 bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)] flex-shrink-0" />
-                <CardTitle className="text-lg font-black uppercase tracking-[0.2em] text-primary text-glow font-heading whitespace-nowrap">
-                  {portfolioName}
-                </CardTitle>
-                <div className="flex items-center gap-2 text-[9px] uppercase font-black tracking-widest text-muted-foreground opacity-60">
-                  <span className="flex items-center gap-1.5 text-primary">
-                    <span className="h-1.5 w-1.5 bg-primary animate-pulse" />
-                    SYNCED
-                  </span>
-                  <span>•</span>
-                  <span>{assets.length} UNITS</span>
-                  <span>•</span>
-                  <span className="text-foreground font-mono">
-                    Σ ₪{totalValue.toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                  </span>
+              {/* Tablet (700px-995px): Horizontal layout with smaller text and + NEW button */}
+              <div className="hidden sm-mobile:flex mobile:hidden items-center justify-between gap-3 min-w-0 flex-wrap">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="h-5 w-1 bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)] flex-shrink-0" />
+                  <CardTitle className="text-lg font-black uppercase tracking-[0.2em] text-primary text-glow font-heading whitespace-nowrap">
+                    {portfolioName}
+                  </CardTitle>
+                  <div className="flex items-center gap-2 text-[9px] uppercase font-black tracking-widest text-muted-foreground opacity-60">
+                    <span className="flex items-center gap-1.5 text-primary">
+                      <span className="h-1.5 w-1.5 bg-primary animate-pulse" />
+                      SYNCED
+                    </span>
+                    <span>•</span>
+                    <span>{assets.length} UNITS</span>
+                    <span>•</span>
+                    <span className="text-foreground font-mono">
+                      Σ ₪{totalValue.toLocaleString(undefined, { minimumFractionDigits: 0 })}
+                    </span>
+                  </div>
                 </div>
+                
+                {/* + NEW button on tablet */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setAddingAsset(true);
+                    updateURL({ modal: 'add' });
+                  }}
+                  className="h-10 px-4 rounded-none bg-black border border-primary hover:bg-primary/10 text-primary font-black uppercase text-[10px] tracking-widest transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0"
+                  style={{ pointerEvents: 'auto' }}
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  NEW
+                </button>
               </div>
 
               {/* Mobile (<700px): Bigger text with + NEW button */}
