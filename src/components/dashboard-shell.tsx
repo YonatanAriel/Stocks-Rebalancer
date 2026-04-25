@@ -188,6 +188,9 @@ export function DashboardShell({
                   setNames(prev => ({ ...prev, [ticker]: name || '' }));
                 }
               }}
+              onAssetDeleted={(id) => {
+                setPortfolioAssets(prev => prev.filter(a => a.id !== id));
+              }}
             />
           </div>
 
