@@ -17,11 +17,13 @@ function PerformanceBar({ label, value, isPositive }: { label: string; value: st
   const isNum = !isNaN(numValue);
   const barWidth = isNum ? Math.min(Math.abs(numValue), 100) : 0;
   
+  const hasHebrew = /[\u0590-\u05FF]/.test(label);
+  
   return (
-    <div className="space-y-1">
-      <div className="flex justify-between items-center">
-        <span className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">{label}</span>
-        <span className={`text-sm font-black font-mono ${isPositive === true ? 'text-primary' : isPositive === false ? 'text-destructive' : 'text-foreground'}`}>
+    <div className="space-y-2">
+      <div className={`flex justify-between items-center gap-4 ${hasHebrew ? 'flex-row-reverse' : ''}`}>
+        <span className={`text-[10px] uppercase tracking-widest font-black text-muted-foreground whitespace-nowrap ${hasHebrew ? 'text-right' : ''}`}>{label}</span>
+        <span className={`text-sm font-black font-mono whitespace-nowrap ${isPositive === true ? 'text-primary' : isPositive === false ? 'text-destructive' : 'text-foreground'}`}>
           {value}
         </span>
       </div>
@@ -176,12 +178,12 @@ export function StockDetailModal(props: StockDetailModalProps) {
               )}
             </div>
             
-            <div className="space-y-4">
-              <h3 className="text-xs font-black uppercase tracking-[0.3em] text-primary border-b border-primary/30 pb-3">
-                Performance
-              </h3>
-              {detailData?.performance && Object.keys(detailData.performance).length > 0 && (
-                <div className="space-y-3">
+            {detailData?.performance && Object.values(detailData.performance).some(v => v !== undefined && v !== null) && (
+              <div className="space-y-4">
+                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-primary border-b border-primary/30 pb-3">
+                  Performance
+                </h3>
+                <div className="space-y-4">
                   {detailData.performance.oneMonth && (
                     <PerformanceBar 
                       label="1 Month" 
@@ -211,10 +213,32 @@ export function StockDetailModal(props: StockDetailModalProps) {
                     />
                   )}
                 </div>
-              )}
-            </div>
+                
+                {(detailData.performance.standardDeviation || detailData.performance.sharpeRatio) && (
+                  <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-white/10">
+                    {detailData.performance.standardDeviation && (
+                      <div className="bg-white/[0.02] border border-primary/20 p-4 hover:border-primary/40 transition-colors">
+                        <div className="text-[9px] uppercase tracking-widest font-black text-muted-foreground mb-2">
+                          Std Deviation (Volatility)
+                        </div>
+                        <div className="text-lg font-black font-mono text-foreground">{detailData.performance.standardDeviation}</div>
+                      </div>
+                    )}
+                    {detailData.performance.sharpeRatio && detailData.performance.sharpeRatio !== '--' && (
+                      <div className="bg-white/[0.02] border border-primary/20 p-4 hover:border-primary/40 transition-colors">
+                        <div className="text-[9px] uppercase tracking-widest font-black text-muted-foreground mb-2">Sharpe Ratio</div>
+                        <div className="text-lg font-black font-mono text-foreground">{detailData.performance.sharpeRatio}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
             
-            {detailData?.overview && Object.keys(detailData.overview).length > 0 && (
+            {detailData?.overview && Object.keys(detailData.overview).filter(k => {
+              const key = k as keyof typeof detailData.overview;
+              return detailData.overview?.[key] !== undefined;
+            }).length > 0 && (
               <div className="space-y-4">
                 <h3 className="text-xs font-black uppercase tracking-[0.3em] text-primary border-b border-primary/30 pb-3">
                   Overview
