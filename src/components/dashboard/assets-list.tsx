@@ -61,7 +61,7 @@ function AssetRow({
 
   return (
     <div 
-      className={`grid grid-cols-[1fr_100px_120px_100px_120px_60px_50px] gap-6 items-center p-6 bg-background/50 hover:bg-primary/[0.03] transition-all group border-b border-white/5 last:border-0 ${isExcluded ? 'opacity-50' : ''} ${isDragging ? 'opacity-50 bg-primary/10' : ''} relative cursor-grab active:cursor-grabbing`}
+      className={`grid grid-cols-[1fr_100px_120px_100px_120px_60px_50px] gap-6 items-center p-6 mobile:p-4 bg-background/50 hover:bg-primary/[0.03] transition-all group border-b border-white/5 last:border-0 ${isExcluded ? 'opacity-50' : ''} ${isDragging ? 'opacity-50 bg-primary/10' : ''} relative cursor-grab active:cursor-grabbing`}
       draggable
       onDragStart={onDragStart}
       onDragOver={onDragOver}
@@ -443,13 +443,14 @@ export function AssetsList({
         <CardHeader className="flex-shrink-0 space-y-6 p-6 pr-0 border-b border-white/10 relative z-10">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div className="space-y-1 flex-1 min-w-0">
-              <div className="flex items-center gap-3 min-w-0">
+              {/* Desktop: Vertical layout */}
+              <div className="hidden mobile:flex items-center gap-3 min-w-0">
                 <div className="h-6 w-1 bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)] flex-shrink-0" />
                 <CardTitle className="text-2xl font-black uppercase tracking-[0.2em] text-primary text-glow font-heading whitespace-nowrap">
                   {portfolioName}
                 </CardTitle>
               </div>
-              <div className="flex items-center gap-3 text-[10px] uppercase font-black tracking-widest text-muted-foreground opacity-60">
+              <div className="hidden mobile:flex items-center gap-3 text-[10px] uppercase font-black tracking-widest text-muted-foreground opacity-60">
                 <span className="flex items-center gap-1.5 text-primary">
                   <span className="h-1.5 w-1.5 bg-primary animate-pulse" />
                   SYNCED
@@ -460,6 +461,48 @@ export function AssetsList({
                 <span className="text-foreground font-mono">
                   Σ ₪{totalValue.toLocaleString(undefined, { minimumFractionDigits: 0 })}
                 </span>
+              </div>
+
+              {/* Tablet (700px-995px): Horizontal layout with smaller text */}
+              <div className="hidden sm-mobile:flex mobile:hidden items-center gap-3 min-w-0 flex-wrap">
+                <div className="h-5 w-1 bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)] flex-shrink-0" />
+                <CardTitle className="text-lg font-black uppercase tracking-[0.2em] text-primary text-glow font-heading whitespace-nowrap">
+                  {portfolioName}
+                </CardTitle>
+                <div className="flex items-center gap-2 text-[9px] uppercase font-black tracking-widest text-muted-foreground opacity-60">
+                  <span className="flex items-center gap-1.5 text-primary">
+                    <span className="h-1.5 w-1.5 bg-primary animate-pulse" />
+                    SYNCED
+                  </span>
+                  <span>•</span>
+                  <span>{assets.length} UNITS</span>
+                  <span>•</span>
+                  <span className="text-foreground font-mono">
+                    Σ ₪{totalValue.toLocaleString(undefined, { minimumFractionDigits: 0 })}
+                  </span>
+                </div>
+              </div>
+
+              {/* Mobile (<700px): Much smaller text, vertical layout */}
+              <div className="flex sm-mobile:hidden flex-col gap-2 min-w-0">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="h-4 w-1 bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)] flex-shrink-0" />
+                  <CardTitle className="text-sm font-black uppercase tracking-[0.15em] text-primary text-glow font-heading whitespace-nowrap">
+                    {portfolioName}
+                  </CardTitle>
+                </div>
+                <div className="flex items-center gap-2 text-[8px] uppercase font-black tracking-widest text-muted-foreground opacity-60 ml-3">
+                  <span className="flex items-center gap-1 text-primary">
+                    <span className="h-1 w-1 bg-primary animate-pulse" />
+                    SYNCED
+                  </span>
+                  <span>•</span>
+                  <span>{assets.length} UNITS</span>
+                  <span>•</span>
+                  <span className="text-foreground font-mono">
+                    Σ ₪{totalValue.toLocaleString(undefined, { minimumFractionDigits: 0 })}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -544,7 +587,8 @@ export function AssetsList({
 
         <div className="flex-shrink-0 grid grid-cols-[1fr_100px_120px_100px_120px_60px_50px] gap-6  text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-6 py-4 border-b border-white/10 bg-white/[0.02] relative z-10 font-heading">
           <div className="flex items-center justify-between cursor-pointer hover:text-primary transition-colors group" onClick={() => { setSortBy('ticker'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}>
-            <span>Asset / Class</span>
+            <span className="hidden mobile:inline">Asset / Class</span>
+            <span className="mobile:hidden">Asset</span>
             <span className="text-[8px] opacity-0 group-hover:opacity-100">{sortBy === 'ticker' ? (sortOrder === 'desc' ? '↓' : '↑') : '↕'}</span>
           </div>
           <div className="text-right flex items-center justify-end cursor-pointer hover:text-primary transition-colors group" onClick={() => { setSortBy('weight'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}>
