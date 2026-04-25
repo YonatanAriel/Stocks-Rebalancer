@@ -60,88 +60,193 @@ function AssetRow({
   }
 
   return (
-    <div 
-      className={`grid grid-cols-[1fr_100px_120px_100px_120px_60px_50px] gap-6 items-center p-6 mobile:p-4 bg-background/50 hover:bg-primary/[0.03] transition-all group border-b border-white/5 last:border-0 ${isExcluded ? 'opacity-50' : ''} ${isDragging ? 'opacity-50 bg-primary/10' : ''} relative cursor-grab active:cursor-grabbing`}
-      draggable
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDrop={onDrop}
-    >
+    <>
+      {/* Desktop/Tablet: Grid layout (900px and up) */}
       <div 
-        className="flex flex-col min-w-0 cursor-pointer"
-        onClick={(e) => {
-          e.stopPropagation();
-          onAssetClick?.(asset);
-        }}
+        className={`hidden mobile:grid grid-cols-[1fr_100px_120px_100px_120px_60px_50px] gap-6 items-center p-6 mobile:p-4 bg-background/50 hover:bg-primary/[0.03] transition-all group border-b border-white/5 last:border-0 ${isExcluded ? 'opacity-50' : ''} ${isDragging ? 'opacity-50 bg-primary/10' : ''} relative cursor-grab active:cursor-grabbing`}
+        draggable
+        onDragStart={onDragStart}
+        onDragOver={onDragOver}
+        onDrop={onDrop}
       >
-        <span className={`text-base font-black uppercase tracking-tight truncate text-foreground group-hover:text-primary transition-colors font-heading ${isExcluded ? 'line-through' : ''}`}>{asset.ticker}</span>
-        <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest truncate opacity-50">{name || "NO METADATA"}</span>
-      </div>
-      <div className="text-right">
-        <div className="text-sm font-black text-foreground font-mono">{asset.target_percentage}%</div>
-        <div className={cn("text-[10px] font-black uppercase tracking-tighter font-mono", diff > 2 ? "text-orange-400" : diff < -2 ? "text-blue-400" : "text-primary")}>
-          {currentPct.toFixed(2)}%
+        <div 
+          className="flex flex-col min-w-0 cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAssetClick?.(asset);
+          }}
+        >
+          <span className={`text-base font-black uppercase tracking-tight truncate text-foreground group-hover:text-primary transition-colors font-heading ${isExcluded ? 'line-through' : ''}`}>{asset.ticker}</span>
+          <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest truncate opacity-50">{name || "NO METADATA"}</span>
         </div>
-      </div>
-      <div className="text-right flex flex-col items-end">
-        <div className="text-sm font-black font-mono text-foreground">
-          {pricePerSlice !== null ? `₪${pricePerSlice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
+        <div className="text-right">
+          <div className="text-sm font-black text-foreground font-mono">{asset.target_percentage}%</div>
+          <div className={cn("text-[10px] font-black uppercase tracking-tighter font-mono", diff > 2 ? "text-orange-400" : diff < -2 ? "text-blue-400" : "text-primary")}>
+            {currentPct.toFixed(2)}%
+          </div>
         </div>
-        {isEstimated && <span className="text-[8px] text-orange-400 font-black uppercase tracking-widest italic mt-0.5">estimated</span>}
-        {isManualPrice && <span className="text-[8px] text-primary font-black uppercase tracking-widest mt-0.5">manual</span>}
-      </div>
-      <div className="text-right text-sm font-black font-mono text-muted-foreground">{asset.shares_owned}</div>
-      <div className="text-right flex flex-col items-end">
-        <div className="text-sm font-black text-foreground font-mono">
-          ₪{(asset.currentValue || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+        <div className="text-right flex flex-col items-end">
+          <div className="text-sm font-black font-mono text-foreground">
+            {pricePerSlice !== null ? `₪${pricePerSlice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
+          </div>
+          {isEstimated && <span className="text-[8px] text-orange-400 font-black uppercase tracking-widest italic mt-0.5">estimated</span>}
+          {isManualPrice && <span className="text-[8px] text-primary font-black uppercase tracking-widest mt-0.5">manual</span>}
         </div>
-        {isManualPrice && <span className="text-[8px] text-primary font-black uppercase tracking-widest mt-0.5">manual</span>}
-      </div>
-      <div className="flex justify-end gap-2 z-40">
-        <button 
+        <div className="text-right text-sm font-black font-mono text-muted-foreground">{asset.shares_owned}</div>
+        <div className="text-right flex flex-col items-end">
+          <div className="text-sm font-black text-foreground font-mono">
+            ₪{(asset.currentValue || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+          </div>
+          {isManualPrice && <span className="text-[8px] text-primary font-black uppercase tracking-widest mt-0.5">manual</span>}
+        </div>
+        <div className="flex justify-end gap-2 z-40">
+          <button 
+            type="button"
+            className="h-10 w-10 rounded-none opacity-0 group-hover:opacity-100 border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer flex items-center justify-center" 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log("Edit button clicked for", asset.ticker);
+              onEdit(asset);
+            }}
+            style={{ pointerEvents: 'auto' }}
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+          <button 
+            type="button"
+            className="h-10 w-10 rounded-none opacity-0 group-hover:opacity-100 text-destructive border border-white/10 hover:border-destructive/50 hover:bg-destructive/5 transition-all cursor-pointer flex items-center justify-center" 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log("Delete button clicked for", asset.ticker);
+              onDeleteClick?.(asset.id, asset.ticker);
+            }}
+            style={{ pointerEvents: 'auto' }}
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <button
           type="button"
-          className="h-10 w-10 rounded-none opacity-0 group-hover:opacity-100 border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer flex items-center justify-center" 
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log("Edit button clicked for", asset.ticker);
-            onEdit(asset);
+            onToggleExclude?.();
           }}
+          className={`h-10 rounded-none opacity-0 group-hover:opacity-100 border font-black text-[10px] uppercase tracking-widest transition-all cursor-pointer ${
+            isExcluded
+              ? 'bg-destructive/20 border-destructive/50 text-destructive'
+              : 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/20'
+          }`}
           style={{ pointerEvents: 'auto' }}
         >
-          <Pencil className="h-4 w-4" />
-        </button>
-        <button 
-          type="button"
-          className="h-10 w-10 rounded-none opacity-0 group-hover:opacity-100 text-destructive border border-white/10 hover:border-destructive/50 hover:bg-destructive/5 transition-all cursor-pointer flex items-center justify-center" 
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log("Delete button clicked for", asset.ticker);
-            onDeleteClick?.(asset.id, asset.ticker);
-          }}
-          style={{ pointerEvents: 'auto' }}
-        >
-          <X className="h-4 w-4" />
+          {isExcluded ? 'OFF' : 'ON'}
         </button>
       </div>
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onToggleExclude?.();
-        }}
-        className={`h-10 rounded-none opacity-0 group-hover:opacity-100 border font-black text-[10px] uppercase tracking-widest transition-all cursor-pointer ${
-          isExcluded
-            ? 'bg-destructive/20 border-destructive/50 text-destructive'
-            : 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/20'
-        }`}
-        style={{ pointerEvents: 'auto' }}
+
+      {/* Mobile: Compact Card layout (below 900px) */}
+      <div 
+        className={`mobile:hidden flex flex-col p-4 bg-background/50 hover:bg-primary/[0.03] transition-all group border-b border-white/5 last:border-0 ${isExcluded ? 'opacity-50' : ''} ${isDragging ? 'opacity-50 bg-primary/10' : ''} relative cursor-grab active:cursor-grabbing`}
+        draggable
+        onDragStart={onDragStart}
+        onDragOver={onDragOver}
+        onDrop={onDrop}
       >
-        {isExcluded ? 'OFF' : 'ON'}
-      </button>
-    </div>
+        {/* Top row: Ticker + Value + Actions */}
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <div 
+            className="flex flex-col min-w-0 flex-1 cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAssetClick?.(asset);
+            }}
+          >
+            <span className={`text-lg font-black uppercase tracking-tight truncate text-foreground group-hover:text-primary transition-colors font-heading ${isExcluded ? 'line-through' : ''}`}>{asset.ticker}</span>
+            <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest truncate opacity-50">{name || "NO METADATA"}</span>
+          </div>
+          
+          <div className="flex flex-col items-end flex-shrink-0">
+            <div className="text-lg font-black text-foreground font-mono">
+              ₪{(asset.currentValue || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            </div>
+            {isManualPrice && <span className="text-[7px] text-primary font-black uppercase tracking-widest">manual</span>}
+          </div>
+
+          <div className="flex gap-1.5 z-40 flex-shrink-0">
+            <button 
+              type="button"
+              className="h-8 w-8 rounded-none opacity-0 group-hover:opacity-100 border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer flex items-center justify-center" 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onEdit(asset);
+              }}
+              style={{ pointerEvents: 'auto' }}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+            <button 
+              type="button"
+              className="h-8 w-8 rounded-none opacity-0 group-hover:opacity-100 text-destructive border border-white/10 hover:border-destructive/50 hover:bg-destructive/5 transition-all cursor-pointer flex items-center justify-center" 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onDeleteClick?.(asset.id, asset.ticker);
+              }}
+              style={{ pointerEvents: 'auto' }}
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Bottom row: Details in compact grid */}
+        <div className="grid grid-cols-4 gap-3 text-[9px] uppercase font-black tracking-widest">
+          <div className="flex flex-col">
+            <span className="text-muted-foreground opacity-50 mb-0.5">Weight</span>
+            <span className="text-foreground font-mono">{asset.target_percentage}%</span>
+            <span className={cn("text-[8px] font-mono", diff > 2 ? "text-orange-400" : diff < -2 ? "text-blue-400" : "text-primary")}>
+              {currentPct.toFixed(2)}%
+            </span>
+          </div>
+          
+          <div className="flex flex-col">
+            <span className="text-muted-foreground opacity-50 mb-0.5">Price</span>
+            <span className="text-foreground font-mono text-[9px]">
+              {pricePerSlice !== null ? `₪${pricePerSlice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
+            </span>
+            {isEstimated && <span className="text-[7px] text-orange-400 italic">est</span>}
+            {isManualPrice && <span className="text-[7px] text-primary">manual</span>}
+          </div>
+          
+          <div className="flex flex-col">
+            <span className="text-muted-foreground opacity-50 mb-0.5">Units</span>
+            <span className="text-foreground font-mono">{asset.shares_owned}</span>
+          </div>
+          
+          <div className="flex flex-col items-end">
+            <span className="text-muted-foreground opacity-50 mb-0.5">Status</span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleExclude?.();
+              }}
+              className={`h-6 px-2 rounded-none opacity-0 group-hover:opacity-100 border font-black text-[8px] uppercase tracking-widest transition-all cursor-pointer ${
+                isExcluded
+                  ? 'bg-destructive/20 border-destructive/50 text-destructive'
+                  : 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/20'
+              }`}
+              style={{ pointerEvents: 'auto' }}
+            >
+              {isExcluded ? 'OFF' : 'ON'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -605,10 +710,10 @@ export function AssetsList({
           </div>
         </CardHeader>
 
-        <div className="flex-shrink-0 grid grid-cols-[1fr_100px_120px_100px_120px_60px_50px] gap-6  text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-6 py-4 border-b border-white/10 bg-white/[0.02] relative z-10 font-heading">
+        {/* Table header - only show on desktop/tablet (900px+) */}
+        <div className="hidden mobile:grid flex-shrink-0 grid-cols-[1fr_100px_120px_100px_120px_60px_50px] gap-6  text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-6 py-4 border-b border-white/10 bg-white/[0.02] relative z-10 font-heading">
           <div className="flex items-center justify-between cursor-pointer hover:text-primary transition-colors group" onClick={() => { setSortBy('ticker'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}>
-            <span className="hidden mobile:inline">Asset / Class</span>
-            <span className="mobile:hidden">Asset</span>
+            <span>Asset / Class</span>
             <span className="text-[8px] opacity-0 group-hover:opacity-100">{sortBy === 'ticker' ? (sortOrder === 'desc' ? '↓' : '↑') : '↕'}</span>
           </div>
           <div className="text-right flex items-center justify-end cursor-pointer hover:text-primary transition-colors group" onClick={() => { setSortBy('weight'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}>
