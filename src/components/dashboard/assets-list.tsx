@@ -26,7 +26,8 @@ function AssetRow({
   onDelete,
   isExcluded,
   onToggleExclude,
-  onAssetClick
+  onAssetClick,
+  onDeleteClick
 }: { 
   asset: AssetWithValue & { priceSource?: 'manual' | 'scraped' }, 
   name?: string,
@@ -35,7 +36,8 @@ function AssetRow({
   onDelete: (id: string) => void,
   isExcluded?: boolean,
   onToggleExclude?: () => void,
-  onAssetClick?: (asset: AssetWithValue) => void
+  onAssetClick?: (asset: AssetWithValue) => void,
+  onDeleteClick?: (id: string, ticker: string) => void
 }) {
   const currentPct = totalValue > 0 ? ((asset.currentValue || 0) / totalValue) * 100 : 0;
   const diff = currentPct - asset.target_percentage;
@@ -102,7 +104,7 @@ function AssetRow({
             e.preventDefault();
             e.stopPropagation();
             console.log("Delete button clicked for", asset.ticker);
-            onDelete(asset.id);
+            onDeleteClick?.(asset.id, asset.ticker);
           }}
           style={{ pointerEvents: 'auto' }}
         >
@@ -141,7 +143,8 @@ export function AssetsList({
   onToggleCalculator,
   excludedAssets = new Set(),
   onExcludedAssetsChange,
-  onAssetAdded
+  onAssetAdded,
+  onAssetDeleted
 }: { 
   portfolioId: string, 
   assets: AssetWithValue[], 
@@ -154,8 +157,10 @@ export function AssetsList({
   onToggleCalculator?: () => void,
   excludedAssets?: Set<string>,
   onExcludedAssetsChange?: (excluded: Set<string>) => void,
-  onAssetAdded?: (ticker: string, price: number | null, name: string | null) => void
+  onAssetAdded?: (ticker: string, price: number | null, name: string | null) => void,
+  onAssetDeleted?: (id: string) => void
 }) {
+  const router = useRouter();
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [editShares, setEditShares] = useState("");
   const [editPercentage, setEditPercentage] = useState("");
@@ -170,6 +175,7 @@ export function AssetsList({
   const [showSearch, setShowSearch] = useState(false);
   const [searchClicked, setSearchClicked] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<AssetWithValue | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; ticker: string } | null>(null);
   
   // Refs for auto-focus
   const editPercentageRef = useRef<HTMLInputElement>(null);
@@ -208,9 +214,15 @@ export function AssetsList({
   }
 
   async function handleDeleteAsset(id: string) {
+    if (id.startsWith('temp-')) {
+      window.location.reload();
+      return;
+    }
+    
     try {
       await deleteAsset(id);
       toast.success("Asset removed");
+      onAssetDeleted?.(id);
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Delete failed");
     }
@@ -443,6 +455,7 @@ export function AssetsList({
                   setEditManualValue(manualValue ? String(manualValue) : "");
                 }}
                 onDelete={handleDeleteAsset}
+                onDeleteClick={(id, ticker) => setDeleteConfirm({ id, ticker })}
                 isExcluded={excludedAssets.has(asset.ticker)}
                 onToggleExclude={async () => {
                   const newExcluded = new Set(excludedAssets);
@@ -654,6 +667,44 @@ export function AssetsList({
         totalValue={totalValue}
         assetName={selectedAsset ? names[selectedAsset.ticker] : undefined}
       />
+
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setDeleteConfirm(null)}>
+          <div className="max-w-md w-full bg-background border-2 border-destructive rounded-none overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="p-8 space-y-6">
+              <div className="space-y-3">
+                <h2 className="text-3xl font-black uppercase tracking-[0.3em] text-destructive font-heading">
+                  Confirm Delete
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Remove <span className="text-foreground font-black">{deleteConfirm.ticker}</span> from portfolio?
+                </p>
+                <p className="text-xs text-destructive/70 uppercase tracking-widest font-black">
+                  This action cannot be undone.
+                </p>
+              </div>
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeleteConfirm(null)}
+                  className="flex-1 h-14 bg-white/5 hover:bg-white/10 border border-white/20 text-foreground font-black uppercase text-sm tracking-widest transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    handleDeleteAsset(deleteConfirm.id);
+                    setDeleteConfirm(null);
+                  }}
+                  className="flex-1 h-14 bg-destructive hover:bg-destructive/90 text-white font-black uppercase text-sm tracking-widest shadow-[4px_4px_0px_0px_rgba(239,68,68,0.3)] hover:shadow-none transition-all"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
