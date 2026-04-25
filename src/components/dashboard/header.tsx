@@ -1,5 +1,6 @@
 "use client";
 
+import { Scale } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
 import { signout } from "@/actions/auth";
 
@@ -16,9 +17,12 @@ export function DashboardHeader({
     <header className="sticky top-0 z-50 glass border-b border-white/10 bg-background/80 backdrop-blur-2xl">
       <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-6">
         <div className="flex items-center gap-10">
-          <div className="flex flex-col">
-            <span className="text-2xl font-black uppercase tracking-[0.4em] text-primary font-heading text-glow">REBALANCER</span>
-            <span className="text-[8px] text-muted-foreground uppercase font-black tracking-[0.2em] opacity-40">Quant-Grade Portfolio Terminal</span>
+          <div className="flex items-center gap-4">
+            <Scale className="w-10 h-10 text-primary flex-shrink-0" strokeWidth={2} />
+            <div className="flex flex-col">
+              <span className="text-2xl font-black uppercase tracking-[0.4em] text-primary font-heading text-glow">REBALANCER</span>
+              <span className="text-[8px] text-muted-foreground uppercase font-black tracking-[0.2em] opacity-40">Quant-Grade Portfolio Terminal</span>
+            </div>
           </div>
           <div className="h-8 w-px bg-white/10 hidden sm:block" />
           <div className="hidden sm:flex flex-col">

@@ -20,9 +20,12 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Rebalancer — Smart Portfolio Allocation",
+  title: "Rebalancer - Smart Portfolio Allocation",
   description:
-    "Calculate exactly how to invest new cash to maintain your target portfolio allocation. Built for long-term investors on the TASE.",
+    "Calculate exactly how to invest new cash to maintain your target portfolio allocation. Built especially for long-term investors on the TASE.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
