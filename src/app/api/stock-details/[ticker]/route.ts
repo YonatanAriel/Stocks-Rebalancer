@@ -37,6 +37,15 @@ export async function GET(
         const bizData = await scrapeBizportalEtf(ticker);
         
         if (bizData.monthReturnText || bizData.threeMonthReturnText || bizData.yearReturnText || bizData.twelveMonthReturnText || bizData.standardDeviationText || bizData.sharpeRatioText) {
+          // Extract only the first percentage value from the text (in case it contains multiple values)
+          const extractPercentage = (value: string | null | undefined) => {
+            if (!value) return value;
+            // Match the first number with optional minus/plus and percentage sign
+            const match = value.match(/([-+]?\d+\.?\d*)%/);
+            return match ? `${match[1]}%` : value;
+          };
+          
+          // Clean non-percentage values (remove Hebrew, parentheses, colons)
           const cleanValue = (value: string | null | undefined) => {
             if (!value) return value;
             return value
@@ -47,10 +56,10 @@ export async function GET(
           };
           
           detailData.performance = {
-            oneMonth: bizData.monthReturnText,
-            threeMonth: bizData.threeMonthReturnText,
-            ytd: bizData.yearReturnText,
-            oneYear: bizData.twelveMonthReturnText,
+            oneMonth: extractPercentage(bizData.monthReturnText),
+            threeMonth: extractPercentage(bizData.threeMonthReturnText),
+            ytd: extractPercentage(bizData.yearReturnText),
+            oneYear: extractPercentage(bizData.twelveMonthReturnText),
             standardDeviation: cleanValue(bizData.standardDeviationText),
             sharpeRatio: cleanValue(bizData.sharpeRatioText),
           };

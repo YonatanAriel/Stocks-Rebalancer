@@ -216,7 +216,7 @@ export function StockDetailModal(props: StockDetailModalProps) {
                 
                 {(detailData.performance.standardDeviation || detailData.performance.sharpeRatio) && (
                   <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-white/10">
-                    {detailData.performance.standardDeviation && (
+                    {detailData.performance.standardDeviation && detailData.performance.standardDeviation !== '--' && (
                       <div className="bg-white/[0.02] border border-primary/20 p-4 hover:border-primary/40 transition-colors">
                         <div className="text-[9px] uppercase tracking-widest font-black text-muted-foreground mb-2">
                           Std Deviation (Volatility)
