@@ -38,6 +38,13 @@ export function DashboardHeader({
               <span className="text-2xl font-black uppercase tracking-[0.4em] text-primary font-heading text-glow">REBALANCER</span>
               <span className="text-[8px] text-muted-foreground uppercase font-black tracking-[0.2em] opacity-40">Quant-Grade Portfolio Terminal</span>
             </div>
+            
+            <div className="hidden lg:flex items-center gap-8">
+              <div className=" ml-1 h-8 w-px bg-white/10" />
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary font-heading text-glow">Global Terminal</span>
+              </div>
+            </div>
           </div>
 
           {/* Right: Actions */}
