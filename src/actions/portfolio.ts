@@ -26,6 +26,7 @@ export async function getPortfolios() {
   const { data, error } = await supabase
     .from('portfolios')
     .select('*, assets(*)')
+    .order('display_order', { foreignTable: 'assets', ascending: true })
   
   if (error) throw new Error(error.message)
   return data
@@ -99,4 +100,26 @@ export async function deleteAsset(assetId: string) {
     .eq('id', assetId)
 
   if (error) throw new Error(error.message)
+}
+
+export async function reorderAssets(assetIds: string[]) {
+  const supabase = await createClient()
+  
+  const updates = assetIds.map((id, index) => ({
+    id,
+    display_order: index
+  }))
+  
+  const results = await Promise.all(
+    updates.map(({ id, display_order }) =>
+      supabase
+        .from('assets')
+        .update({ display_order })
+        .eq('id', id)
+    )
+  )
+  
+  for (const result of results) {
+    if (result.error) throw new Error(result.error.message)
+  }
 }

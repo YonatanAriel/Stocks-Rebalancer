@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { updateAsset, deleteAsset, addAsset, toggleAssetActive } from "@/actions/portfolio";
+import { updateAsset, deleteAsset, addAsset, toggleAssetActive, reorderAssets } from "@/actions/portfolio";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -27,7 +27,11 @@ function AssetRow({
   isExcluded,
   onToggleExclude,
   onAssetClick,
-  onDeleteClick
+  onDeleteClick,
+  isDragging,
+  onDragStart,
+  onDragOver,
+  onDrop
 }: { 
   asset: AssetWithValue & { priceSource?: 'manual' | 'scraped' }, 
   name?: string,
@@ -37,7 +41,11 @@ function AssetRow({
   isExcluded?: boolean,
   onToggleExclude?: () => void,
   onAssetClick?: (asset: AssetWithValue) => void,
-  onDeleteClick?: (id: string, ticker: string) => void
+  onDeleteClick?: (id: string, ticker: string) => void,
+  isDragging?: boolean,
+  onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void,
+  onDragOver?: (e: React.DragEvent<HTMLDivElement>) => void,
+  onDrop?: (e: React.DragEvent<HTMLDivElement>) => void
 }) {
   const currentPct = totalValue > 0 ? ((asset.currentValue || 0) / totalValue) * 100 : 0;
   const diff = currentPct - asset.target_percentage;
@@ -52,7 +60,13 @@ function AssetRow({
   }
 
   return (
-    <div className={`grid grid-cols-[1fr_100px_120px_100px_120px_60px_50px] gap-6 items-center p-6 bg-background/50 hover:bg-primary/[0.03] transition-all group border-b border-white/5 last:border-0 ${isExcluded ? 'opacity-50' : ''} relative`}>
+    <div 
+      className={`grid grid-cols-[1fr_100px_120px_100px_120px_60px_50px] gap-6 items-center p-6 bg-background/50 hover:bg-primary/[0.03] transition-all group border-b border-white/5 last:border-0 ${isExcluded ? 'opacity-50' : ''} ${isDragging ? 'opacity-50 bg-primary/10' : ''} relative cursor-grab active:cursor-grabbing`}
+      draggable
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+    >
       <div 
         className="flex flex-col min-w-0 cursor-pointer"
         onClick={(e) => {
@@ -171,17 +185,25 @@ export function AssetsList({
   const [newPercentage, setNewPercentage] = useState("");
   const [newShares, setNewShares] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<'value' | 'ticker' | 'weight' | 'price' | 'shares'>('value');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortBy, setSortBy] = useState<'value' | 'ticker' | 'weight' | 'price' | 'shares' | 'order'>('order');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showSearch, setShowSearch] = useState(false);
   const [searchClicked, setSearchClicked] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<AssetWithValue | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; ticker: string } | null>(null);
+  const [draggedAssetId, setDraggedAssetId] = useState<string | null>(null);
+  const [dragOverAssetId, setDragOverAssetId] = useState<string | null>(null);
+  const [orderedAssets, setOrderedAssets] = useState<AssetWithValue[]>(assets);
   
   // Refs for auto-focus
   const editPercentageRef = useRef<HTMLInputElement>(null);
   const newTickerRef = useRef<HTMLInputElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync ordered assets when assets prop changes
+  useEffect(() => {
+    setOrderedAssets(assets);
+  }, [assets]);
 
   // Helper functions for URL management
   const updateURL = (params: Record<string, string | null>) => {
@@ -321,8 +343,66 @@ export function AssetsList({
 
   const currentEditingPrice = editingAsset ? assets.find(a => a.id === editingAsset.id)?.price : null;
 
-  // Filter and sort assets
-  const filteredAssets = assets.filter(asset => {
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, assetId: string) => {
+    setDraggedAssetId(assetId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, assetId: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverAssetId(assetId);
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>, targetAssetId: string) => {
+    e.preventDefault();
+    if (!draggedAssetId || draggedAssetId === targetAssetId) {
+      setDraggedAssetId(null);
+      setDragOverAssetId(null);
+      return;
+    }
+
+    // Reorder the assets
+    const draggedIndex = sortedAssets.findIndex(a => a.id === draggedAssetId);
+    const targetIndex = sortedAssets.findIndex(a => a.id === targetAssetId);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedAssetId(null);
+      setDragOverAssetId(null);
+      return;
+    }
+
+    const newOrder = [...sortedAssets];
+    const [draggedItem] = newOrder.splice(draggedIndex, 1);
+    newOrder.splice(targetIndex, 0, draggedItem);
+
+    // Update local state immediately for responsive UI - update both orderedAssets and display_order
+    const updatedAssets = newOrder.map((asset, index) => ({
+      ...asset,
+      display_order: index
+    }));
+    setOrderedAssets(updatedAssets);
+
+    // Persist to database
+    try {
+      await reorderAssets(updatedAssets.map(a => a.id));
+      toast.success("Order updated");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Reorder failed");
+      // Revert on error
+      setOrderedAssets(sortedAssets);
+    }
+
+    setDraggedAssetId(null);
+    setDragOverAssetId(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedAssetId(null);
+    setDragOverAssetId(null);
+  };
+  const filteredAssets = orderedAssets.filter(asset => {
     const searchLower = searchQuery.toLowerCase();
     return asset.ticker.toLowerCase().includes(searchLower) || 
            (names[asset.ticker]?.toLowerCase().includes(searchLower) ?? false);
@@ -347,6 +427,9 @@ export function AssetsList({
     } else if (sortBy === 'shares') {
       aVal = a.shares_owned;
       bVal = b.shares_owned;
+    } else if (sortBy === 'order') {
+      aVal = a.display_order || 0;
+      bVal = b.display_order || 0;
     }
     
     return sortOrder === 'desc' ? bVal - aVal : aVal - bVal;
@@ -511,6 +594,10 @@ export function AssetsList({
                 onDelete={handleDeleteAsset}
                 onDeleteClick={(id, ticker) => setDeleteConfirm({ id, ticker })}
                 isExcluded={excludedAssets.has(asset.ticker)}
+                isDragging={draggedAssetId === asset.id}
+                onDragStart={(e) => handleDragStart(e, asset.id)}
+                onDragOver={(e) => handleDragOver(e, asset.id)}
+                onDrop={(e) => handleDrop(e, asset.id)}
                 onToggleExclude={async () => {
                   const newExcluded = new Set(excludedAssets);
                   const isCurrentlyExcluded = newExcluded.has(asset.ticker);
