@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { AssetWithValue, Asset } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Pencil, X, RefreshCw } from "lucide-react";
@@ -160,6 +160,11 @@ export function AssetsList({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showSearch, setShowSearch] = useState(false);
   const [searchClicked, setSearchClicked] = useState(false);
+  
+  // Refs for auto-focus
+  const editPercentageRef = useRef<HTMLInputElement>(null);
+  const newTickerRef = useRef<HTMLInputElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   async function handleUpdateAsset() {
     if (!editingAsset) return;
@@ -206,6 +211,27 @@ export function AssetsList({
     window.addEventListener('open-add-asset', handleOpenAdd);
     return () => window.removeEventListener('open-add-asset', handleOpenAdd);
   }, []);
+
+  // Auto-focus for Edit Asset Modal
+  useEffect(() => {
+    if (editingAsset) {
+      setTimeout(() => editPercentageRef.current?.focus(), 100);
+    }
+  }, [editingAsset]);
+
+  // Auto-focus for Add Asset Modal
+  useEffect(() => {
+    if (addingAsset) {
+      setTimeout(() => newTickerRef.current?.focus(), 100);
+    }
+  }, [addingAsset]);
+
+  // Auto-focus for Search Bar
+  useEffect(() => {
+    if (showSearch) {
+      setTimeout(() => searchInputRef.current?.focus(), 50);
+    }
+  }, [showSearch]);
 
   async function handleAddAsset() {
     if (!newTicker.trim()) return;
@@ -291,7 +317,7 @@ export function AssetsList({
               <div className="flex   items-center relative group overflow-hidden mr-auto" onMouseLeave={() => !searchQuery && !searchClicked && setShowSearch(false)}>
                 <div className={`transition-all   duration-300 ease-out overflow-hidden ${showSearch ? 'w-48' : 'w-0'}`}>
                   <Input
-                    autoFocus
+                    ref={searchInputRef}
                     placeholder="Search..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -452,6 +478,7 @@ export function AssetsList({
                   <div className="space-y-3">
                     <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Target Allocation (%)</Label>
                     <Input
+                      ref={editPercentageRef}
                       type="number"
                       step="0.01"
                       value={editPercentage}
@@ -543,6 +570,7 @@ export function AssetsList({
                   <div className="space-y-3">
                     <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Ticker / Security ID</Label>
                     <Input 
+                      ref={newTickerRef}
                       placeholder="e.g. 1159250" 
                       required 
                       value={newTicker}
