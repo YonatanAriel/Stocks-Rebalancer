@@ -2,6 +2,7 @@
 
 import YahooFinance from 'yahoo-finance2'
 import { createClient } from '@/utils/supabase/server'
+import { getBaseUrl } from '@/lib/getBaseUrl'
 
 // yahoo-finance2 v3 requires instantiation
 const yf = new YahooFinance()
@@ -87,7 +88,7 @@ export async function clearManualPrice(securityId: string): Promise<{ ok: boolea
 
 async function getPriceFromBizportal(ticker: string): Promise<{ price: number | null; name: string | null }> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const baseUrl = getBaseUrl();
     const url = `${baseUrl}/api/etf/${ticker}`;
     console.log(`[Finance] Bizportal URL: ${url}`);
     
