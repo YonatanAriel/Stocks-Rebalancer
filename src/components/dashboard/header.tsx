@@ -12,6 +12,7 @@ export function DashboardHeader({
   isLoading,
   onNewAsset,
   onRebalance,
+  onAllocation,
   onSearch
 }: { 
   userEmail: string;
@@ -19,6 +20,7 @@ export function DashboardHeader({
   isLoading?: boolean;
   onNewAsset?: () => void;
   onRebalance?: () => void;
+  onAllocation?: () => void;
   onSearch?: () => void;
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);

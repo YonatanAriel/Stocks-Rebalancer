@@ -565,7 +565,7 @@ export function AssetsList({
       <Card className="h-full flex flex-col overflow-hidden bg-background/40 border-white/10 rounded-none shadow-2xl backdrop-blur-xl relative group">
         
         {/* Consolidated High-Density Header */}
-        <CardHeader className="flex-shrink-0 space-y-6 p-6 pr-0 border-b border-white/10 relative z-10">
+        <CardHeader className="flex-shrink-0 space-y-6 p-6 pr-0 sm-mobile:py-3 border-b border-white/10 relative z-10">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div className="space-y-1 flex-1 min-w-0">
               {/* Desktop: Vertical layout */}

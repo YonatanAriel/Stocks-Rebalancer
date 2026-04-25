@@ -26,6 +26,7 @@ export function DashboardShell({
   const [loadingPrices, setLoadingPrices] = useState(false);
   const [cashAmount, setCashAmount] = useState("");
   const [showCalculator, setShowCalculator] = useState(false);
+  const [showAllocation, setShowAllocation] = useState(false);
   const [portfolioAssets, setPortfolioAssets] = useState(portfolio.assets);
   const [searchQuery, setSearchQuery] = useState("");
   const [excludedAssets, setExcludedAssets] = useState<Set<string>>(() => {
@@ -186,13 +187,16 @@ export function DashboardShell({
           setShowCalculator(true);
           updateURL({ calculator: 'open' });
         }}
+        onAllocation={() => {
+          setShowAllocation(true);
+        }}
         onSearch={() => {
           // Search is handled in the header component itself
         }}
       />
 
       <main className="flex-1 min-h-0 overflow-hidden">
-        <div className="h-full grid gap-8 grid-cols-1 portfolio:grid-cols-[1fr_350px] px-6 py-6 overflow-hidden">
+        <div className="h-full grid gap-8 grid-cols-1 portfolio:grid-cols-[1fr_350px] px-6 py-6 mobile:py-3 overflow-hidden">
           <div className="min-h-0 overflow-hidden">
             <AssetsList 
               assets={assetsWithValues} 
@@ -240,7 +244,8 @@ export function DashboardShell({
             />
           </div>
 
-          <div className="min-h-0 flex flex-col overflow-hidden">
+          {/* Hide allocation chart on mobile (below 995px) */}
+          <div className="hidden portfolio:flex min-h-0 flex-col overflow-hidden">
             <Card className="bg-background/40 border-white/10 rounded-none shadow-xl border-t-4 border-primary backdrop-blur-xl flex flex-col h-full overflow-hidden">
             <CardHeader className="flex-shrink-0 p-6 border-b border-white/5 bg-white/[0.01]">
               <CardTitle className="text-sm font-black uppercase tracking-widest text-primary font-heading">Target Allocation</CardTitle>
@@ -322,6 +327,48 @@ export function DashboardShell({
                 onExcludedAssetsChange={setExcludedAssets}
                 onRefreshPrices={fetchPrices}
                 isRefreshing={loadingPrices}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Allocation Chart Modal (for mobile) */}
+      {showAllocation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm pointer-events-auto" onClick={() => setShowAllocation(false)}>
+          <div className="max-w-2xl w-full bg-background border border-white/20 rounded-none max-h-[90vh] overflow-y-auto custom-scrollbar touch-pan-y mx-4 pointer-events-auto" 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehavior: 'contain'
+            }}
+          >
+            <div className="sticky top-0 bg-background border-b border-white/10 p-6 flex items-center justify-between z-10">
+              <div>
+                <h2 className="text-xl font-black uppercase tracking-[0.3em] text-primary font-heading">Target Allocation</h2>
+                <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground opacity-60">
+                  Portfolio distribution overview
+                </p>
+              </div>
+              <button
+                onClick={() => setShowAllocation(false)}
+                className="rounded-none border border-white/10 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all h-10 w-10 cursor-pointer flex items-center justify-center flex-shrink-0"
+                style={{ pointerEvents: 'auto' }}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-6">
+              <AllocationChart
+                assets={assetsWithValues
+                  .filter(a => !excludedAssets.has(a.ticker))
+                  .map((a) => ({
+                    ticker: a.ticker,
+                    targetPct: a.target_percentage,
+                    currentPct: totalValue > 0 && a.currentValue ? (a.currentValue / totalValue) * 100 : 0,
+                    priceSource: a.priceSource,
+                  }))}
+                isLoading={loadingPrices}
               />
             </div>
           </div>
