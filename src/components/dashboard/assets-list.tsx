@@ -428,8 +428,28 @@ export function AssetsList({
       aVal = a.shares_owned;
       bVal = b.shares_owned;
     } else if (sortBy === 'order') {
-      aVal = a.display_order || 0;
-      bVal = b.display_order || 0;
+      // Check if any asset has a display_order set
+      const hasDisplayOrder = filteredAssets.some(asset => asset.display_order !== null && asset.display_order !== undefined);
+      
+      if (hasDisplayOrder) {
+        // Use display_order if set
+        aVal = a.display_order || 0;
+        bVal = b.display_order || 0;
+      } else {
+        // Default: ON status first (sorted by value desc), then OFF status (sorted by value desc)
+        const aIsExcluded = excludedAssets.has(a.ticker);
+        const bIsExcluded = excludedAssets.has(b.ticker);
+        
+        // If different statuses, ON comes first
+        if (aIsExcluded !== bIsExcluded) {
+          return aIsExcluded ? 1 : -1;
+        }
+        
+        // Same status, sort by value descending
+        aVal = a.currentValue || 0;
+        bVal = b.currentValue || 0;
+        return bVal - aVal;
+      }
     }
     
     return sortOrder === 'desc' ? bVal - aVal : aVal - bVal;
