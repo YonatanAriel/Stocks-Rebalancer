@@ -170,10 +170,10 @@ export function RebalanceCalculator({
   );
 
   return (
-    <div className="grid gap-12 lg:grid-cols-[1fr_450px] h-full overflow-hidden">
-      <div className="flex flex-col min-h-0 space-y-8 overflow-hidden">
-        <div className="flex-shrink-0 space-y-4 p-8 bg-primary/5 border-l-4 border-primary">
-          <Label className="text-sm uppercase tracking-[0.3em] font-black text-primary font-heading">01. Capital Injection (₪)</Label>
+    <div className="grid gap-6 mobile:gap-12 lg:grid-cols-[1fr_450px] h-full overflow-hidden">
+      <div className="flex flex-col min-h-0 space-y-6 mobile:space-y-8 overflow-hidden">
+        <div className="flex-shrink-0 space-y-3 mobile:space-y-4 p-4 mobile:p-8 bg-primary/5 border-l-4 border-primary">
+          <Label className="text-xs mobile:text-sm uppercase tracking-[0.2em] mobile:tracking-[0.3em] font-black text-primary font-heading">01. Capital Injection (₪)</Label>
           <Input
             ref={cashInputRef}
             placeholder="5,000"
@@ -184,7 +184,7 @@ export function RebalanceCalculator({
                 setCashAmount(raw);
               }
             }}
-            className="text-4xl h-20 bg-background/50 border-white/20 focus:border-primary rounded-none font-black text-glow"
+            className="text-2xl mobile:text-4xl h-16 mobile:h-20 bg-background/50 border-white/20 focus:border-primary rounded-none font-black text-glow"
           />
         </div>
 
@@ -199,10 +199,10 @@ export function RebalanceCalculator({
           <div className="flex-1 overflow-y-auto custom-scrollbar border border-white/10 bg-white/[0.02]">
             <div className="divide-y divide-white/5">
               {assets.map((asset) => (
-                <div key={asset.id} className="grid grid-cols-[1fr_160px_50px] items-center gap-6 p-6 hover:bg-primary/[0.03] transition-all">
+                <div key={asset.id} className="grid grid-cols-[1fr_110px_45px] mobile:grid-cols-[1fr_160px_50px] items-center gap-2 mobile:gap-6 p-3 mobile:p-6 hover:bg-primary/[0.03] transition-all">
                   <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-black uppercase tracking-tight truncate">{asset.ticker}</span>
-                    <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest truncate opacity-50">{names[asset.ticker] || "NO METADATA"}</span>
+                    <span className="text-[11px] mobile:text-sm font-black uppercase tracking-tight truncate">{asset.ticker}</span>
+                    <span className="text-[8px] mobile:text-[10px] text-muted-foreground uppercase font-black tracking-widest truncate opacity-50">{names[asset.ticker] || "NO METADATA"}</span>
                   </div>
                   <div className="relative">
                     <Input
@@ -219,7 +219,7 @@ export function RebalanceCalculator({
                           setPriceOverrides({ ...priceOverrides, [asset.ticker]: raw });
                         }
                       }}
-                      className="h-12 bg-white/5 text-right pr-4 text-xs rounded-none border-white/20 focus:border-primary/50 font-mono font-black"
+                      className="h-10 mobile:h-12 bg-white/5 text-right pr-2 mobile:pr-4 text-[10px] mobile:text-xs rounded-none border-white/20 focus:border-primary/50 font-mono font-black"
                     />
                     <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-primary uppercase">₪</div>
                     {(asset as any).priceSource === 'manual' && (
@@ -238,7 +238,7 @@ export function RebalanceCalculator({
                       }
                       onExcludedAssetsChange?.(newExcluded);
                     }}
-                    className={`h-12 rounded-none border font-black text-[10px] uppercase tracking-widest transition-all cursor-pointer ${
+                    className={`h-10 mobile:h-12 rounded-none border font-black text-[8px] mobile:text-[10px] uppercase tracking-widest transition-all cursor-pointer ${
                       excludedAssets.has(asset.ticker)
                         ? 'bg-destructive/20 border-destructive/50 text-destructive'
                         : 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/20'
@@ -273,47 +273,47 @@ export function RebalanceCalculator({
           {result && (
             <>
               {result.singleBuy.sharesToBuy === 0 && result.optimalBuys.every(b => b.sharesToBuy === 0) ? (
-                <div className="h-full flex items-center justify-center border-2 border-dashed border-destructive/30 p-12 text-center rounded-none bg-destructive/5">
-                  <p className="text-[10px] text-destructive uppercase font-black tracking-[0.3em] leading-loose">
+                <div className="h-full flex items-center justify-center border-2 border-dashed border-destructive/30 p-8 mobile:p-12 text-center rounded-none bg-destructive/5">
+                  <p className="text-[10px] mobile:text-[10px] text-destructive uppercase font-black tracking-[0.2em] mobile:tracking-[0.3em] leading-loose">
                     Insufficient Capital<br/>Available funds cannot purchase any assets at current prices.
                   </p>
                 </div>
               ) : (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className="space-y-6 mobile:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
               {/* Option A */}
-              <div className="bg-white/40 dark:bg-white/5 border border-white/30 dark:border-white/20 p-8 space-y-6 relative overflow-hidden group">
+              <div className="bg-white/40 dark:bg-white/5 border border-white/30 dark:border-white/20 p-4 mobile:p-8 space-y-4 mobile:space-y-6 relative overflow-hidden group">
                 <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="h-8 w-1 bg-white dark:bg-white shadow-[0_0_15px_rgba(255,255,255,0.5)]" />
-                    <h3 className="text-sm font-black uppercase tracking-[0.3em] font-heading">Single Asset Entry</h3>
+                  <div className="flex items-center gap-3 mobile:gap-4">
+                    <div className="h-6 mobile:h-8 w-1 bg-white dark:bg-white shadow-[0_0_15px_rgba(255,255,255,0.5)]" />
+                    <h3 className="text-xs mobile:text-sm font-black uppercase tracking-[0.2em] mobile:tracking-[0.3em] font-heading">Single Asset Entry</h3>
                   </div>
                   <button
                     onClick={() => setExpandedOption(expandedOption === 'A' ? null : 'A')}
-                    className="rounded-none h-10 px-4 text-[10px] font-black uppercase tracking-widest bg-white/20 dark:bg-white/10 hover:bg-white/30 dark:hover:bg-white/20 border border-white/40 dark:border-white/30 transition-all cursor-pointer"
+                    className="rounded-none h-8 mobile:h-10 px-2 mobile:px-4 text-[8px] mobile:text-[10px] font-black uppercase tracking-widest bg-white/20 dark:bg-white/10 hover:bg-white/30 dark:hover:bg-white/20 border border-white/40 dark:border-white/30 transition-all cursor-pointer whitespace-nowrap"
                   >
                     {expandedOption === 'A' ? 'HIDE' : 'VIEW'} ALLOCATION
                   </button>
                 </div>
                 
-                <div className="bg-background border border-white/40 dark:border-white/30 p-6 flex items-center justify-between shadow-xl">
+                <div className="bg-background border border-white/40 dark:border-white/30 p-4 mobile:p-6 flex items-center justify-between shadow-xl">
                   <div>
-                    <div className="font-black text-lg uppercase text-glow">{result.singleBuy.ticker}</div>
-                    <div className="text-[10px] text-muted-foreground font-black tracking-widest uppercase opacity-60">TARGET: {result.singleBuy.targetPct.toFixed(1)}%</div>
+                    <div className="font-black text-base mobile:text-lg uppercase text-glow">{result.singleBuy.ticker}</div>
+                    <div className="text-[9px] mobile:text-[10px] text-muted-foreground font-black tracking-widest uppercase opacity-60">TARGET: {result.singleBuy.targetPct.toFixed(1)}%</div>
                   </div>
                   <div className="text-right">
-                    <div className="font-black text-black dark:text-white text-lg uppercase">
+                    <div className="font-black text-black dark:text-white text-base mobile:text-lg uppercase">
                       {result.singleBuy.sharesToBuy > 0 
                         ? `+${result.singleBuy.sharesToBuy} UNITS` 
                         : `+₪${result.singleBuy.cost.toLocaleString()}`}
                     </div>
-                    <div className="text-[10px] text-muted-foreground font-black font-mono">
+                    <div className="text-[9px] mobile:text-[10px] text-muted-foreground font-black font-mono">
                       Σ ₪{result.singleBuy.cost.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </div>
                   </div>
                 </div>
 
                 {expandedOption === 'A' && (
-                  <div className="bg-white/20 dark:bg-white/[0.02] border border-white/30 dark:border-white/10 p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="bg-white/20 dark:bg-white/[0.02] border border-white/30 dark:border-white/10 p-4 mobile:p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Post-Investment Allocation:</div>
                     <div className="space-y-2">
                       {effectiveAssetsWithValues.map((asset) => {
@@ -355,33 +355,33 @@ export function RebalanceCalculator({
                 if (isSameAsA) return null;
 
                 return (
-                  <div className="bg-primary/5 border border-primary/20 p-8 space-y-6 relative overflow-hidden group">
+                  <div className="bg-primary/5 border border-primary/20 p-4 mobile:p-8 space-y-4 mobile:space-y-6 relative overflow-hidden group">
                     <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-4">
-                        <div className="h-8 w-1 bg-primary shadow-[0_0_15px_rgba(var(--primary),0.5)]" />
-                        <h3 className="text-sm font-black uppercase tracking-[0.3em] font-heading">Optimal Balance Strategy</h3>
+                      <div className="flex items-center gap-3 mobile:gap-4">
+                        <div className="h-6 mobile:h-8 w-1 bg-primary shadow-[0_0_15px_rgba(var(--primary),0.5)]" />
+                        <h3 className="text-xs mobile:text-sm font-black uppercase tracking-[0.2em] mobile:tracking-[0.3em] font-heading">Optimal Balance Strategy</h3>
                       </div>
                       <button
                         onClick={() => setExpandedOption(expandedOption === 'B' ? null : 'B')}
-                        className="rounded-none h-10 px-4 text-[10px] font-black uppercase tracking-widest bg-primary/10 hover:bg-primary/20 border border-primary/30 transition-all cursor-pointer"
+                        className="rounded-none h-8 mobile:h-10 px-2 mobile:px-4 text-[8px] mobile:text-[10px] font-black uppercase tracking-widest bg-primary/10 hover:bg-primary/20 border border-primary/30 transition-all cursor-pointer whitespace-nowrap"
                       >
                         {expandedOption === 'B' ? 'HIDE' : 'VIEW'} ALLOCATION
                       </button>
                     </div>
                     <div className="space-y-px bg-white/5 border border-white/10 shadow-xl overflow-hidden">
                       {activeOptimal.map((buy: any) => (
-                        <div key={buy.ticker} className="flex items-center justify-between bg-background p-6 border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors">
+                        <div key={buy.ticker} className="flex items-center justify-between bg-background p-4 mobile:p-6 border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors">
                           <div>
-                            <div className="font-black text-sm uppercase text-glow">{buy.ticker}</div>
-                            <div className="text-[9px] text-muted-foreground font-black tracking-widest uppercase opacity-60">TARGET: {buy.targetPct.toFixed(1)}%</div>
+                            <div className="font-black text-xs mobile:text-sm uppercase text-glow">{buy.ticker}</div>
+                            <div className="text-[8px] mobile:text-[9px] text-muted-foreground font-black tracking-widest uppercase opacity-60">TARGET: {buy.targetPct.toFixed(1)}%</div>
                           </div>
                           <div className="text-right">
-                            <div className="font-black text-primary text-sm uppercase">
+                            <div className="font-black text-primary text-xs mobile:text-sm uppercase">
                               {buy.sharesToBuy > 0 
                                 ? `+${buy.sharesToBuy} UNITS` 
                                 : `+₪${buy.cost.toLocaleString()}`}
                             </div>
-                            <div className="text-[9px] text-muted-foreground font-black font-mono">
+                            <div className="text-[8px] mobile:text-[9px] text-muted-foreground font-black font-mono">
                               ₪{buy.cost.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </div>
                           </div>
@@ -400,7 +400,7 @@ export function RebalanceCalculator({
                     </div>
 
                     {expandedOption === 'B' && (
-                      <div className="bg-white/[0.02] border border-primary/10 p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="bg-white/[0.02] border border-primary/10 p-4 mobile:p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                         <div className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Post-Investment Allocation:</div>
                         <div className="space-y-2">
                           {effectiveAssetsWithValues.map((asset) => {

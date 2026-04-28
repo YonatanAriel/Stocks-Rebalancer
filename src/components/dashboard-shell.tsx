@@ -273,28 +273,28 @@ export function DashboardShell({
           setShowCalculator(false);
           updateURL({ calculator: null });
         }}>
-          <div className="max-w-5xl bg-background border-border rounded-none max-h-[90vh] overflow-y-auto custom-scrollbar touch-pan-y p-0 w-full mx-4 pointer-events-auto relative" 
+          <div className="max-w-5xl bg-background border-border rounded-none h-full mobile:h-auto mobile:max-h-[90vh] overflow-y-auto custom-scrollbar touch-pan-y p-0 w-full mobile:mx-4 pointer-events-auto relative" 
             onClick={(e) => e.stopPropagation()}
             style={{
               WebkitOverflowScrolling: 'touch',
               overscrollBehavior: 'contain'
             }}
           >
-            <div className="sticky top-0 bg-background border-b border-border p-8 flex items-start justify-between gap-8 z-10">
+            <div className="sticky top-0 bg-background border-b border-border p-4 mobile:p-8 flex flex-col mobile:flex-row items-start mobile:items-center justify-between gap-4 mobile:gap-8 z-10">
               <div className="flex-1">
-                <h2 className="text-xl font-black uppercase tracking-[0.4em] text-primary">System Rebalance</h2>
-                <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">
+                <h2 className="text-lg mobile:text-xl font-black uppercase tracking-[0.2em] mobile:tracking-[0.4em] text-primary">System Rebalance</h2>
+                <p className="text-[9px] mobile:text-[10px] uppercase font-bold tracking-widest text-muted-foreground">
                   Optimizing capital distribution based on target weights.
                 </p>
               </div>
-              <div className="flex items-center gap-3 flex-shrink-0">
+              <div className="flex items-center gap-2 mobile:gap-3 flex-shrink-0 w-full mobile:w-auto">
                 <button
                   onClick={fetchPrices}
                   disabled={loadingPrices}
-                  className="rounded-none text-[10px] uppercase font-black tracking-widest border border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all h-10 px-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+                  className="flex-1 mobile:flex-none rounded-none text-[9px] mobile:text-[10px] uppercase font-black tracking-widest border border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all h-10 px-3 mobile:px-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
                   title="Refresh prices (Alt+R)"
                 >
-                  <svg className={`h-4 w-4 ${loadingPrices ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className={`h-3 w-3 mobile:h-4 mobile:w-4 ${loadingPrices ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                   Refresh Prices
@@ -313,7 +313,7 @@ export function DashboardShell({
                 </button>
               </div>
             </div>
-            <div className="p-8">
+            <div className="p-4 mobile:p-8">
               <RebalanceCalculator
                 assets={portfolio.assets}
                 assetsWithValues={assetsWithValues}
