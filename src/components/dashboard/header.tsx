@@ -137,131 +137,129 @@ export function DashboardHeader({
       </header>
 
       {/* Mobile Drawer */}
-      {drawerOpen && (
+      <div 
+        className={`fixed inset-0 z-[60] mobile:hidden ${drawerOpen ? "pointer-events-auto" : "pointer-events-none"}`}
+        onClick={() => setDrawerOpen(false)}
+      >
+        {/* Backdrop */}
+        <div className={`absolute inset-0 bg-black/40 backdrop-blur-md transition-opacity duration-150 ${drawerOpen ? "opacity-100" : "opacity-0"}`} />
+        
+        {/* Drawer */}
         <div 
-          className="fixed inset-0 z-[60] mobile:hidden"
-          onClick={() => setDrawerOpen(false)}
+          className={`absolute top-0 right-0 h-full w-80 max-w-[85vw] bg-background border-l border-border shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${drawerOpen ? "translate-x-0" : "translate-x-full"}`}
+          onClick={(e) => e.stopPropagation()}
         >
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-          
-          {/* Drawer */}
-          <div 
-            className="absolute top-0 right-0 h-full w-80 max-w-[85vw] bg-background border-l border-border shadow-2xl flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Drawer Header */}
-            <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
-              <div className="flex items-center gap-3">
-                <Scale className="w-6 h-6 text-primary" strokeWidth={2} />
-                <span className="text-sm font-black uppercase tracking-widest text-primary">Menu</span>
-              </div>
-              <button
-                onClick={() => setDrawerOpen(false)}
-                className="h-10 w-10 rounded-none flex items-center justify-center border border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
+          {/* Drawer Header */}
+          <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <Scale className="w-6 h-6 text-primary" strokeWidth={2} />
+              <span className="text-sm font-black uppercase tracking-widest text-primary">Menu</span>
             </div>
+            <button
+              onClick={() => setDrawerOpen(false)}
+              className="h-10 w-10 rounded-none flex items-center justify-center border border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
 
-            {/* Drawer Content - Scrollable */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-3">
-              {/* Refresh (only on screens ≤ 400px) */}
-              <button
-                onClick={() => {
-                  onRefresh?.();
-                  setDrawerOpen(false);
-                }}
-                disabled={isLoading}
-                className="xs:hidden flex items-center gap-4 w-full p-4 rounded-none border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left disabled:opacity-50"
-              >
-                <RefreshCw className={`h-5 w-5 text-primary ${isLoading ? 'animate-spin' : ''}`} />
-                <div className="flex flex-col">
-                  <span className="text-sm font-black uppercase tracking-widest">Refresh</span>
-                  <span className="text-xs text-muted-foreground">Update prices</span>
-                </div>
-              </button>
-
-              {/* Target Allocation (only on mobile - below 1360px) */}
-              <button
-                onClick={() => {
-                  onAllocation?.();
-                  setDrawerOpen(false);
-                }}
-                className="portfolio:hidden flex items-center gap-4 w-full p-4 rounded-none border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
-              >
-                <svg className="h-5 w-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
-                </svg>
-                <div className="flex flex-col">
-                  <span className="text-sm font-black uppercase tracking-widest">Target Allocation</span>
-                  <span className="text-xs text-muted-foreground">View distribution</span>
-                </div>
-              </button>
-
-              {/* Rebalance */}
-              <button
-                onClick={() => {
-                  onRebalance?.();
-                  setDrawerOpen(false);
-                }}
-                className="flex items-center gap-4 w-full p-4 rounded-none border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
-              >
-                <Calculator className="h-5 w-5 text-primary" />
-                <div className="flex flex-col">
-                  <span className="text-sm font-black uppercase tracking-widest">Rebalance</span>
-                  <span className="text-xs text-muted-foreground">Calculate allocation</span>
-                </div>
-              </button>
-
-              <div className="h-px bg-border my-2" />
-
-              {/* Theme Toggle */}
-              <button
-                onClick={() => {
-                  setTheme(theme === "dark" ? "light" : "dark");
-                }}
-                className="flex items-center gap-4 w-full p-4 rounded-none border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
-              >
-                <div className="relative h-5 w-5">
-                  <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                  <Moon className="absolute top-0 left-0 h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-black uppercase tracking-widest">Theme</span>
-                  <span className="text-xs text-muted-foreground capitalize">{theme === "dark" ? "Switch to Light" : "Switch to Dark"}</span>
-                </div>
-              </button>
-            </div>
-
-            {/* Bottom Section: User Info + Terminate Session - Fixed at bottom */}
-            <div className="border-t border-border flex-shrink-0">
-              <div className="p-6 space-y-3">
-                {/* User Info */}
-                <div className="text-xs text-muted-foreground space-y-1 pb-3 border-b border-border">
-                  <div className="font-black uppercase tracking-widest">Logged in as</div>
-                  <div className="text-primary truncate">{userEmail}</div>
-                </div>
-
-                {/* Terminate Session */}
-                <form action={signout} className="w-full">
-                  <button
-                    type="submit"
-                    className="flex items-center gap-4 w-full p-4 rounded-none border border-border hover:border-destructive/50 hover:bg-destructive/5 hover:text-destructive transition-all text-left"
-                  >
-                    <LogOut className="h-5 w-5" />
-                    <div className="flex flex-col">
-                      <span className="text-sm font-black uppercase tracking-widest">Terminate Session</span>
-                      <span className="text-xs text-muted-foreground">Sign out</span>
-                    </div>
-                  </button>
-                </form>
+          {/* Drawer Content - Scrollable */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-3 custom-scrollbar">
+            {/* Refresh (only on screens ≤ 400px) */}
+            <button
+              onClick={() => {
+                onRefresh?.();
+                setDrawerOpen(false);
+              }}
+              disabled={isLoading}
+              className="xs:hidden flex items-center gap-4 w-full p-4 rounded-none border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left disabled:opacity-50"
+            >
+              <RefreshCw className={`h-5 w-5 text-primary ${isLoading ? 'animate-spin' : ''}`} />
+              <div className="flex flex-col">
+                <span className="text-sm font-black uppercase tracking-widest">Refresh</span>
+                <span className="text-xs text-muted-foreground">Update prices</span>
               </div>
+            </button>
+
+            {/* Target Allocation (only on mobile - below 1360px) */}
+            <button
+              onClick={() => {
+                onAllocation?.();
+                setDrawerOpen(false);
+              }}
+              className="portfolio:hidden flex items-center gap-4 w-full p-4 rounded-none border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
+            >
+              <svg className="h-5 w-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+              </svg>
+              <div className="flex flex-col">
+                <span className="text-sm font-black uppercase tracking-widest">Target Allocation</span>
+                <span className="text-xs text-muted-foreground">View distribution</span>
+              </div>
+            </button>
+
+            {/* Rebalance */}
+            <button
+              onClick={() => {
+                onRebalance?.();
+                setDrawerOpen(false);
+              }}
+              className="flex items-center gap-4 w-full p-4 rounded-none border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
+            >
+              <Calculator className="h-5 w-5 text-primary" />
+              <div className="flex flex-col">
+                <span className="text-sm font-black uppercase tracking-widest">Rebalance</span>
+                <span className="text-xs text-muted-foreground">Calculate allocation</span>
+              </div>
+            </button>
+
+            <div className="h-px bg-border my-2" />
+
+            {/* Theme Toggle */}
+            <button
+              onClick={() => {
+                setTheme(theme === "dark" ? "light" : "dark");
+              }}
+              className="flex items-center gap-4 w-full p-4 rounded-none border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
+            >
+              <div className="relative h-5 w-5">
+                <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute top-0 left-0 h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-black uppercase tracking-widest">Theme</span>
+                <span className="text-xs text-muted-foreground capitalize">{theme === "dark" ? "Switch to Light" : "Switch to Dark"}</span>
+              </div>
+            </button>
+          </div>
+
+          {/* Bottom Section: User Info + Terminate Session - Fixed at bottom */}
+          <div className="border-t border-border flex-shrink-0">
+            <div className="p-6 space-y-3">
+              {/* User Info */}
+              <div className="text-xs text-muted-foreground space-y-1 pb-3 border-b border-border">
+                <div className="font-black uppercase tracking-widest">Logged in as</div>
+                <div className="text-primary truncate">{userEmail}</div>
+              </div>
+
+              {/* Terminate Session */}
+              <form action={signout} className="w-full">
+                <button
+                  type="submit"
+                  className="flex items-center gap-4 w-full p-4 rounded-none border border-border hover:border-destructive/50 hover:bg-destructive/5 hover:text-destructive transition-all text-left"
+                >
+                  <LogOut className="h-5 w-5" />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-black uppercase tracking-widest">Terminate Session</span>
+                    <span className="text-xs text-muted-foreground">Sign out</span>
+                  </div>
+                </button>
+              </form>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </>
   );
 }
