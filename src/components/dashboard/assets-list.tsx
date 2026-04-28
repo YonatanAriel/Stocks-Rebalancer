@@ -381,10 +381,16 @@ export function AssetsList({
     const assetId = searchParams.get('assetId');
     const ticker = searchParams.get('ticker');
 
+    // Handle Detail Modal
     if (modal === 'detail' && ticker) {
       const asset = assets.find(a => a.ticker === ticker);
       if (asset) setSelectedAsset(asset);
-    } else if (modal === 'edit' && assetId) {
+    } else {
+      setSelectedAsset(null);
+    }
+
+    // Handle Edit Modal
+    if (modal === 'edit' && assetId) {
       const asset = assets.find(a => a.id === assetId);
       if (asset) {
         setEditingAsset(asset);
@@ -395,8 +401,15 @@ export function AssetsList({
           : null;
         setEditManualValue(manualValue ? String(manualValue) : "");
       }
-    } else if (modal === 'add') {
+    } else {
+      setEditingAsset(null);
+    }
+
+    // Handle Add Modal
+    if (modal === 'add') {
       setAddingAsset(true);
+    } else {
+      setAddingAsset(false);
     }
   }, [searchParams, assets]);
 
