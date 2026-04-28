@@ -280,36 +280,37 @@ export function DashboardShell({
               overscrollBehavior: 'contain'
             }}
           >
-            <div className="sticky top-0 bg-background border-b border-border p-4 mobile:p-8 flex flex-col mobile:flex-row items-start mobile:items-center justify-between gap-4 mobile:gap-8 z-10">
-              <div className="flex-1">
-                <h2 className="text-lg mobile:text-xl font-black uppercase tracking-[0.2em] mobile:tracking-[0.4em] text-primary">System Rebalance</h2>
-                <p className="text-[9px] mobile:text-[10px] uppercase font-bold tracking-widest text-muted-foreground">
+            <div className="sticky top-0 bg-background border-b border-border pt-8 pb-4 px-4 mobile:p-8 flex items-start justify-between gap-4 mobile:gap-8 z-10">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg mobile:text-xl font-black uppercase tracking-[0.1em] mobile:tracking-[0.4em] text-primary truncate">System Rebalance</h2>
+                <p className="text-[8px] mobile:text-[10px] uppercase font-bold tracking-widest text-muted-foreground">
                   Optimizing capital distribution based on target weights.
                 </p>
               </div>
-              <div className="flex items-center gap-2 mobile:gap-3 flex-shrink-0 w-full mobile:w-auto">
-                <button
-                  onClick={fetchPrices}
-                  disabled={loadingPrices}
-                  className="flex-1 mobile:flex-none rounded-none text-[9px] mobile:text-[10px] uppercase font-black tracking-widest border border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all h-10 px-2 mobile:px-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
-                  title="Refresh prices (Alt+R)"
-                >
-                  <svg className={`h-3 w-3 mobile:h-4 mobile:w-4 ${loadingPrices ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  <span className="hidden mobile:inline">Refresh Prices</span>
-                </button>
+              <div className="flex flex-col items-end gap-2 flex-shrink-0">
                 <button
                   onClick={() => {
                     setShowCalculator(false);
                     updateURL({ calculator: null });
                   }}
-                  className="rounded-none border border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all h-10 w-10 cursor-pointer flex items-center justify-center flex-shrink-0"
+                  className="rounded-none border border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all h-10 w-10 cursor-pointer flex items-center justify-center"
                   style={{ pointerEvents: 'auto' }}
+                  title="Close"
                 >
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
+                </button>
+                <button
+                  onClick={fetchPrices}
+                  disabled={loadingPrices}
+                  className="rounded-none text-[9px] mobile:text-[10px] uppercase font-black tracking-widest border border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all h-10 w-10 mobile:w-auto mobile:px-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
+                  title="Refresh prices (Alt+R)"
+                >
+                  <svg className={`h-5 w-5 mobile:h-4 mobile:w-4 ${loadingPrices ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span className="hidden mobile:inline">Refresh Prices</span>
                 </button>
               </div>
             </div>

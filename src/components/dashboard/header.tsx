@@ -59,8 +59,8 @@ export function DashboardHeader({
               {/* Search button that expands into search bar */}
               <div className={`flex items-center border border-border rounded-none transition-all duration-300 ease-in-out ${searchOpen ? 'flex-1 border-primary bg-background/50' : 'w-10 hover:border-primary/50 hover:bg-primary/5'}`}>
                 {/* Input field - expands from right to left */}
-                {searchOpen && (
-                  <div className="flex-1 flex items-center gap-2 px-3 overflow-hidden animate-in slide-in-from-right-5 duration-300">
+                <div className={`flex-1 flex items-center overflow-hidden transition-all duration-300 ease-in-out ${searchOpen ? 'opacity-100 px-3' : 'opacity-0 w-0 px-0'}`}>
+                  <div className="flex-1 relative flex items-center">
                     <Input
                       value={searchQuery}
                       onChange={(e) => {
@@ -68,20 +68,21 @@ export function DashboardHeader({
                         onSearch?.();
                       }}
                       placeholder="Search..."
-                      className="h-10 bg-transparent border-0 text-sm focus-visible:ring-0 focus-visible:ring-offset-0 px-0 w-full"
-                      autoFocus
+                      className="h-10 bg-transparent border-0 text-sm focus-visible:ring-0 focus-visible:ring-offset-0 px-0 pr-8 w-full"
+                      autoFocus={searchOpen}
                     />
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setSearchOpen(false);
                         setSearchQuery("");
                       }}
-                      className="flex-shrink-0"
+                      className={`absolute right-0 transition-all duration-300 ${searchOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
                     >
                       <X className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
                     </button>
                   </div>
-                )}
+                </div>
                 
                 {/* Search icon - always visible in same position */}
                 <button
@@ -220,6 +221,7 @@ export function DashboardHeader({
             <button
               onClick={() => {
                 setTheme(theme === "dark" ? "light" : "dark");
+                setDrawerOpen(false);
               }}
               className="flex items-center gap-4 w-full p-4 rounded-none border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
             >
