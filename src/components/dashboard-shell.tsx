@@ -283,7 +283,7 @@ export function DashboardShell({
             <div className="sticky top-0 bg-background border-b border-border pt-8 pb-4 px-4 mobile:p-8 flex items-start justify-between gap-4 mobile:gap-8 z-10">
               <div className="flex-1 min-w-0">
                 <h2 className="text-lg mobile:text-xl font-black uppercase tracking-[0.1em] mobile:tracking-[0.4em] text-primary truncate">System Rebalance</h2>
-                <p className="text-[8px] mobile:text-[10px] uppercase font-bold tracking-widest text-muted-foreground">
+                <p className="text-[10px] mobile:text-[10px] uppercase font-bold tracking-widest text-muted-foreground">
                   Optimizing capital distribution based on target weights.
                 </p>
               </div>

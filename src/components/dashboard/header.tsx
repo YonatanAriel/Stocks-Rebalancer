@@ -30,8 +30,8 @@ export function DashboardHeader({
 
   return (
     <>
-      <header className="sticky top-0 z-50 glass border-b border-border bg-background/80 backdrop-blur-2xl">
-        <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-6">
+      <header className="sticky top-0 z-50 glass border-b border-black/10 dark:border-white/10 bg-background/80 backdrop-blur-2xl">
+        <div className="mx-auto flex h-16 mobile:h-20 max-w-6xl items-center justify-between px-6">
           {/* Left: Logo + Global Terminal grouped together */}
           <div className="flex items-center gap-4">
             <Scale className="w-10 h-10 text-primary flex-shrink-0" strokeWidth={2} />
@@ -53,8 +53,8 @@ export function DashboardHeader({
           <div className="flex items-center gap-3 flex-1 mobile:flex-initial justify-end">
             {/* Mobile: Search bar that expands in available space */}
             <div className="flex mobile:hidden items-center flex-1 justify-end gap-2 min-w-0">
-              {/* Responsive spacer - small on tiny screens, larger on bigger screens */}
-              <div className={`transition-all duration-300 ${searchOpen ? 'w-2 xs:w-4 sm:w-8' : 'flex-1'}`} />
+              {/* Spacer - reduced to minimize empty space */}
+              <div className={`transition-all duration-300 ${searchOpen ? 'w-2 xs:w-4 sm:w-8' : 'w-0'}`} />
               
               {/* Search button that expands into search bar */}
               <div className={`flex items-center border border-border rounded-none transition-all duration-300 ease-in-out ${searchOpen ? 'flex-1 border-primary bg-background/50' : 'w-10 hover:border-primary/50 hover:bg-primary/5'}`}>
