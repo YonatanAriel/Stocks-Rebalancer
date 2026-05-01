@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Scale, Menu, Search, RefreshCw, X, Plus, Calculator, LogOut, Moon, Sun } from "lucide-react";
+import { Menu, Search, RefreshCw, X, Plus, Calculator, LogOut, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { signout } from "@/actions/auth";
 import { Input } from "@/components/ui/input";
+import Image from "next/image";
 
 export function DashboardHeader({ 
   userEmail, 
@@ -34,7 +35,8 @@ export function DashboardHeader({
         <div className="mx-auto flex h-16 mobile:h-20 max-w-6xl items-center justify-between px-6">
           {/* Left: Logo + Global Terminal grouped together */}
           <div className="flex items-center gap-4">
-            <Scale className="w-10 h-10 text-primary flex-shrink-0" strokeWidth={2} />
+            <Image src="/logo light mode.svg" alt="Rebalancer Logo" width={40} height={40} className="flex-shrink-0 dark:hidden" />
+            <Image src="/logo dark mode.svg" alt="Rebalancer Logo" width={40} height={40} className="flex-shrink-0 hidden dark:block" />
             {/* Desktop: Show full branding */}
             <div className="hidden sm-mobile:flex flex-col">
               <span className="text-2xl font-black uppercase tracking-[0.4em] text-primary font-heading text-glow">REBALANCER</span>
@@ -153,7 +155,8 @@ export function DashboardHeader({
           {/* Drawer Header */}
           <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
             <div className="flex items-center gap-3">
-              <Scale className="w-6 h-6 text-primary" strokeWidth={2} />
+              <Image src="/logo light mode.svg" alt="Logo" width={24} height={24} className="flex-shrink-0 dark:hidden" />
+              <Image src="/logo dark mode.svg" alt="Logo" width={24} height={24} className="flex-shrink-0 hidden dark:block" />
               <span className="text-sm font-black uppercase tracking-widest text-primary">Menu</span>
             </div>
             <button
