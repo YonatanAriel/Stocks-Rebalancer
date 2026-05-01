@@ -167,15 +167,27 @@ async function getPriceFromGoogleFinance(ticker: string): Promise<{ price: numbe
     let text = '';
     let foundExchange = '';
 
+    const scraperApiKey = process.env.SCRAPER_API_KEY;
+
     for (const ex of exchanges) {
-      const url = `https://www.google.com/finance/quote/${ticker}:${ex}`;
-      const response = await fetch(url, {
+      const sourceUrl = `https://www.google.com/finance/quote/${ticker}:${ex}`;
+      let fetchUrl = sourceUrl;
+      let fetchOptions: RequestInit = {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
           'Accept-Language': 'en-US,en;q=0.9',
         },
         next: { revalidate: 60 }
-      });
+      };
+
+      if (scraperApiKey) {
+        fetchUrl = `http://api.scraperapi.com?api_key=${scraperApiKey}&url=${encodeURIComponent(sourceUrl)}`;
+        // ScraperAPI handles headers, but we keep revalidate for Next.js caching
+        fetchOptions = { next: { revalidate: 60 } };
+      }
+
+      const response = await fetch(fetchUrl, fetchOptions);
+      
       if (response.ok) {
         text = await response.text();
         if (text.includes(ticker)) {

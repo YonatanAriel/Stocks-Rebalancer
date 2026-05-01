@@ -49,11 +49,11 @@ export function DashboardHeader({
     <>
       <header className="sticky top-0 z-50 border-b border-black/10 dark:border-white/10 bg-background/90 backdrop-blur-2xl">
         <div className="mx-auto flex h-16 mobile:h-20 max-w-6xl items-center justify-between px-6">
-          {/* Left: Logo + Global Terminal grouped together */}
+          
           <div className="flex items-center gap-2">
             <Image src="/logo light mode.svg" alt="Rebalancer Logo" width={47} height={47} className="flex-shrink-0 mb-[-3px]  dark:hidden" />
             <Image src="/logo dark mode.svg" alt="Rebalancer Logo" width={47} height={47} className="flex-shrink-0 mb-[-3px]  hidden dark:block" />
-            {/* Desktop: Show full branding */}
+            
             <div className="hidden sm-mobile:flex flex-col">
               <span className="text-2xl font-black uppercase tracking-[0.4em] text-primary font-heading text-glow">REBALANCER</span>
               <span className="text-[8px] text-muted-foreground uppercase font-black tracking-[0.2em] opacity-40">Quant-Grade Portfolio Terminal</span>
@@ -67,14 +67,14 @@ export function DashboardHeader({
             </div>
           </div>
 
-          {/* Right: Actions */}
+          
           <div className="flex items-center gap-3 flex-1 mobile:flex-initial justify-end">
-            {/* Mobile: Search bar that expands in available space */}
+            
             <div className="flex mobile:hidden items-center flex-1 justify-end gap-2 min-w-0">
-              {/* Spacer - reduced to minimize empty space */}
+              
               <div className={`transition-all duration-300 ${searchOpen ? 'w-2 xs:w-4 sm:w-8' : 'w-0'}`} />
               
-              {/* Search button that expands into search bar */}
+              
               <div className={`relative flex items-center justify-end border border-border rounded-none transition-all duration-300 ease-in-out overflow-hidden h-10 flex-1 ${searchOpen ? 'max-w-[600px] border-primary bg-background/50' : 'max-w-[40px] hover:border-primary/50 hover:bg-primary/5'}`}>
                 <div className={`absolute left-0 top-0 bottom-0 flex items-center transition-all duration-300 ease-in-out ${searchOpen ? 'w-[calc(100%-40px)] opacity-100 pl-3' : 'w-0 opacity-0 pl-0'}`}>
                   <div className="relative flex items-center w-full min-w-[150px]">
@@ -112,7 +112,7 @@ export function DashboardHeader({
                 </button>
               </div>
               
-              {/* Show refresh button on screens > 400px */}
+              
               <button
                 onClick={onRefresh}
                 disabled={isLoading}
@@ -131,7 +131,7 @@ export function DashboardHeader({
               </button>
             </div>
 
-            {/* Desktop: Full buttons */}
+            
             <div className="hidden mobile:flex items-center gap-3">
               <div className="h-8 w-px bg-border" />
               <button
@@ -155,20 +155,20 @@ export function DashboardHeader({
         </div>
       </header>
 
-      {/* Mobile Drawer */}
+      
       <div 
         className={`fixed inset-0 z-[60] mobile:hidden ${drawerOpen ? "pointer-events-auto" : "pointer-events-none"}`}
         onClick={() => setDrawerOpen(false)}
       >
-        {/* Backdrop */}
+        
         <div className={`absolute inset-0 bg-black/40 backdrop-blur-md transition-opacity duration-150 ${drawerOpen ? "opacity-100" : "opacity-0"}`} />
         
-        {/* Drawer */}
+        
         <div 
           className={`absolute top-0 right-0 h-full w-80 max-w-[85vw] bg-background border-l border-border shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${drawerOpen ? "translate-x-0" : "translate-x-full"}`}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Drawer Header */}
+          
           <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
             <div className="flex items-center gap-3">
               <Image src="/logo light mode.svg" alt="Logo" width={24} height={24} className="flex-shrink-0 dark:hidden" />
@@ -183,9 +183,9 @@ export function DashboardHeader({
             </button>
           </div>
 
-          {/* Drawer Content - Scrollable */}
+          
           <div className="flex-1 overflow-y-auto p-6 space-y-3 custom-scrollbar">
-            {/* Refresh (only on screens ≤ 400px) */}
+            
             <button
               onClick={() => {
                 onRefresh?.();
@@ -201,7 +201,7 @@ export function DashboardHeader({
               </div>
             </button>
 
-            {/* Target Allocation (only on mobile - below 1360px) */}
+            
             <button
               onClick={() => {
                 onAllocation?.();
@@ -219,7 +219,7 @@ export function DashboardHeader({
               </div>
             </button>
 
-            {/* Rebalance */}
+            
             <button
               onClick={() => {
                 onRebalance?.();
@@ -236,7 +236,7 @@ export function DashboardHeader({
 
             <div className="h-px bg-border my-2" />
 
-            {/* Theme Toggle */}
+            
             <button
               onClick={() => {
                 setTheme(theme === "dark" ? "light" : "dark");
@@ -255,16 +255,16 @@ export function DashboardHeader({
             </button>
           </div>
 
-          {/* Bottom Section: User Info + Terminate Session - Fixed at bottom */}
+          
           <div className="border-t border-border flex-shrink-0">
             <div className="p-6 space-y-3">
-              {/* User Info */}
+              
               <div className="text-xs text-muted-foreground space-y-1 pb-3 border-b border-border">
                 <div className="font-black uppercase tracking-widest">Logged in as</div>
                 <div className="text-primary truncate">{userEmail}</div>
               </div>
 
-              {/* Terminate Session */}
+              
               <form action={signout} className="w-full">
                 <button
                   type="submit"

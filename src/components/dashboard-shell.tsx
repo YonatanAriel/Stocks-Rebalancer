@@ -269,7 +269,7 @@ export function DashboardShell({
             />
           </div>
 
-          {/* Hide allocation chart on mobile (below 995px) */}
+          
           <div className="hidden portfolio:flex min-h-0 flex-col overflow-hidden">
             <Card className="bg-background/40 border-border rounded-none shadow-xl border-t-4 border-primary backdrop-blur-xl flex flex-col h-full overflow-hidden">
             <CardHeader className="flex-shrink-0 p-6 border-b border-border bg-white/[0.01]">
@@ -360,7 +360,7 @@ export function DashboardShell({
         </div>
       )}
 
-      {/* Allocation Chart Modal (for mobile) */}
+      
       {showAllocation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm pointer-events-auto" onClick={() => setShowAllocation(false)}>
           <div className="max-w-2xl w-full bg-background border border-border rounded-none max-h-[90vh] overflow-y-auto custom-scrollbar touch-pan-y mx-4 pointer-events-auto" 

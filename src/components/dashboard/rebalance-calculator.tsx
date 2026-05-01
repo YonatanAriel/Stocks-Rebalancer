@@ -307,7 +307,7 @@ export function RebalanceCalculator({
                 </div>
               ) : (
                 <div className="space-y-6 mobile:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              {/* Option A */}
+              
               <div className="bg-white/40 dark:bg-white/5 border border-white/30 dark:border-white/20 p-4 mobile:p-8 space-y-4 mobile:space-y-6 relative overflow-hidden group">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3 mobile:gap-4">
@@ -374,7 +374,7 @@ export function RebalanceCalculator({
                 </div>
               </div>
 
-              {/* Option B */}
+              
               {(() => {
                 const activeOptimal = result.optimalBuys.filter(b => b.cost > 0);
                 const isSameAsA = activeOptimal.length === 1 && activeOptimal[0].ticker === result.singleBuy.ticker && activeOptimal[0].sharesToBuy === result.singleBuy.sharesToBuy;
