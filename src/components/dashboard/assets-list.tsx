@@ -329,6 +329,7 @@ export function AssetsList({
   onExcludedAssetsChange,
   onAssetAdded,
   onAssetPriceUpdated,
+  onAssetUpdated,
   onAssetDeleted,
   onAssetRestore,
   onReorder
@@ -346,6 +347,7 @@ export function AssetsList({
   onExcludedAssetsChange?: (excluded: Set<string>) => void,
   onAssetAdded?: (ticker: string, price: number | null, name: string | null, percentage: number, shares: number) => void,
   onAssetPriceUpdated?: (assetId: string, ticker: string, price: number | null, name: string | null) => void,
+  onAssetUpdated?: (asset: Asset) => void,
   onAssetDeleted?: (id: string) => void,
   onAssetRestore?: (asset: AssetWithValue) => void,
   onReorder?: (assets: AssetWithValue[]) => void
@@ -591,33 +593,41 @@ export function AssetsList({
 
   async function handleUpdateAsset() {
     if (!editingAsset) return;
-    try {
-      const updates: Partial<Asset> = {
-        shares_owned: parseFloat(editShares) || 0,
-        target_percentage: parseFloat(editPercentage) || 0,
-      };
-      
-      // Handle manual price override
-      if (editManualValue) {
-        const totalValue = parseFloat(editManualValue);
-        const shares = parseFloat(editShares) || editingAsset.shares_owned;
-        if (shares > 0) {
-          updates.manual_price_override = totalValue / shares;
-          updates.manual_price_set_at = new Date().toISOString();
-        }
-      } else {
-        // Clear manual override
-        updates.manual_price_override = null;
-        updates.manual_price_set_at = null;
+
+    const optimisticAsset = { 
+      ...editingAsset, 
+      shares_owned: parseFloat(editShares) || 0,
+      target_percentage: parseFloat(editPercentage) || 0,
+    } as Asset;
+
+    if (editManualValue) {
+      const totalValue = parseFloat(editManualValue);
+      const shares = optimisticAsset.shares_owned;
+      if (shares > 0) {
+        optimisticAsset.manual_price_override = totalValue / shares;
+        optimisticAsset.manual_price_set_at = new Date().toISOString();
       }
-      
-      await updateAsset(editingAsset.id, updates);
+    } else {
+      optimisticAsset.manual_price_override = null;
+      optimisticAsset.manual_price_set_at = null;
+    }
+
+    onAssetUpdated?.(optimisticAsset);
+    setEditingAsset(null);
+    setEditManualValue("");
+    updateURL({ modal: null, assetId: null });
+
+    try {
+      await updateAsset(editingAsset.id, {
+        shares_owned: optimisticAsset.shares_owned,
+        target_percentage: optimisticAsset.target_percentage,
+        manual_price_override: optimisticAsset.manual_price_override,
+        manual_price_set_at: optimisticAsset.manual_price_set_at,
+      });
       toast.success("Asset updated");
-      setEditingAsset(null);
-      setEditManualValue("");
-      updateURL({ modal: null, assetId: null });
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Update failed");
+      router.refresh();
     }
   }
 

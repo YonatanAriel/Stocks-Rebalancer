@@ -33,7 +33,6 @@ export function DashboardShell({
   const [portfolioAssets, setPortfolioAssets] = useState(portfolio.assets);
   const [searchQuery, setSearchQuery] = useState("");
   const [excludedAssets, setExcludedAssets] = useState<Set<string>>(() => {
-    // Initialize from database
     const excluded = new Set<string>();
     portfolio.assets.forEach(asset => {
       if (asset.is_active === false) {
@@ -43,7 +42,10 @@ export function DashboardShell({
     return excluded;
   });
 
-  // Helper function for URL management
+  useEffect(() => {
+    setPortfolioAssets(portfolio.assets);
+  }, [portfolio.assets]);
+
   const updateURL = (params: Record<string, string | null>) => {
     const current = new URLSearchParams(Array.from(searchParams.entries()));
     Object.entries(params).forEach(([key, value]) => {
@@ -265,6 +267,20 @@ export function DashboardShell({
               }}
               onReorder={(updatedAssets) => {
                 setPortfolioAssets(updatedAssets);
+              }}
+              onAssetUpdated={(updatedAsset) => {
+                setPortfolioAssets(prev => prev.map(a => a.id === updatedAsset.id ? updatedAsset : a));
+                
+                if (updatedAsset.manual_price_override !== null) {
+                  setPrices(prev => ({ ...prev, [updatedAsset.ticker]: updatedAsset.manual_price_override! }));
+                  setPriceSource(prev => ({ ...prev, [updatedAsset.ticker]: 'manual' }));
+                } else if (priceSource[updatedAsset.ticker] === 'manual') {
+                  setPriceSource(prev => {
+                    const next = { ...prev };
+                    delete next[updatedAsset.ticker];
+                    return next;
+                  });
+                }
               }}
             />
           </div>
