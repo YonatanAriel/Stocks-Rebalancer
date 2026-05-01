@@ -32,13 +32,23 @@ export function DashboardHeader({
 
   useEffect(() => {
     setMounted(true);
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setDrawerOpen(false);
+        setSearchOpen(false);
+        setSearchQuery("");
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const themeLabel = !mounted ? "Switch to Dark" : (theme === "dark" ? "Switch to Light" : "Switch to Dark");
 
   return (
     <>
-      <header className="sticky top-0 z-50 glass border-b border-black/10 dark:border-white/10 bg-background/80 backdrop-blur-2xl">
+      <header className="sticky top-0 z-50 glass border-b border-border bg-background/80 backdrop-blur-2xl">
         <div className="mx-auto flex h-16 mobile:h-20 max-w-6xl items-center justify-between px-6">
           {/* Left: Logo + Global Terminal grouped together */}
           <div className="flex items-center gap-2">
