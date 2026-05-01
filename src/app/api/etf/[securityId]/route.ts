@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { scrapeBizportalEtf } from "@/lib/scrapeBizportalEtf";
 
-// 8-second timeout to stay under Vercel's 10s limit
 const SCRAPING_TIMEOUT = 8000;
 
 export async function GET(

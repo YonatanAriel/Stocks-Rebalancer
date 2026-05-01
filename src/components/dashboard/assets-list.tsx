@@ -63,7 +63,7 @@ function AssetRow({
 
   return (
     <>
-      {/* Desktop/Tablet: Grid layout (900px and up) */}
+      
       <div 
         className={`hidden mobile:grid grid-cols-[30px_1fr_100px_120px_100px_120px_60px_50px] gap-6 items-center p-6 mobile:p-4 bg-background/50 hover:bg-primary/[0.03] transition-all group border-b border-border last:border-0 ${isExcluded ? 'opacity-50' : ''} ${isDragging ? 'opacity-50 bg-primary/10' : ''} relative cursor-grab active:cursor-grabbing  `}
         draggable
@@ -156,7 +156,7 @@ function AssetRow({
         </button>
       </div>
 
-      {/* Mobile: Compact Card layout (below 900px) */}
+      
       <div 
         className={`mobile:hidden flex flex-col p-4 bg-background/50 hover:bg-primary/[0.03] transition-all group border-b border-border last:border-0 ${isExcluded ? 'opacity-50' : ''} ${isDragging ? 'opacity-50 bg-primary/10' : ''} relative cursor-grab active:cursor-grabbing`}
         draggable
@@ -164,7 +164,7 @@ function AssetRow({
         onDragOver={onDragOver}
         onDrop={onDrop}
       >
-        {/* Top row: Ticker + Value + Actions (400px+) */}
+        
         <div className="flex items-center justify-between gap-3 mb-2">
           <div 
             className="flex flex-col min-w-0 flex-1 cursor-pointer"
@@ -186,7 +186,7 @@ function AssetRow({
             {isManualPrice && <span className="text-[7px] text-primary font-black uppercase tracking-widest">manual</span>}
           </div>
 
-          {/* Action buttons - hidden on xs (400px and below) */}
+          
           <div className="hidden xs:flex gap-1.5 z-40 flex-shrink-0">
             <button 
               type="button"
@@ -215,7 +215,7 @@ function AssetRow({
           </div>
         </div>
 
-        {/* Second row: Details in compact grid */}
+        
         <div className="grid grid-cols-3 xs:grid-cols-4 gap-3 text-[9px] uppercase font-black tracking-widest mb-2 xs:mb-0">
           <div className="flex flex-col">
             <span className="text-muted-foreground opacity-50 mb-0.5">Weight</span>
@@ -241,7 +241,7 @@ function AssetRow({
             <span className="text-foreground font-mono">{asset.shares_owned}</span>
           </div>
           
-          {/* Status column - only show on 400px+ */}
+          
           <div className="hidden xs:flex flex-col items-end">
             <span className="text-muted-foreground opacity-50 mb-0.5">Status</span>
             <button
@@ -263,7 +263,7 @@ function AssetRow({
           </div>
         </div>
 
-        {/* Third row: Action buttons for xs screens (400px and below) */}
+        
         <div className="flex xs:hidden items-center justify-between gap-2">
           <div className="flex gap-1.5 z-40">
             <button 
@@ -292,7 +292,7 @@ function AssetRow({
             </button>
           </div>
           
-          {/* Status toggle for xs screens */}
+          
           <button
             type="button"
             onClick={(e) => {
@@ -819,7 +819,7 @@ export function AssetsList({
     <>
       <Card className="h-full flex flex-col overflow-hidden bg-background/40 border-border rounded-none shadow-2xl backdrop-blur-xl relative group">
         
-        {/* Consolidated High-Density Header */}
+        
         <CardHeader className="flex-shrink-0 space-y-6 p-6 pt-0 pr-0 sm-mobile:py-0 border-b border-border relative z-50">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div className="space-y-1 flex-1 min-w-0">

@@ -94,40 +94,37 @@ export function DashboardShell({
     setPriceSource(prev => ({ ...initialSource, ...prev }));
   }, [portfolio.assets]);
 
-  // Fetch all prices on mount with parallel requests
+  // Fetch all prices in full parallel and update incrementally
   const fetchPrices = useCallback(async () => {
     setLoadingPrices(true);
 
     try {
-      // Extract all tickers
       const tickers = portfolioAssets.map(asset => asset.ticker);
       
-      // Fetch all prices in parallel with concurrency limit
-      const results = await fetchPricesInParallel(tickers);
-      
-      // Update state with all results at once
-      const newPrices: PriceMap = {};
-      const newPriceSource: Record<string, 'manual' | 'scraped'> = {};
-      const newNames: Record<string, string> = {};
-      
-      Object.entries(results).forEach(([ticker, data]) => {
-        if (data.price !== null) {
-          newPrices[ticker] = data.price;
-          newPriceSource[ticker] = data.isManual ? 'manual' : 'scraped';
-        } else {
-          newPrices[ticker] = 0;
-          newPriceSource[ticker] = 'scraped';
+      // Trigger all requests simultaneously
+      await Promise.all(tickers.map(async (ticker) => {
+        try {
+          const data = await getAssetPrice(ticker);
+          
+          setPrices(prev => ({ 
+            ...prev, 
+            [ticker]: data.price !== null ? data.price : 0 
+          }));
+          
+          setPriceSource(prev => ({ 
+            ...prev, 
+            [ticker]: data.isManual ? 'manual' : 'scraped' 
+          }));
+          
+          if (data.name) {
+            setNames(prev => ({ ...prev, [ticker]: data.name }));
+          }
+        } catch (e) {
+          console.error(`[Dashboard] Failed to fetch price for ${ticker}`, e);
         }
-        if (data.name) {
-          newNames[ticker] = data.name;
-        }
-      });
-      
-      setPrices(prev => ({ ...prev, ...newPrices }));
-      setPriceSource(prev => ({ ...prev, ...newPriceSource }));
-      setNames(prev => ({ ...prev, ...newNames }));
+      }));
     } catch (e) {
-      console.error('Failed to fetch prices', e);
+      console.error('[Dashboard] Error during parallel price fetch', e);
     } finally {
       setLoadingPrices(false);
       setIsInitialLoad(false);

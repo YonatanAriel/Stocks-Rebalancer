@@ -4,7 +4,7 @@ import YahooFinance from 'yahoo-finance2'
 import { createClient } from '@/utils/supabase/server'
 import { getBaseUrl } from '@/lib/getBaseUrl'
 
-// yahoo-finance2 v3 requires instantiation
+
 const yf = new YahooFinance()
 
 // Request timeout constant (8 seconds to stay under Vercel's 10s limit)
