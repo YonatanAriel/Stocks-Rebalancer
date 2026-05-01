@@ -354,11 +354,68 @@ export function AssetsList({
   const [newShares, setNewShares] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<'value' | 'ticker' | 'weight' | 'price' | 'shares' | 'order'>('order');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showSearch, setShowSearch] = useState(false);
   const [searchClicked, setSearchClicked] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<AssetWithValue | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; ticker: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [netDetailsOpen, setNetDetailsOpen] = useState(false);
+  const [netDetailsPinned, setNetDetailsPinned] = useState(false);
+
+  const isIsraeli = (ticker: string) => /^\d{6,8}$/.test(ticker);
+  
+  const israeliActive = assets.filter(a => isIsraeli(a.ticker) && !excludedAssets.has(a.ticker)).reduce((sum, a) => sum + (a.currentValue || 0), 0);
+  const israeliTotal = assets.filter(a => isIsraeli(a.ticker)).reduce((sum, a) => sum + (a.currentValue || 0), 0);
+
+  const intlActive = assets.filter(a => !isIsraeli(a.ticker) && !excludedAssets.has(a.ticker)).reduce((sum, a) => sum + (a.currentValue || 0), 0);
+  const intlTotal = assets.filter(a => !isIsraeli(a.ticker)).reduce((sum, a) => sum + (a.currentValue || 0), 0);
+
+  const allActive = israeliActive + intlActive;
+  const allTotal = israeliTotal + intlTotal;
+
+  const renderNetDetailsTooltip = () => {
+    if (!netDetailsOpen) return null;
+    return (
+      <div className="absolute top-full left-0 mt-2 z-50 bg-background/95 backdrop-blur-xl border border-border shadow-2xl p-4 min-w-[280px] cursor-default text-left pointer-events-auto" onClick={e => e.stopPropagation()}>
+        {netDetailsPinned && (
+          <button 
+            onClick={(e) => { e.stopPropagation(); setNetDetailsPinned(false); setNetDetailsOpen(false); }}
+            className="absolute top-2 right-2 hover:text-primary transition-colors cursor-pointer"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+        <h3 className="text-primary font-heading font-black tracking-widest text-[10px] mb-3 border-b border-border/50 pb-2">PORTFOLIO EXPOSURE (ACTIVE / TOTAL)</h3>
+        <div className="space-y-3 font-mono text-xs normal-case tracking-normal">
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground uppercase text-[10px] tracking-widest font-black">Israeli</span>
+            <span className="text-foreground">
+              <span className="text-primary">₪{israeliActive.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+              <span className="text-muted-foreground/50 mx-1">/</span>
+              <span className="opacity-50">₪{israeliTotal.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground uppercase text-[10px] tracking-widest font-black">Global</span>
+            <span className="text-foreground">
+              <span className="text-primary">₪{intlActive.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+              <span className="text-muted-foreground/50 mx-1">/</span>
+              <span className="opacity-50">₪{intlTotal.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+            </span>
+          </div>
+          <div className="flex justify-between items-center border-t border-border/50 pt-2 mt-2">
+            <span className="text-muted-foreground uppercase text-[10px] tracking-widest font-black">Total</span>
+            <span className="text-foreground font-black">
+              <span className="text-primary">₪{allActive.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+              <span className="text-muted-foreground/50 mx-1">/</span>
+              <span className="opacity-50">₪{allTotal.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
   const [draggedAssetId, setDraggedAssetId] = useState<string | null>(null);
   const [dragOverAssetId, setDragOverAssetId] = useState<string | null>(null);
   const [orderedAssets, setOrderedAssets] = useState<AssetWithValue[]>(assets);
@@ -435,6 +492,10 @@ export function AssetsList({
         setEditingAsset(null);
         setSelectedAsset(null);
         setDeleteConfirm(null);
+        setSearchClicked(false);
+        setSearchQuery("");
+        setNetDetailsPinned(false);
+        setNetDetailsOpen(false);
         updateURL({ modal: null, assetId: null, ticker: null });
       }
     };
@@ -685,8 +746,18 @@ export function AssetsList({
                 <span>•</span>
                 <span>{assets.length} UNITS</span>
                 <span>•</span>
-                <span className="text-foreground font-mono">
+                <span 
+                  className="text-foreground font-mono relative cursor-pointer hover:text-primary transition-colors pointer-events-auto"
+                  onMouseEnter={() => !netDetailsPinned && setNetDetailsOpen(true)}
+                  onMouseLeave={() => !netDetailsPinned && setNetDetailsOpen(false)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setNetDetailsPinned(true);
+                    setNetDetailsOpen(true);
+                  }}
+                >
                   Σ ₪{totalValue.toLocaleString(undefined, { minimumFractionDigits: 0 })}
+                  {renderNetDetailsTooltip()}
                 </span>
               </div>
 
@@ -705,8 +776,18 @@ export function AssetsList({
                     <span>•</span>
                     <span>{assets.length} UNITS</span>
                     <span>•</span>
-                    <span className="text-foreground font-mono">
+                    <span 
+                      className="text-foreground font-mono relative cursor-pointer hover:text-primary transition-colors pointer-events-auto"
+                      onMouseEnter={() => !netDetailsPinned && setNetDetailsOpen(true)}
+                      onMouseLeave={() => !netDetailsPinned && setNetDetailsOpen(false)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setNetDetailsPinned(true);
+                        setNetDetailsOpen(true);
+                      }}
+                    >
                       Σ ₪{totalValue.toLocaleString(undefined, { minimumFractionDigits: 0 })}
+                      {renderNetDetailsTooltip()}
                     </span>
                   </div>
                 </div>
@@ -747,8 +828,18 @@ export function AssetsList({
                     <span>•</span>
                     <span>{assets.length} UNITS</span>
                     <span>•</span>
-                    <span className="text-foreground font-mono">
+                    <span 
+                      className="text-foreground font-mono relative cursor-pointer hover:text-primary transition-colors pointer-events-auto"
+                      onMouseEnter={() => !netDetailsPinned && setNetDetailsOpen(true)}
+                      onMouseLeave={() => !netDetailsPinned && setNetDetailsOpen(false)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setNetDetailsPinned(true);
+                        setNetDetailsOpen(true);
+                      }}
+                    >
                       Σ ₪{totalValue.toLocaleString(undefined, { minimumFractionDigits: 0 })}
+                      {renderNetDetailsTooltip()}
                     </span>
                   </div>
                 </div>
