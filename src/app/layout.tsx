@@ -41,7 +41,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${outfit.variable} ${mono.variable}  flex flex-col bg-background antialiased`}>
+      <body className={`${outfit.variable} ${mono.variable}  flex flex-col bg-background antialiased`} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
