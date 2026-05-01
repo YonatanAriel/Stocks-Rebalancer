@@ -7,17 +7,14 @@ import { getBaseUrl } from '@/lib/getBaseUrl'
 
 const yf = new YahooFinance()
 
-// Request timeout constant (8 seconds to stay under Vercel's 10s limit)
 const REQUEST_TIMEOUT = 8000;
 
-// Helper function to create a timeout promise
 function createTimeout(ms: number): Promise<never> {
   return new Promise((_, reject) => 
     setTimeout(() => reject(new Error('Request timeout')), ms)
   );
 }
 
-// Helper function to chunk array for parallel processing
 function chunkArray<T>(array: T[], size: number): T[][] {
   const chunks: T[][] = [];
   for (let i = 0; i < array.length; i += size) {
@@ -327,7 +324,6 @@ export async function getAssetPrice(ticker: string): Promise<{ price: number | n
 
 
 
-// Parallel price fetching with concurrency limit
 const CONCURRENT_REQUESTS = 3;
 
 export async function fetchPricesInParallel(

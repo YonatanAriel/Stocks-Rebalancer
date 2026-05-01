@@ -80,7 +80,7 @@ export function DashboardShell({
     const initialPrices: PriceMap = {};
     const initialSource: Record<string, 'manual' | 'scraped'> = {};
     
-    portfolio.assets.forEach((asset: any) => {
+    portfolio.assets.forEach((asset: Asset) => {
       if (asset?.manual_price_override && asset?.manual_price_set_at) {
         const minutesAgo = (Date.now() - new Date(asset.manual_price_set_at).getTime()) / 60000;
         if (minutesAgo < 15) {
@@ -117,7 +117,7 @@ export function DashboardShell({
           }));
           
           if (data.name) {
-            setNames(prev => ({ ...prev, [ticker]: data.name }));
+            setNames(prev => ({ ...prev, [ticker]: data.name as string }));
           }
         } catch (e) {
           console.error(`[Dashboard] Failed to fetch price for ${ticker}`, e);
@@ -226,11 +226,11 @@ export function DashboardShell({
               onExcludedAssetsChange={setExcludedAssets}
               onAssetAdded={(ticker, price, name, percentage, shares) => {
                 // Add new asset to the list immediately
-                const newAsset: any = {
+                const newAsset: Asset = {
                   id: `temp-${Date.now()}`, // Temporary ID until refresh
                   portfolio_id: portfolio.id,
                   ticker,
-                  name,
+                  name: name || "",
                   target_percentage: percentage,
                   shares_owned: shares,
                   manual_price_override: null,
@@ -264,7 +264,7 @@ export function DashboardShell({
                 setPortfolioAssets(prev => [...prev, asset]);
               }}
               onReorder={(updatedAssets) => {
-                setPortfolioAssets(updatedAssets as any);
+                setPortfolioAssets(updatedAssets);
               }}
             />
           </div>

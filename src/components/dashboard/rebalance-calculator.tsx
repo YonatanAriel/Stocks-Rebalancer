@@ -39,12 +39,16 @@ export function calculateRebalance(
 ): RebalanceResult | null {
   if (cash <= 0) return null;
 
+  const sumTargets = assetsWithValues.reduce((s, a) => s + (a.target_percentage || 0), 0);
+  const normalizationFactor = sumTargets > 0 ? (100 / sumTargets) : 1;
+
   const newTotal = totalValue + cash;
 
   let remainingCash = cash;
   const optimalBuys = assetsWithValues.map(asset => ({
     ticker: asset.ticker,
     targetPct: asset.target_percentage,
+    normalizedTargetPct: asset.target_percentage * normalizationFactor,
     sharesToBuy: 0,
     cost: 0,
     price: asset.price ?? (asset.shares_owned > 0 ? (asset.currentValue || 0) / asset.shares_owned : 0)
@@ -55,14 +59,14 @@ export function calculateRebalance(
     madePurchase = false;
     
     // Find the asset that is currently most under its target value
-    let mostUnder: any = null;
+    let mostUnder: { ticker: string; targetPct: number; sharesToBuy: number; cost: number; price: number } | null = null;
     let maxDeficit = -Infinity;
 
     for (const buy of optimalBuys) {
       if (buy.price <= 0 || buy.price > remainingCash) continue;
 
       const currentVal = (assetsWithValues.find(a => a.ticker === buy.ticker)?.currentValue || 0) + buy.cost;
-      const targetVal = (totalValue + cash) * (buy.targetPct / 100);
+      const targetVal = (totalValue + cash) * (buy.normalizedTargetPct / 100);
       const deficit = targetVal - currentVal;
 
       if (deficit > maxDeficit && deficit >= buy.price) {
@@ -85,7 +89,8 @@ export function calculateRebalance(
   const deviations = assetsWithValues.map((asset) => {
     const currentPct =
       totalValue > 0 ? ((asset.currentValue ?? 0) / totalValue) * 100 : 0;
-    return { ...asset, deviation: asset.target_percentage - currentPct };
+    const normalizedTarget = asset.target_percentage * normalizationFactor;
+    return { ...asset, deviation: normalizedTarget - currentPct };
   });
   deviations.sort((a, b) => b.deviation - a.deviation);
 
@@ -114,7 +119,7 @@ export function calculateRebalance(
   const singleCost = bestPrice && bestPrice > 0 ? singleSharesToBuy * bestPrice : 0;
 
   return {
-    optimalBuys: optimalBuys as any,
+    optimalBuys: optimalBuys.map(({ price, ...rest }) => rest),
     optimalSpent,
     optimalLeftover,
     singleBuy: {
@@ -178,6 +183,7 @@ export function RebalanceCalculator({
   // Filter out excluded assets for calculation
   const includedAssetsWithValues = effectiveAssetsWithValues.filter(a => !excludedAssets.has(a.ticker));
 
+  const sumTargets = includedAssetsWithValues.reduce((sum, a) => sum + (a.target_percentage || 0), 0);
   const effectiveTotalValue = includedAssetsWithValues.reduce((sum, a) => sum + (a.currentValue ?? 0), 0);
 
   const result = calculateRebalance(
@@ -248,7 +254,7 @@ export function RebalanceCalculator({
                       className="h-10 mobile:h-12 bg-white/5 text-right pr-2 mobile:pr-4 text-[10px] mobile:text-xs rounded-none border-white/20 focus:border-primary/50 font-mono font-black"
                     />
                     <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-primary uppercase">₪</div>
-                    {(asset as any).priceSource === 'manual' && (
+                    {(asset as AssetWithValue).priceSource === 'manual' && (
                       <div className="absolute -top-8 right-0 px-2 py-1 bg-primary/20 border border-primary/50 rounded-none text-[8px] font-black uppercase tracking-widest text-primary whitespace-nowrap opacity-0 hover:opacity-100 transition-opacity pointer-events-none z-50">
                         Manual
                       </div>
@@ -283,9 +289,17 @@ export function RebalanceCalculator({
       <div className="flex flex-col min-h-0 space-y-6">
         <div className="flex flex-col gap-1 px-1">
           <Label className="text-sm uppercase tracking-[0.3em] font-black font-heading">03. Execution Plan</Label>
-          <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest opacity-60">
-            Automated allocation strategies.
-          </span>
+          <div className="flex flex-col gap-2">
+            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest opacity-60">
+              Automated allocation strategies.
+            </span>
+            {sumTargets !== 100 && sumTargets > 0 && (
+              <div className="px-2 py-1 bg-orange-400/10 border border-orange-400/30 text-[8px] text-orange-400 font-black uppercase tracking-widest flex items-center gap-2">
+                <span className="h-1 w-1 bg-orange-400 rounded-full animate-pulse" />
+                Target sum is {sumTargets}% - relative weights normalized
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex-1 space-y-8 pr-2">
@@ -396,7 +410,7 @@ export function RebalanceCalculator({
                       </button>
                     </div>
                     <div className="space-y-px bg-white/5 border border-white/10 shadow-xl overflow-hidden">
-                      {activeOptimal.map((buy: any) => (
+                      {activeOptimal.map((buy) => (
                         <div key={buy.ticker} className="flex items-center justify-between bg-background p-4 mobile:p-6 border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors">
                           <div>
                             <div className="font-black text-xs mobile:text-sm uppercase text-glow">{buy.ticker}</div>

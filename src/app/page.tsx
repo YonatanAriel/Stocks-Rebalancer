@@ -13,7 +13,7 @@ export default async function HomePage() {
   }
 
   return (
-    <main className="flex flex-1 flex-col items-center justify-center px-4">
+    <main className="flex h-[100dvh] flex-col items-center justify-center px-4 py-12 overflow-hidden">
       <div className="mx-auto flex max-w-lg flex-col items-center text-center gap-8">
         <div className="relative">
           <div className="absolute -inset-4 rounded-full bg-primary/20 blur-2xl" />

@@ -19,18 +19,19 @@ const mono = JetBrains_Mono({
   subsets: ["latin"],
 });
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
   title: "Rebalancer - Smart Portfolio Allocation",
   description:
     "Calculate exactly how to invest new cash to maintain your target portfolio allocation. Built especially for long-term investors on the TASE.",
   icons: {
     icon: "/favicon.svg",
-  },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
   },
 };
 

@@ -592,7 +592,7 @@ export function AssetsList({
   async function handleUpdateAsset() {
     if (!editingAsset) return;
     try {
-      const updates: any = {
+      const updates: Partial<Asset> = {
         shares_owned: parseFloat(editShares) || 0,
         target_percentage: parseFloat(editPercentage) || 0,
       };
