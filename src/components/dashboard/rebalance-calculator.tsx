@@ -143,6 +143,7 @@ export function RebalanceCalculator({
   isRefreshing?: boolean;
 }) {
   const [expandedOption, setExpandedOption] = React.useState<'A' | 'B' | null>(null);
+  const [manualValuationsOpen, setManualValuationsOpen] = React.useState(false);
   const cashInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
@@ -189,13 +190,22 @@ export function RebalanceCalculator({
         </div>
 
         <div className="flex-1 flex flex-col min-h-0 space-y-4">
-          <div className="flex flex-col gap-1 px-1">
-            <Label className="text-sm uppercase tracking-[0.3em] font-black font-heading">02. Manual Valuations</Label>
-            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest opacity-60">
-              Override position values for technical precision.
-            </span>
+          <div className="flex items-center justify-between gap-2 px-1">
+            <div className="flex flex-col gap-1">
+              <Label className="text-sm uppercase tracking-[0.3em] font-black font-heading">02. Manual Valuations</Label>
+              <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest opacity-60">
+                Override position values for technical precision.
+              </span>
+            </div>
+            <button
+              onClick={() => setManualValuationsOpen(!manualValuationsOpen)}
+              className="rounded-none h-8 mobile:h-10 px-2 mobile:px-4 text-[8px] mobile:text-[10px] font-black uppercase tracking-widest bg-white/20 dark:bg-white/10 hover:bg-white/30 dark:hover:bg-white/20 border border-white/40 dark:border-white/30 transition-all cursor-pointer whitespace-nowrap"
+            >
+              {manualValuationsOpen ? 'HIDE' : 'SHOW'}
+            </button>
           </div>
           
+          {manualValuationsOpen && (
           <div className="flex-1 border border-white/10 bg-white/[0.02]">
             <div className="divide-y divide-white/5">
               {assets.map((asset) => (
@@ -250,6 +260,7 @@ export function RebalanceCalculator({
               ))}
             </div>
           </div>
+          )}
         </div>
       </div>
 
@@ -316,7 +327,7 @@ export function RebalanceCalculator({
                   <div className="bg-white/20 dark:bg-white/[0.02] border border-white/30 dark:border-white/10 p-4 mobile:p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Post-Investment Allocation:</div>
                     <div className="space-y-2">
-                      {effectiveAssetsWithValues.map((asset) => {
+                      {effectiveAssetsWithValues.filter(a => !excludedAssets.has(a.ticker)).map((asset) => {
                         const newValue = (asset.currentValue || 0) + (asset.ticker === result.singleBuy.ticker ? result.singleBuy.cost : 0);
                         const newTotal = effectiveTotalValue + result.singleBuy.cost;
                         const newPct = newTotal > 0 ? (newValue / newTotal) * 100 : 0;
@@ -403,7 +414,7 @@ export function RebalanceCalculator({
                       <div className="bg-white/[0.02] border border-primary/10 p-4 mobile:p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                         <div className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Post-Investment Allocation:</div>
                         <div className="space-y-2">
-                          {effectiveAssetsWithValues.map((asset) => {
+                          {effectiveAssetsWithValues.filter(a => !excludedAssets.has(a.ticker)).map((asset) => {
                             const buyForThisAsset = result.optimalBuys.find(b => b.ticker === asset.ticker);
                             const newValue = (asset.currentValue || 0) + (buyForThisAsset?.cost || 0);
                             const newTotal = effectiveTotalValue + result.optimalSpent;
