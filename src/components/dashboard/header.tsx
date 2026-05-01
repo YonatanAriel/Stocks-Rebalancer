@@ -34,9 +34,9 @@ export function DashboardHeader({
       <header className="sticky top-0 z-50 glass border-b border-black/10 dark:border-white/10 bg-background/80 backdrop-blur-2xl">
         <div className="mx-auto flex h-16 mobile:h-20 max-w-6xl items-center justify-between px-6">
           {/* Left: Logo + Global Terminal grouped together */}
-          <div className="flex items-center gap-4">
-            <Image src="/logo light mode.svg" alt="Rebalancer Logo" width={40} height={40} className="flex-shrink-0 dark:hidden" />
-            <Image src="/logo dark mode.svg" alt="Rebalancer Logo" width={40} height={40} className="flex-shrink-0 hidden dark:block" />
+          <div className="flex items-center gap-2">
+            <Image src="/logo light mode.svg" alt="Rebalancer Logo" width={47} height={47} className="flex-shrink-0 mb-[-3px]  dark:hidden" />
+            <Image src="/logo dark mode.svg" alt="Rebalancer Logo" width={47} height={47} className="flex-shrink-0 mb-[-3px]  hidden dark:block" />
             {/* Desktop: Show full branding */}
             <div className="hidden sm-mobile:flex flex-col">
               <span className="text-2xl font-black uppercase tracking-[0.4em] text-primary font-heading text-glow">REBALANCER</span>
