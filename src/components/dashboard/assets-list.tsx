@@ -823,7 +823,7 @@ export function AssetsList({
         <CardHeader className="flex-shrink-0 space-y-6 p-6 pt-0 pr-0 sm-mobile:py-0 border-b border-border relative z-50">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div className="space-y-1 flex-1 min-w-0">
-              {/* Desktop: Vertical layout */}
+              
               <div className="hidden mobile:flex items-center gap-3 min-w-0">
                 <div className="h-6 w-1 bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)] flex-shrink-0" />
                 {editingPortfolioName ? (
@@ -867,7 +867,7 @@ export function AssetsList({
                 </span>
               </div>
 
-              {/* Tablet (700px-995px): Horizontal layout with smaller text and + NEW button */}
+              
               <div className="hidden sm-mobile:flex mobile:hidden items-center justify-between gap-3 min-w-0 flex-wrap">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className="h-5 w-1 bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)] flex-shrink-0" />
@@ -912,7 +912,7 @@ export function AssetsList({
                   </div>
                 </div>
                 
-                {/* + NEW button on tablet */}
+                
                 <button
                   type="button"
                   onClick={(e) => {
@@ -931,7 +931,7 @@ export function AssetsList({
                 </button>
               </div>
 
-              {/* Mobile (<700px): Bigger text with + NEW button */}
+              
               <div className="flex sm-mobile:hidden items-center justify-between gap-3 min-w-0">
                 <div className="flex flex-col gap-2 min-w-0 flex-1">
                   <div className="flex items-center gap-2 min-w-0">
@@ -978,7 +978,7 @@ export function AssetsList({
                   </div>
                 </div>
                 
-                {/* + NEW button on mobile */}
+                
                 <button
                   type="button"
                   onClick={(e) => {
@@ -999,7 +999,7 @@ export function AssetsList({
             </div>
 
             <div className="hidden mobile:flex pr-0 items-center gap-px bg-white/5 border border-border p-1 relative z-50 pointer-events-auto" style={{ pointerEvents: 'auto' }}>
-              {/* Desktop: Search with hover */}
+              
               <div className="hidden mobile:flex items-center relative group overflow-hidden mr-auto" onMouseLeave={() => !searchQuery && !searchClicked && setShowSearch(false)}>
                 <div className={`transition-all   duration-300 ease-out overflow-hidden ${showSearch ? 'w-48' : 'w-0'}`}>
                   <Input
