@@ -24,8 +24,9 @@ export function DashboardShell({
   const [priceSource, setPriceSource] = useState<Record<string, 'manual' | 'scraped'>>({});
   const [names, setNames] = useState<Record<string, string>>({});
   const [priceOverrides, setPriceOverrides] = useState<Record<string, string>>({});
-  const [loadingPrices, setLoadingPrices] = useState(false);
-  const [cashAmount, setCashAmount] = useState("");
+  const [loadingPrices, setLoadingPrices] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [fetchTrigger, setFetchTrigger] = useState(0);
   const [showCalculator, setShowCalculator] = useState(false);
   const [showAllocation, setShowAllocation] = useState(false);
   const [portfolioAssets, setPortfolioAssets] = useState(portfolio.assets);
@@ -128,8 +129,9 @@ export function DashboardShell({
       console.error('Failed to fetch prices', e);
     } finally {
       setLoadingPrices(false);
+      setIsInitialLoad(false);
     }
-  }, []); // Empty deps - use portfolioAssets from state
+  }, [portfolioAssets]); // Depend on portfolioAssets so it uses the latest
 
   useEffect(() => {
     fetchPrices();
@@ -282,7 +284,7 @@ export function DashboardShell({
                     currentPct: totalValue > 0 && a.currentValue ? (a.currentValue / totalValue) * 100 : 0,
                     priceSource: a.priceSource,
                   }))}
-                isLoading={loadingPrices}
+                isLoading={loadingPrices && isInitialLoad}
               />
             </CardContent>
           </Card>
@@ -391,7 +393,7 @@ export function DashboardShell({
                     currentPct: totalValue > 0 && a.currentValue ? (a.currentValue / totalValue) * 100 : 0,
                     priceSource: a.priceSource,
                   }))}
-                isLoading={loadingPrices}
+                isLoading={loadingPrices && isInitialLoad}
               />
             </div>
           </div>
