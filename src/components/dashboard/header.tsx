@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, Search, RefreshCw, X, Plus, Calculator, LogOut, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { signout } from "@/actions/auth";
@@ -27,7 +27,14 @@ export function DashboardHeader({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const themeLabel = !mounted ? "Switch to Dark" : (theme === "dark" ? "Switch to Light" : "Switch to Dark");
 
   return (
     <>
@@ -234,7 +241,7 @@ export function DashboardHeader({
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-black uppercase tracking-widest">Theme</span>
-                <span className="text-xs text-muted-foreground capitalize">{theme === "dark" ? "Switch to Light" : "Switch to Dark"}</span>
+                <span className="text-xs text-muted-foreground capitalize">{themeLabel}</span>
               </div>
             </button>
           </div>
