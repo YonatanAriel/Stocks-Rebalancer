@@ -4,6 +4,8 @@
 
 Real-time portfolio management and rebalancing for Israeli and international securities
 
+**[Live Website](https://stocks-rebalancer.vercel.app)**
+
 [![Next.js](https://img.shields.io/badge/Next.js-16.2-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-Auth%20%26%20DB-green?style=flat-square&logo=supabase)](https://supabase.com/)
@@ -257,7 +259,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SCRAPER_API_KEY=
 
 # Application
-NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app
+NEXT_PUBLIC_APP_URL=https://stocks-rebalancer.vercel.app
 ```
 
 ---
