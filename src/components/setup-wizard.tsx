@@ -139,7 +139,7 @@ export function SetupWizard() {
   return (
     <main className="flex flex-1 items-center justify-center px-4 py-12">
       <div className="w-full max-w-2xl space-y-6">
-        {/* Steps indicator */}
+        
         <div className="flex items-center justify-center gap-2">
           {[1, 2].map((s) => (
             <div
@@ -197,7 +197,7 @@ export function SetupWizard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Header row */}
+              
               <div className="grid grid-cols-[1fr_100px_100px_40px] gap-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 <span>Ticker / Security #</span>
                 <span>Target %</span>
@@ -248,7 +248,7 @@ export function SetupWizard() {
                 </div>
               ))}
 
-              {/* Total indicator */}
+              
               <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 text-sm">
                 <span className="text-muted-foreground">
                   Total allocation

@@ -286,7 +286,7 @@ export function DashboardShell({
                     currentPct: totalValue > 0 && a.currentValue ? (a.currentValue / totalValue) * 100 : 0,
                     priceSource: a.priceSource,
                   }))}
-                isLoading={isInitialLoad && assetsWithValues.every(a => a.currentValue === null || a.currentValue === 0)}
+                isLoading={isInitialLoad && assetsWithValues.filter(a => !excludedAssets.has(a.ticker)).every(a => a.currentValue === null || a.currentValue === 0)}
               />
             </CardContent>
           </Card>

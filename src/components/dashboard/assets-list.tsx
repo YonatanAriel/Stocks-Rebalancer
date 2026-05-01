@@ -1077,7 +1077,7 @@ export function AssetsList({
           </div>
         </CardHeader>
 
-        {/* Table header - only show on desktop/tablet (900px+) */}
+        
         <div className="hidden mobile:grid flex-shrink-0 grid-cols-[30px_1fr_100px_120px_100px_120px_60px_50px] gap-6  text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-6 py-4 border-b border-border bg-white/[0.02] relative z-10 font-heading">
           <div className="flex items-center justify-center cursor-pointer hover:text-primary transition-colors group h-full" onClick={() => { setSortBy('order'); setSortOrder('asc'); }} title="Manual Order">
             <span className={cn("text-[12px] leading-none transition-all mr-3", sortBy === 'order' ? "text-primary" : "text-muted-foreground opacity-80 ")}>
