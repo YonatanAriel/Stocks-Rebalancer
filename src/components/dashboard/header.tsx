@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Menu, Search, RefreshCw, X, Plus, Calculator, LogOut, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { signout } from "@/actions/auth";
@@ -28,6 +28,15 @@ export function DashboardHeader({
   const [searchQuery, setSearchQuery] = useState("");
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (searchOpen) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
+    }
+  }, [searchOpen]);
 
   useEffect(() => {
     setMounted(true);
@@ -79,6 +88,7 @@ export function DashboardHeader({
                 <div className={`absolute left-0 top-0 bottom-0 flex items-center transition-all duration-300 ease-in-out ${searchOpen ? 'w-[calc(100%-40px)] opacity-100 pl-3' : 'w-0 opacity-0 pl-0'}`}>
                   <div className="relative flex items-center w-full min-w-[150px]">
                     <Input
+                      ref={searchInputRef}
                       value={searchQuery}
                       onChange={(e) => {
                         setSearchQuery(e.target.value);
@@ -87,7 +97,6 @@ export function DashboardHeader({
                       }}
                       placeholder="Search..."
                       className="h-10 bg-transparent border-0 text-sm focus-visible:ring-0 focus-visible:ring-offset-0 px-0 w-full"
-                      autoFocus={searchOpen}
                     />
                     <button
                       onClick={(e) => {

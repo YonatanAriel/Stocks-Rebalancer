@@ -671,7 +671,7 @@ export function AssetsList({
   // Auto-focus for Search Bar
   useEffect(() => {
     if (showSearch) {
-      setTimeout(() => searchInputRef.current?.focus(), 50);
+      setTimeout(() => searchInputRef.current?.focus(), 100);
     }
   }, [showSearch]);
 
