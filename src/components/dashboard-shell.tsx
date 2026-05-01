@@ -266,6 +266,9 @@ export function DashboardShell({
               onAssetRestore={(asset) => {
                 setPortfolioAssets(prev => [...prev, asset]);
               }}
+              onReorder={(updatedAssets) => {
+                setPortfolioAssets(updatedAssets as any);
+              }}
             />
           </div>
 

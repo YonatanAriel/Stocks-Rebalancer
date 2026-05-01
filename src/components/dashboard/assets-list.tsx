@@ -63,12 +63,17 @@ function AssetRow({
     <>
       {/* Desktop/Tablet: Grid layout (900px and up) */}
       <div 
-        className={`hidden mobile:grid grid-cols-[1fr_100px_120px_100px_120px_60px_50px] gap-6 items-center p-6 mobile:p-4 bg-background/50 hover:bg-primary/[0.03] transition-all group border-b border-border last:border-0 ${isExcluded ? 'opacity-50' : ''} ${isDragging ? 'opacity-50 bg-primary/10' : ''} relative cursor-grab active:cursor-grabbing`}
+        className={`hidden mobile:grid grid-cols-[30px_1fr_100px_120px_100px_120px_60px_50px] gap-6 items-center p-6 mobile:p-4 bg-background/50 hover:bg-primary/[0.03] transition-all group border-b border-border last:border-0 ${isExcluded ? 'opacity-50' : ''} ${isDragging ? 'opacity-50 bg-primary/10' : ''} relative cursor-grab active:cursor-grabbing  `}
         draggable
         onDragStart={onDragStart}
         onDragOver={onDragOver}
         onDrop={onDrop}
       >
+        <div className="flex items-center justify-center text-muted-foreground opacity-10 group-hover:opacity-40 transition-opacity">
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+          </svg>
+        </div>
         <div 
           className="flex flex-col min-w-0 cursor-pointer"
           onClick={(e) => {
@@ -323,7 +328,8 @@ export function AssetsList({
   onAssetAdded,
   onAssetPriceUpdated,
   onAssetDeleted,
-  onAssetRestore
+  onAssetRestore,
+  onReorder
 }: { 
   portfolioId: string, 
   assets: AssetWithValue[], 
@@ -339,7 +345,8 @@ export function AssetsList({
   onAssetAdded?: (ticker: string, price: number | null, name: string | null, percentage: number, shares: number) => void,
   onAssetPriceUpdated?: (assetId: string, ticker: string, price: number | null, name: string | null) => void,
   onAssetDeleted?: (id: string) => void,
-  onAssetRestore?: (asset: AssetWithValue) => void
+  onAssetRestore?: (asset: AssetWithValue) => void,
+  onReorder?: (assets: AssetWithValue[]) => void
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -353,8 +360,8 @@ export function AssetsList({
   const [newPercentage, setNewPercentage] = useState("");
   const [newShares, setNewShares] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<'value' | 'ticker' | 'weight' | 'price' | 'shares' | 'order'>('value');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortBy, setSortBy] = useState<'value' | 'ticker' | 'weight' | 'price' | 'shares' | 'order' | 'status'>('order');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showSearch, setShowSearch] = useState(false);
   const [searchClicked, setSearchClicked] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<AssetWithValue | null>(null);
@@ -696,6 +703,9 @@ export function AssetsList({
       display_order: index
     }));
     setOrderedAssets(updatedAssets);
+    setSortBy('order');
+    setSortOrder('asc');
+    onReorder?.(updatedAssets);
 
     // Persist to database
     try {
@@ -740,6 +750,9 @@ export function AssetsList({
     } else if (sortBy === 'shares') {
       aVal = a.shares_owned;
       bVal = b.shares_owned;
+    } else if (sortBy === 'status') {
+      aVal = excludedAssets.has(a.ticker) ? 1 : 0;
+      bVal = excludedAssets.has(b.ticker) ? 1 : 0;
     } else if (sortBy === 'order') {
       // Check if any asset has a display_order set
       const hasDisplayOrder = filteredAssets.some(asset => asset.display_order !== null && asset.display_order !== undefined);
@@ -1034,29 +1047,37 @@ export function AssetsList({
         </CardHeader>
 
         {/* Table header - only show on desktop/tablet (900px+) */}
-        <div className="hidden mobile:grid flex-shrink-0 grid-cols-[1fr_100px_120px_100px_120px_60px_50px] gap-6  text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-6 py-4 border-b border-border bg-white/[0.02] relative z-10 font-heading">
-          <div className="flex items-center justify-between cursor-pointer hover:text-primary transition-colors group" onClick={() => { setSortBy('ticker'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}>
+        <div className="hidden mobile:grid flex-shrink-0 grid-cols-[30px_1fr_100px_120px_100px_120px_60px_50px] gap-6  text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-6 py-4 border-b border-border bg-white/[0.02] relative z-10 font-heading">
+          <div className="flex items-center justify-center cursor-pointer hover:text-primary transition-colors group h-full" onClick={() => { setSortBy('order'); setSortOrder('asc'); }} title="Manual Order">
+            <span className={cn("text-[12px] leading-none transition-all mr-3", sortBy === 'order' ? "text-primary" : "text-muted-foreground opacity-80 ")}>
+              {sortBy === 'order' ? '■' : '□'}
+            </span>
+          </div>
+          <div className={cn("flex items-center justify-between cursor-pointer hover:text-primary transition-colors group", sortBy === 'ticker' ? "text-primary" : "text-muted-foreground")} onClick={() => { setSortBy('ticker'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}>
             <span>Asset / Class</span>
             <span className="text-[8px] opacity-0 group-hover:opacity-100">{sortBy === 'ticker' ? (sortOrder === 'desc' ? '↓' : '↑') : '↕'}</span>
           </div>
-          <div className="text-right flex items-center justify-end cursor-pointer hover:text-primary transition-colors group" onClick={() => { setSortBy('weight'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}>
+          <div className={cn("text-right flex items-center justify-end cursor-pointer hover:text-primary transition-colors group", sortBy === 'weight' ? "text-primary" : "text-muted-foreground")} onClick={() => { setSortBy('weight'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}>
             <span>Weight %</span>
             <span className="text-[8px] opacity-0 group-hover:opacity-100 ml-1">{sortBy === 'weight' ? (sortOrder === 'desc' ? '↓' : '↑') : '↕'}</span>
           </div>
-          <div className="text-right flex items-center justify-end cursor-pointer hover:text-primary transition-colors group" onClick={() => { setSortBy('price'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}>
+          <div className={cn("text-right flex items-center justify-end cursor-pointer hover:text-primary transition-colors group", sortBy === 'price' ? "text-primary" : "text-muted-foreground")} onClick={() => { setSortBy('price'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}>
             <span>Unit Rate</span>
             <span className="text-[8px] opacity-0 group-hover:opacity-100 ml-1">{sortBy === 'price' ? (sortOrder === 'desc' ? '↓' : '↑') : '↕'}</span>
           </div>
-          <div className="text-right flex items-center justify-end cursor-pointer hover:text-primary transition-colors group" onClick={() => { setSortBy('shares'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}>
+          <div className={cn("text-right flex items-center justify-end cursor-pointer hover:text-primary transition-colors group", sortBy === 'shares' ? "text-primary" : "text-muted-foreground")} onClick={() => { setSortBy('shares'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}>
             <span>Inventory</span>
             <span className="text-[8px] opacity-0 group-hover:opacity-100 ml-1">{sortBy === 'shares' ? (sortOrder === 'desc' ? '↓' : '↑') : '↕'}</span>
           </div>
-          <div className="text-right flex items-center justify-end cursor-pointer hover:text-primary transition-colors group" onClick={() => { setSortBy('value'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}>
+          <div className={cn("text-right flex items-center justify-end cursor-pointer hover:text-primary transition-colors group", sortBy === 'value' ? "text-primary" : "text-muted-foreground")} onClick={() => { setSortBy('value'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}>
             <span>Net Value</span>
             <span className="text-[8px] opacity-0 group-hover:opacity-100 ml-1">{sortBy === 'value' ? (sortOrder === 'desc' ? '↓' : '↑') : '↕'}</span>
           </div>
           <span />
-          <span className="text-center">Status</span>
+          <div className={cn("text-center flex items-center justify-center cursor-pointer hover:text-primary transition-colors group", sortBy === 'status' ? "text-primary" : "text-muted-foreground")} onClick={() => { setSortBy('status'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}>
+            <span>Status</span>
+            <span className="text-[8px] opacity-0 group-hover:opacity-100 ml-1">{sortBy === 'status' ? (sortOrder === 'desc' ? '↓' : '↑') : '↕'}</span>
+          </div>
         </div>
         <CardContent 
           className="flex-1 overflow-y-auto custom-scrollbar touch-pan-y p-0 relative z-10"
