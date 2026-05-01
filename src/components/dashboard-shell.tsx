@@ -188,7 +188,7 @@ export function DashboardShell({
   }, [assetsWithValues, excludedAssets]);
 
   return (
-    <div className="h-[100dvh] flex flex-col bg-dot-pattern mesh-glow overflow-hidden">
+    <div className="h-[100dvh] flex flex-col bg-dot-pattern overflow-hidden">
       <DashboardHeader 
         userEmail={userEmail} 
         onRefresh={fetchPrices} 

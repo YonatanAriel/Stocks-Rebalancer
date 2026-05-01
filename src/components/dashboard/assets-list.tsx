@@ -1,5 +1,7 @@
 "use client";
 
+import { createPortal } from "react-dom";
+
 import { useRouter, useSearchParams } from "next/navigation";
 import { updateAsset, deleteAsset, addAsset, toggleAssetActive, reorderAssets, updatePortfolio } from "@/actions/portfolio";
 import { Input } from "@/components/ui/input";
@@ -369,6 +371,31 @@ export function AssetsList({
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [netDetailsOpen, setNetDetailsOpen] = useState(false);
   const [netDetailsPinned, setNetDetailsPinned] = useState(false);
+  const [netDetailsPos, setNetDetailsPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const netDetailsRef = useRef<HTMLDivElement>(null);
+
+
+  const openNetDetails = (el: HTMLElement, pinned?: boolean) => {
+    const rect = el.getBoundingClientRect();
+    setNetDetailsPos({ top: rect.bottom + 8, left: rect.left });
+    if (pinned) setNetDetailsPinned(true);
+    setNetDetailsOpen(true);
+  };
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (netDetailsOpen && netDetailsRef.current && !netDetailsRef.current.contains(event.target as Node)) {
+        setNetDetailsOpen(false);
+        setNetDetailsPinned(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [netDetailsOpen]);
+
+
   const [editingPortfolioName, setEditingPortfolioName] = useState(false);
   const [newPortfolioName, setNewPortfolioName] = useState(portfolioName);
   const [isUpdatingPortfolioName, setIsUpdatingPortfolioName] = useState(false);
@@ -410,55 +437,51 @@ export function AssetsList({
 
   const renderNetDetailsTooltip = () => {
     if (!netDetailsOpen) return null;
-    return (
+    return createPortal(
       <div 
-        className="absolute top-full left-0 mt-2 z-[100] border shadow-[0_20px_50px_rgba(0,0,0,1)] p-5 min-w-[300px] cursor-default text-left pointer-events-auto" 
+        ref={netDetailsRef}
+        className="fixed z-[9999] border border-border bg-background shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.7)] p-5 min-w-[300px] cursor-default text-left pointer-events-auto" 
         style={{ 
-          backgroundColor: '#0a0a0a', 
-          borderColor: '#333333',
-          isolation: 'isolate'
+          top: netDetailsPos.top,
+          left: netDetailsPos.left,
         }}
         onClick={e => e.stopPropagation()}
       >
-        {netDetailsPinned && (
-          <button 
-            onClick={(e) => { e.stopPropagation(); setNetDetailsPinned(false); setNetDetailsOpen(false); }}
-            className="absolute top-2 right-2 transition-colors cursor-pointer"
-            style={{ color: '#ffffff' }}
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
-        <h3 className="font-heading font-black tracking-widest text-[10px] mb-4 pb-2 uppercase" style={{ color: '#00ff6b', borderBottom: '1px solid #333333' }}>Portfolio Exposure Breakdown</h3>
+        <div className="flex justify-between items-baseline mb-4 pb-2 border-b border-border">
+          <h3 className="font-heading font-black tracking-widest text-[10px] uppercase text-primary">Exposure Breakdown</h3>
+          <span className="text-[9px] uppercase tracking-widest text-muted-foreground font-black">Active / Total</span>
+        </div>
         <div className="space-y-4 font-mono text-xs normal-case tracking-normal">
           <div className="flex justify-between items-center">
-            <span className="uppercase text-[10px] tracking-widest font-black" style={{ color: '#888888' }}>Israeli Assets</span>
-            <span style={{ color: '#ffffff' }}>
-              <span style={{ color: '#00ff6b', fontWeight: '900' }}>₪{israeliActive.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
-              <span style={{ color: '#444444', margin: '0 8px' }}>/</span>
-              <span style={{ color: '#ffffff', opacity: '0.8' }}>₪{israeliTotal.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+            <span className="uppercase text-[10px] tracking-widest font-black text-muted-foreground">Israeli</span>
+            <span>
+              <span className="text-primary font-black">₪{israeliActive.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+              <span className="text-muted-foreground/40 mx-2">/</span>
+              <span className="text-foreground/80">₪{israeliTotal.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="uppercase text-[10px] tracking-widest font-black" style={{ color: '#888888' }}>Global Assets</span>
-            <span style={{ color: '#ffffff' }}>
-              <span style={{ color: '#00ff6b', fontWeight: '900' }}>₪{intlActive.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
-              <span style={{ color: '#444444', margin: '0 8px' }}>/</span>
-              <span style={{ color: '#ffffff', opacity: '0.8' }}>₪{intlTotal.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+            <span className="uppercase text-[10px] tracking-widest font-black text-muted-foreground">Global</span>
+            <span>
+              <span className="text-primary font-black">₪{intlActive.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+              <span className="text-muted-foreground/40 mx-2">/</span>
+              <span className="text-foreground/80">₪{intlTotal.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
             </span>
           </div>
-          <div className="flex justify-between items-center pt-3 mt-1" style={{ borderTop: '1px solid #333333' }}>
-            <span className="uppercase text-[10px] tracking-widest font-black" style={{ color: '#888888' }}>Total Portfolio</span>
-            <span style={{ color: '#ffffff', fontWeight: '900' }}>
-              <span style={{ color: '#00ff6b' }}>₪{allActive.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
-              <span style={{ color: '#444444', margin: '0 8px' }}>/</span>
-              <span style={{ color: '#ffffff' }}>₪{allTotal.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+          <div className="flex justify-between items-center pt-3 mt-1 border-t border-border">
+            <span className="uppercase text-[10px] tracking-widest font-black text-muted-foreground">Total</span>
+            <span className="font-black">
+              <span className="text-primary">₪{allActive.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+              <span className="text-muted-foreground/40 mx-2">/</span>
+              <span className="text-foreground">₪{allTotal.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
             </span>
           </div>
         </div>
-      </div>
+      </div>,
+      document.body
     );
   };
+
   const [draggedAssetId, setDraggedAssetId] = useState<string | null>(null);
   const [dragOverAssetId, setDragOverAssetId] = useState<string | null>(null);
   const [orderedAssets, setOrderedAssets] = useState<AssetWithValue[]>(assets);
@@ -821,12 +844,11 @@ export function AssetsList({
                 <span>•</span>
                 <span 
                   className="text-foreground font-mono relative cursor-pointer hover:text-primary transition-colors pointer-events-auto"
-                  onMouseEnter={() => !netDetailsPinned && setNetDetailsOpen(true)}
+                  onMouseEnter={(e) => !netDetailsPinned && openNetDetails(e.currentTarget)}
                   onMouseLeave={() => !netDetailsPinned && setNetDetailsOpen(false)}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setNetDetailsPinned(true);
-                    setNetDetailsOpen(true);
+                    openNetDetails(e.currentTarget, true);
                   }}
                 >
                   Σ ₪{totalValue.toLocaleString(undefined, { minimumFractionDigits: 0 })}
@@ -866,12 +888,11 @@ export function AssetsList({
                     <span>•</span>
                     <span 
                       className="text-foreground font-mono relative cursor-pointer hover:text-primary transition-colors pointer-events-auto"
-                      onMouseEnter={() => !netDetailsPinned && setNetDetailsOpen(true)}
+                      onMouseEnter={(e) => !netDetailsPinned && openNetDetails(e.currentTarget)}
                       onMouseLeave={() => !netDetailsPinned && setNetDetailsOpen(false)}
                       onClick={(e) => {
                         e.stopPropagation();
-                        setNetDetailsPinned(true);
-                        setNetDetailsOpen(true);
+                        openNetDetails(e.currentTarget, true);
                       }}
                     >
                       Σ ₪{totalValue.toLocaleString(undefined, { minimumFractionDigits: 0 })}
@@ -933,12 +954,11 @@ export function AssetsList({
                     <span>•</span>
                     <span 
                       className="text-foreground font-mono relative cursor-pointer hover:text-primary transition-colors pointer-events-auto"
-                      onMouseEnter={() => !netDetailsPinned && setNetDetailsOpen(true)}
+                      onMouseEnter={(e) => !netDetailsPinned && openNetDetails(e.currentTarget)}
                       onMouseLeave={() => !netDetailsPinned && setNetDetailsOpen(false)}
                       onClick={(e) => {
                         e.stopPropagation();
-                        setNetDetailsPinned(true);
-                        setNetDetailsOpen(true);
+                        openNetDetails(e.currentTarget, true);
                       }}
                     >
                       Σ ₪{totalValue.toLocaleString(undefined, { minimumFractionDigits: 0 })}
