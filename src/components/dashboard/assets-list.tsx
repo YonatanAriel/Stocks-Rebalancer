@@ -87,7 +87,9 @@ function AssetRow({
         </div>
         <div className="text-right flex flex-col items-end">
           <div className="text-sm font-black font-mono text-foreground">
-            {pricePerSlice !== null ? `₪${pricePerSlice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
+            {pricePerSlice !== null ? `₪${pricePerSlice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : (
+              <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground mt-0.5" />
+            )}
           </div>
           {isEstimated && <span className="text-[8px] text-orange-400 font-black uppercase tracking-widest italic mt-0.5">estimated</span>}
           {isManualPrice && <span className="text-[8px] text-primary font-black uppercase tracking-widest mt-0.5">manual</span>}
@@ -95,7 +97,9 @@ function AssetRow({
         <div className="text-right text-sm font-black font-mono text-muted-foreground">{asset.shares_owned}</div>
         <div className="text-right flex flex-col items-end">
           <div className="text-sm font-black text-foreground font-mono">
-            ₪{(asset.currentValue || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            {pricePerSlice !== null ? `₪${(asset.currentValue || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}` : (
+              <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground mt-0.5" />
+            )}
           </div>
           {isManualPrice && <span className="text-[8px] text-primary font-black uppercase tracking-widest mt-0.5">manual</span>}
         </div>
@@ -168,7 +172,9 @@ function AssetRow({
           
           <div className="flex flex-col items-end flex-shrink-0">
             <div className="text-lg font-black text-foreground font-mono">
-              ₪{(asset.currentValue || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              {pricePerSlice !== null ? `₪${(asset.currentValue || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}` : (
+                <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground mt-1" />
+              )}
             </div>
             {isManualPrice && <span className="text-[7px] text-primary font-black uppercase tracking-widest">manual</span>}
           </div>
@@ -214,8 +220,10 @@ function AssetRow({
           
           <div className="flex flex-col">
             <span className="text-muted-foreground opacity-50 mb-0.5">Price</span>
-            <span className="text-foreground font-mono text-[9px]">
-              {pricePerSlice !== null ? `₪${pricePerSlice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
+            <span className="text-foreground font-mono text-[9px] flex items-center h-4">
+              {pricePerSlice !== null ? `₪${pricePerSlice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : (
+                <RefreshCw className="h-3 w-3 animate-spin text-muted-foreground" />
+              )}
             </span>
             {isEstimated && <span className="text-[7px] text-orange-400 italic">est</span>}
             {isManualPrice && <span className="text-[7px] text-primary">manual</span>}
@@ -313,7 +321,9 @@ export function AssetsList({
   excludedAssets = new Set(),
   onExcludedAssetsChange,
   onAssetAdded,
-  onAssetDeleted
+  onAssetPriceUpdated,
+  onAssetDeleted,
+  onAssetRestore
 }: { 
   portfolioId: string, 
   assets: AssetWithValue[], 
@@ -326,8 +336,10 @@ export function AssetsList({
   onToggleCalculator?: () => void,
   excludedAssets?: Set<string>,
   onExcludedAssetsChange?: (excluded: Set<string>) => void,
-  onAssetAdded?: (ticker: string, price: number | null, name: string | null) => void,
-  onAssetDeleted?: (id: string) => void
+  onAssetAdded?: (ticker: string, price: number | null, name: string | null, percentage: number, shares: number) => void,
+  onAssetPriceUpdated?: (assetId: string, ticker: string, price: number | null, name: string | null) => void,
+  onAssetDeleted?: (id: string) => void,
+  onAssetRestore?: (asset: AssetWithValue) => void
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -336,6 +348,7 @@ export function AssetsList({
   const [editPercentage, setEditPercentage] = useState("");
   const [editManualValue, setEditManualValue] = useState<string>("");
   const [addingAsset, setAddingAsset] = useState(false);
+  const [isAddingAssetLoading, setIsAddingAssetLoading] = useState(false);
   const [newTicker, setNewTicker] = useState("");
   const [newPercentage, setNewPercentage] = useState("");
   const [newShares, setNewShares] = useState("");
@@ -375,13 +388,22 @@ export function AssetsList({
     router.push(`${window.location.pathname}${query}`, { scroll: false });
   };
 
-  // Sync URL params with modal state
+  // Handle Add Modal
+  useEffect(() => {
+    const modal = searchParams.get('modal');
+    if (modal === 'add') {
+      setAddingAsset(true);
+    } else {
+      setAddingAsset(false);
+    }
+  }, [searchParams]); // REMOVED `assets` from dependencies
+
+  // Handle Detail and Edit Modals which depend on assets
   useEffect(() => {
     const modal = searchParams.get('modal');
     const assetId = searchParams.get('assetId');
     const ticker = searchParams.get('ticker');
 
-    // Handle Detail Modal
     if (modal === 'detail' && ticker) {
       const asset = assets.find(a => a.ticker === ticker);
       if (asset) setSelectedAsset(asset);
@@ -389,7 +411,6 @@ export function AssetsList({
       setSelectedAsset(null);
     }
 
-    // Handle Edit Modal
     if (modal === 'edit' && assetId) {
       const asset = assets.find(a => a.id === assetId);
       if (asset) {
@@ -404,14 +425,22 @@ export function AssetsList({
     } else {
       setEditingAsset(null);
     }
-
-    // Handle Add Modal
-    if (modal === 'add') {
-      setAddingAsset(true);
-    } else {
-      setAddingAsset(false);
-    }
   }, [searchParams, assets]);
+
+  // Global Escape key handler for modals
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setAddingAsset(false);
+        setEditingAsset(null);
+        setSelectedAsset(null);
+        setDeleteConfirm(null);
+        updateURL({ modal: null, assetId: null, ticker: null });
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   async function handleUpdateAsset() {
     if (!editingAsset) return;
@@ -491,27 +520,37 @@ export function AssetsList({
 
   async function handleAddAsset() {
     if (!newTicker.trim()) return;
+    
+    const ticker = newTicker.trim();
+    const percentage = parseFloat(newPercentage) || 0;
+    const shares = parseFloat(newShares) || 0;
+    
+    // Create a unique ID for this asset (for tracking)
+    const tempId = `temp-${Date.now()}`;
+    
+    // First, close modal and add asset with loading state (synchronous)
+    setAddingAsset(false);
+    setNewTicker("");
+    setNewPercentage("");
+    setNewShares("");
+    updateURL({ modal: null });
+    
+    // Add the asset immediately with no price (shows loading state)
+    onAssetAdded?.(ticker, null, ticker, percentage, shares);
+    
     try {
-      const { name, price } = await getAssetPrice(newTicker.trim());
-      await addAsset(portfolioId, newTicker.trim(), parseFloat(newPercentage) || 0, parseFloat(newShares) || 0, name || undefined);
-      
-      // Notify parent to update local state immediately
-      onAssetAdded?.(newTicker.trim(), price, name);
-      
-      toast.success("Asset added");
-      setAddingAsset(false);
-      setNewTicker("");
-      setNewPercentage("");
-      setNewShares("");
-      updateURL({ modal: null });
+      // Fetch price in background
+      const { name, price } = await getAssetPrice(ticker);
+      onAssetPriceUpdated?.(tempId, ticker, price, name);
+      await addAsset(portfolioId, ticker, percentage, shares, name || undefined);
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Add failed");
+      onAssetPriceUpdated?.(tempId, ticker, null, null);
     }
   }
 
   const currentEditingPrice = editingAsset ? assets.find(a => a.id === editingAsset.id)?.price : null;
 
-  // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, assetId: string) => {
     setDraggedAssetId(assetId);
     e.dataTransfer.effectAllowed = 'move';
@@ -1011,7 +1050,6 @@ export function AssetsList({
               <form 
                 onSubmit={(e) => {
                   e.preventDefault();
-                  handleAddAsset();
                 }} 
                 className="space-y-8"
               >
@@ -1080,7 +1118,8 @@ export function AssetsList({
                   </div>
                 </div>
                 <button 
-                  type="submit"
+                  type="button"
+                  onClick={() => handleAddAsset()}
                   style={{ pointerEvents: 'auto' }}
                   className="w-full h-16 bg-primary hover:bg-primary/90 text-black font-black uppercase tracking-[0.2em] rounded-none shadow-[8px_8px_0px_0px_rgba(var(--primary),0.3)] hover:shadow-none transition-all cursor-pointer"
                 >
@@ -1105,7 +1144,31 @@ export function AssetsList({
 
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setDeleteConfirm(null)}>
-          <div className="max-w-md w-full bg-background border-2 border-destructive rounded-none overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div 
+            ref={(el) => { if (el) setTimeout(() => el.focus(), 10) }}
+            className="max-w-md w-full bg-background border-2 border-destructive rounded-none overflow-hidden shadow-2xl" 
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                
+                if (deleteConfirm.id.startsWith('temp-')) {
+                  window.location.reload();
+                  return;
+                }
+                
+                const assetToRestore = assets.find(a => a.id === deleteConfirm.id);
+                onAssetDeleted?.(deleteConfirm.id);
+                setDeleteConfirm(null);
+                deleteAsset(deleteConfirm.id).catch(err => {
+                  console.error("Failed to delete asset:", err);
+                  toast.error("Failed to delete asset");
+                  if (assetToRestore) onAssetRestore?.(assetToRestore);
+                });
+              }
+            }}
+            tabIndex={0}
+          >
             <div className="p-8 space-y-6">
               <div className="space-y-3">
                 <h2 className="text-3xl font-black uppercase tracking-[0.3em] text-destructive font-heading">
@@ -1128,8 +1191,20 @@ export function AssetsList({
                 </button>
                 <button
                   onClick={() => {
-                    handleDeleteAsset(deleteConfirm.id);
+                    if (deleteConfirm.id.startsWith('temp-')) {
+                      window.location.reload();
+                      return;
+                    }
+                    
+                    const assetToRestore = assets.find(a => a.id === deleteConfirm.id);
+                    onAssetDeleted?.(deleteConfirm.id);
                     setDeleteConfirm(null);
+                    
+                    deleteAsset(deleteConfirm.id).catch(err => {
+                      console.error("Failed to delete asset:", err);
+                      toast.error("Failed to delete asset");
+                      if (assetToRestore) onAssetRestore?.(assetToRestore);
+                    });
                   }}
                   className="flex-1 h-14 bg-destructive hover:bg-destructive/90 text-white font-black uppercase text-sm tracking-widest shadow-[4px_4px_0px_0px_rgba(239,68,68,0.3)] hover:shadow-none transition-all"
                 >
