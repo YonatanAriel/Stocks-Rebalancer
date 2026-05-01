@@ -41,14 +41,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${outfit.variable} ${mono.variable}  flex flex-col bg-background antialiased`} suppressHydrationWarning>
+      <body className={`${outfit.variable} ${mono.variable} flex flex-col antialiased bg-background`} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden" aria-hidden="true">
+            <div className="absolute inset-0 bg-background" />
+            <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% -20%, color-mix(in oklch, var(--primary), transparent 85%), transparent 70%)', filter: 'blur(100px)', opacity: 0.6 }} />
+            <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 60% 40% at 100% 100%, color-mix(in oklch, var(--primary), transparent 90%), transparent 60%)', filter: 'blur(80px)', opacity: 0.4 }} />
+          </div>
+          <div className="relative z-0 flex flex-col min-h-screen">
+            {children}
+          </div>
           <Toaster richColors position="bottom-right" />
         </ThemeProvider>
       </body>
