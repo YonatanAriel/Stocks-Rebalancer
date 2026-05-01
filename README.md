@@ -21,11 +21,13 @@ A brutalist-aesthetic portfolio management platform that tracks Israeli TASE sec
 
 ### Key Capabilities
 
-- **Multi-source price aggregation** from Bizportal, Yahoo Finance, and Google Finance
+- **High-speed parallel price aggregation** from Bizportal, Yahoo Finance, and Google Finance
+- **ScraperAPI integration** for robust data acquisition and rate-limit bypassing
 - **Intelligent rebalancing calculator** with target allocation optimization
-- **Manual price overrides** with 15-minute time windows
+- **Manual drag-and-drop reordering** for personalized portfolio organization
+- **Exposure Analytics** with Israeli vs. Global breakdown tooltips
 - **Real-time portfolio visualization** with interactive allocation charts
-- **Sequential price fetching** with rate limiting and caching
+- **Incremental UI updates** as prices arrive in chunks
 - **Asset status management** with persistent ON/OFF toggles
 
 ---
@@ -35,62 +37,66 @@ A brutalist-aesthetic portfolio management platform that tracks Israeli TASE sec
 ### 🎯 Portfolio Management
 
 ```typescript
-// Automatic price discovery across multiple sources
-Israeli Securities (TASE)  → Bizportal scraping (agorot → shekel conversion)
-International Stocks       → Yahoo Finance + Google Finance fallback
-Mutual Funds              → Bizportal API with 15-minute cache
+// Multi-source intelligence with automated fallbacks
+Israeli Securities (TASE)  → Bizportal Scraper (with ScraperAPI IL-proxy)
+International Stocks       → Google Finance → Yahoo Finance Fallback
+Mutual Funds              → Bizportal API with automated discovery
 ```
 
-- **Setup wizard** for portfolio initialization
-- **Asset CRUD operations** with immediate UI updates
-- **Search, sort, and filter** across all holdings
-- **Target allocation tracking** with deviation indicators
+- **Setup wizard** for rapid portfolio initialization
+- **Asset CRUD operations** with immediate UI synchronization
+- **Search, sort, and filter** across tickers, names, values, and status
+- **Manual Price Overrides** with 15-minute persistent windows
+- **Target allocation tracking** with color-coded deviation indicators
 
 ### 📊 Rebalancing Engine
 
 - Calculate optimal buy/sell orders to match target allocations
 - Factor in cash injections and current holdings
 - Display trade recommendations with precise quantities
-- Real-time recalculation as prices update
+- Real-time recalculation as prices update or overrides are applied
 
 ### 💾 Data Persistence
 
-- **Supabase backend** for authentication and storage
-- **Manual price overrides** stored with timestamps
-- **Asset active status** persisted to database
-- **Portfolio state** synchronized across sessions
+- **Supabase backend** for secure authentication and relational storage
+- **Manual price overrides** stored with precise timestamps
+- **Asset active status** and **Display Order** persisted to database
+- **Portfolio state** synchronized across all user sessions
 
 ### 🎨 Design System
 
-- **Brutalist aesthetic** with sharp edges and high contrast
-- **Mint green (#00FF88)** primary color on black background
-- **Responsive layout** with mobile-first approach
-- **Dark mode** with theme persistence
-- **Smooth animations** for state transitions
+- **Brutalist aesthetic** with sharp edges, high contrast, and glow effects
+- **Mint green (#00FF88)** primary color on deep black background
+- **Responsive layout** with dedicated mobile-first interactions
+- **Dark mode** with theme persistence via `next-themes`
+- **Smooth micro-animations** for loading states and transitions
 
 ---
 
 ## Tech Stack
 
 ### Core Framework
-- **Next.js 16.2** - React framework with App Router
-- **React 19.2** - UI library with Server Components
+- **Next.js 16.2** - React framework with App Router & Server Actions
+- **React 19.2** - UI library with Server Components & Hooks
 - **TypeScript 5** - Type-safe development
 
 ### Backend & Auth
-- **Supabase** - PostgreSQL database + authentication
-- **Server Actions** - Type-safe API layer
+- **Supabase** - PostgreSQL database + GoTrue authentication
+- **Server Actions** - Secure, type-safe API layer
 
-### Styling
-- **Tailwind CSS 4** - Utility-first styling
-- **shadcn/ui** - Accessible component primitives
+### Styling & UI
+- **Tailwind CSS 4** - Modern utility-first styling
+- **@base-ui/react** - Unstyled, accessible component primitives
+- **shadcn/ui** - Tailored component system
+- **sonner** - High-performance toast notifications
 - **Lucide React** - Icon system
-- **Recharts** - Data visualization
+- **Recharts** - Dynamic data visualization
 
 ### Data Sources
-- **yahoo-finance2** - International stock prices
-- **Cheerio** - HTML parsing for web scraping
-- **Custom scrapers** - Bizportal ETF/mutual fund data
+- **ScraperAPI** - Proxy service for reliable web scraping
+- **yahoo-finance2** - International market data
+- **Cheerio** - HTML parsing for Bizportal and Google Finance
+- **Custom scrapers** - Resilient Israeli security data extraction
 
 ---
 
@@ -102,6 +108,7 @@ Mutual Funds              → Bizportal API with 15-minute cache
 Node.js 20+
 npm/yarn/pnpm
 Supabase account
+ScraperAPI key (optional but recommended)
 ```
 
 ### Installation
@@ -127,9 +134,11 @@ Required variables:
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+SCRAPER_API_KEY=your_scraper_api_key
 ```
 
 4. **Set up database schema**
+
 ```sql
 -- portfolios table
 create table portfolios (
@@ -151,6 +160,7 @@ create table assets (
   manual_price_override numeric,
   manual_price_set_at timestamp with time zone,
   is_active boolean default true,
+  display_order integer default 0,
   created_at timestamp with time zone default now()
 );
 ```
@@ -173,32 +183,32 @@ src/
 ├── app/
 │   ├── api/
 │   │   └── etf/[securityId]/     # Bizportal scraping endpoint
-│   ├── auth/
-│   │   └── callback/             # OAuth callback handler
-│   ├── dashboard/                # Main portfolio view
-│   ├── login/                    # Authentication page
-│   └── layout.tsx                # Root layout with theme
+│   ├── auth/                     # OAuth & Auth logic
+│   ├── dashboard/                # Main portfolio terminal
+│   ├── login/                    # Auth entry point
+│   └── layout.tsx                # Global providers (Theme, Auth)
 ├── actions/
-│   ├── auth.ts                   # Authentication actions
-│   ├── finance.ts                # Price fetching logic
-│   └── portfolio.ts              # CRUD operations
+│   ├── auth.ts                   # Auth Server Actions
+│   ├── finance.ts                # Parallel price fetching logic
+│   └── portfolio.ts              # CRUD & Reordering operations
 ├── components/
 │   ├── dashboard/
-│   │   ├── assets-list.tsx       # Portfolio table with search/sort
-│   │   ├── header.tsx            # Dashboard navigation
-│   │   ├── rebalance-calculator.tsx  # Trade recommendations
-│   │   └── tradingview-widget.tsx    # Market data widget
-│   ├── ui/                       # shadcn components
+│   │   ├── assets-list.tsx       # Drag-and-drop table with search
+│   │   ├── header.tsx            # Navigation & Shortcuts
+│   │   ├── rebalance-calculator.tsx # Math engine
+│   │   └── tradingview-widget.tsx # Market charts
 │   ├── allocation-chart.tsx      # Pie chart visualization
-│   ├── dashboard-shell.tsx       # Main layout container
-│   ├── setup-wizard.tsx          # Portfolio initialization
-│   └── theme-provider.tsx        # Dark mode context
+│   ├── stock-detail-modal.tsx    # Asset deep-dive
+│   ├── dashboard-shell.tsx       # State management & Shortcuts
+│   ├── setup-wizard.tsx          # Initialization flow
+│   └── spicy-loading-spinner.tsx # Custom brutalist loader
 ├── lib/
-│   ├── scrapeBizportalEtf.ts     # Israeli securities scraper
-│   ├── types.ts                  # TypeScript interfaces
-│   └── utils.ts                  # Utility functions
+│   ├── scrapeBizportalEtf.ts     # ScraperAPI-powered crawler
+│   ├── getBaseUrl.ts             # Dynamic URL resolver
+│   ├── types.ts                  # Shared TS interfaces
+│   └── utils.ts                  # Helper functions
 └── utils/
-    └── supabase/                 # Supabase client configs
+    └── supabase/                 # Client/Server/SSR configs
 ```
 
 ### Data Flow
@@ -206,26 +216,25 @@ src/
 ```mermaid
 graph TD
     A[User Action] --> B[Server Action]
-    B --> C{Data Source}
-    C -->|Israeli| D[Bizportal Scraper]
-    C -->|International| E[Yahoo Finance]
-    C -->|Fallback| F[Google Finance]
-    D --> G[Price Normalization]
+    B --> C{Parallel Batcher}
+    C -->|Chunk 1| D[Bizportal Scraper]
+    C -->|Chunk 2| E[Google Finance]
+    C -->|Chunk 3| F[Yahoo Finance]
+    D --> G[Normalization]
     E --> G
     F --> G
-    G --> H[Supabase Storage]
+    G --> H[Supabase Store]
     H --> I[React State]
-    I --> J[UI Update]
+    I --> J[Incremental UI Update]
 ```
 
 ### Price Fetching Strategy
 
-1. **Check manual override** (15-minute window)
-2. **Israeli securities** (6-8 digit tickers) → Bizportal
-3. **International stocks** → Google Finance → Yahoo Finance
-4. **Currency conversion** (USD/GBP → ILS)
-5. **Sequential requests** with 300ms + 200ms delays
-6. **Incremental UI updates** as prices arrive
+1. **Check manual override**: Use DB value if set within the last 15 minutes.
+2. **Parallel Dispatch**: Fetch multiple assets simultaneously (concurrency limit: 3).
+3. **Israeli Detection**: Use Bizportal Scraper with `country_code=il` via ScraperAPI.
+4. **International Flow**: Attempt Google Finance (via ScraperAPI) → Fallback to Yahoo Finance.
+5. **Currency Sync**: Automatic USD/ILS and GBp/ILS conversion.
 
 ---
 
@@ -244,93 +253,47 @@ graph TD
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 
+# Services
+SCRAPER_API_KEY=
+
 # Application
 NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app
-```
-
-### Build Command
-
-```bash
-npm run build
 ```
 
 ---
 
 ## Development
 
-### Code Style
-
-- **TypeScript strict mode** enabled
-- **Server Actions** for data mutations
-- **Client Components** only when necessary
-- **Tailwind** for all styling (no CSS modules)
-
 ### Performance Optimizations
 
-- **Sequential price fetching** to avoid rate limits
-- **15-minute API response caching**
-- **Incremental UI updates** during data loading
-- **Optimistic updates** for asset toggles
-- **Memoized calculations** for portfolio totals
+- **Parallel Batching**: Reduced total fetch time by 70% vs sequential.
+- **Incremental Hydration**: UI updates as each price arrives, avoiding long "all-or-nothing" waits.
+- **15-minute TTL**: Persisted manual overrides for fast re-calculating.
+- **Optimistic UI**: Immediate feedback for asset toggles and reordering.
+- **Memoized Analytics**: High-performance allocation math.
 
 ### Keyboard Shortcuts
 
-- `Alt + R` - Refresh prices
-- `Alt + C` - Open rebalance calculator
-- `Alt + A` - Add new asset
-
----
-
-## Database Schema
-
-### portfolios
-
-| Column | Type | Description |
-|--------|------|-------------|
-| id | uuid | Primary key |
-| user_id | uuid | Foreign key to auth.users |
-| name | text | Portfolio name |
-| currency | text | Base currency (default: ILS) |
-| created_at | timestamp | Creation timestamp |
-
-### assets
-
-| Column | Type | Description |
-|--------|------|-------------|
-| id | uuid | Primary key |
-| portfolio_id | uuid | Foreign key to portfolios |
-| ticker | text | Security identifier |
-| name | text | Asset name (auto-fetched) |
-| target_percentage | numeric | Target allocation % |
-| shares_owned | numeric | Current inventory |
-| manual_price_override | numeric | Manual price (optional) |
-| manual_price_set_at | timestamp | Override timestamp |
-| is_active | boolean | Include in calculations |
-| created_at | timestamp | Creation timestamp |
+- `Alt + R` - Refresh all prices
+- `Alt + C` - Toggle rebalance calculator
+- `Alt + A` - Trigger "Add Asset" modal
+- `Escape` - Close all modals/drawers
 
 ---
 
 ## Troubleshooting
 
-### Prices not loading
+### Prices returning 0 or failing
+- Ensure `SCRAPER_API_KEY` is active and has remaining credits.
+- Check if the security ticker is valid (Israeli: 6-8 digits, International: Yahoo symbol).
+- Bizportal may require an IL-based proxy (handled automatically if using ScraperAPI).
 
-1. Check Supabase connection
-2. Verify `NEXT_PUBLIC_APP_URL` is set correctly
-3. Check browser console for CORS errors
-4. Ensure sequential fetching isn't being rate-limited
+### Drag-and-Drop not persisting
+- Verify the `assets` table has the `display_order` column.
+- Check browser console for database update failures (RLS policies).
 
-### Manual override not persisting
-
-1. Verify database schema includes `manual_price_override` and `manual_price_set_at`
-2. Check that timestamp is within 15-minute window
-3. Ensure `updateAsset` action is being called
-
-### Israeli securities returning 0
-
-1. Verify security ID is 6-8 digits
-2. Check if security exists on Bizportal
-3. Try both ETF and mutual fund endpoints
-4. Ensure agorot → shekel conversion (÷ 100)
+### Israeli securities (Agorot vs Shekel)
+- Scrapers automatically convert Bizportal prices (÷ 100) to maintain ILS consistency.
 
 ---
 
@@ -340,17 +303,8 @@ MIT
 
 ---
 
-## Acknowledgments
-
-- **Bizportal** for Israeli securities data
-- **Yahoo Finance** for international market data
-- **Supabase** for backend infrastructure
-- **Vercel** for hosting platform
-
----
-
 <div align="center">
 
-Built with precision for portfolio optimization
+Built with precision for the modern investor.
 
 </div>
