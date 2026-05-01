@@ -109,9 +109,12 @@ export function DashboardShell({
       const newNames: Record<string, string> = {};
       
       Object.entries(results).forEach(([ticker, data]) => {
-        if (data.price) {
+        if (data.price !== null) {
           newPrices[ticker] = data.price;
           newPriceSource[ticker] = data.isManual ? 'manual' : 'scraped';
+        } else {
+          newPrices[ticker] = 0;
+          newPriceSource[ticker] = 'scraped';
         }
         if (data.name) {
           newNames[ticker] = data.name;
@@ -149,6 +152,12 @@ export function DashboardShell({
       if (e.altKey && e.key.toLowerCase() === 'a') {
         e.preventDefault();
         window.dispatchEvent(new CustomEvent('open-add-asset'));
+      }
+      // Close Modals: Escape
+      if (e.key === 'Escape') {
+        setShowCalculator(false);
+        setShowAllocation(false);
+        updateURL({ calculator: null });
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -215,15 +224,15 @@ export function DashboardShell({
               }}
               excludedAssets={excludedAssets}
               onExcludedAssetsChange={setExcludedAssets}
-              onAssetAdded={(ticker, price, name) => {
+              onAssetAdded={(ticker, price, name, percentage, shares) => {
                 // Add new asset to the list immediately
                 const newAsset: any = {
                   id: `temp-${Date.now()}`, // Temporary ID until refresh
                   portfolio_id: portfolio.id,
                   ticker,
                   name,
-                  target_percentage: 0,
-                  shares_owned: 0,
+                  target_percentage: percentage,
+                  shares_owned: shares,
                   manual_price_override: null,
                   manual_price_set_at: null,
                   is_active: true,
@@ -239,8 +248,20 @@ export function DashboardShell({
                   setNames(prev => ({ ...prev, [ticker]: name || '' }));
                 }
               }}
+              onAssetPriceUpdated={(assetId, ticker, price, name) => {
+                setPrices(prev => ({ ...prev, [ticker]: price !== null ? price : 0 }));
+                setPriceSource(prev => ({ ...prev, [ticker]: 'scraped' }));
+                
+                if (name) {
+                  setNames(prev => ({ ...prev, [ticker]: name }));
+                  setPortfolioAssets(prev => prev.map(a => a.ticker === ticker ? { ...a, name } : a));
+                }
+              }}
               onAssetDeleted={(id) => {
                 setPortfolioAssets(prev => prev.filter(a => a.id !== id));
+              }}
+              onAssetRestore={(asset) => {
+                setPortfolioAssets(prev => [...prev, asset]);
               }}
             />
           </div>
