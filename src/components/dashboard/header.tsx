@@ -82,6 +82,7 @@ export function DashboardHeader({
                       value={searchQuery}
                       onChange={(e) => {
                         setSearchQuery(e.target.value);
+                        window.dispatchEvent(new CustomEvent('mobile-search', { detail: e.target.value }));
                         onSearch?.();
                       }}
                       placeholder="Search..."
@@ -93,6 +94,7 @@ export function DashboardHeader({
                         e.stopPropagation();
                         setSearchOpen(false);
                         setSearchQuery("");
+                        window.dispatchEvent(new CustomEvent('mobile-search', { detail: "" }));
                       }}
                       className={`absolute right-2 transition-all duration-300 ${searchOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
                     >

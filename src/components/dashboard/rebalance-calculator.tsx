@@ -89,14 +89,29 @@ export function calculateRebalance(
   });
   deviations.sort((a, b) => b.deviation - a.deviation);
 
-  const best = deviations[0];
-  let bestPrice = best.price;
-  if (bestPrice === null && best.shares_owned > 0 && (best.currentValue || 0) > 0) {
-    bestPrice = (best.currentValue || 0) / best.shares_owned;
+  let best = null;
+  let bestPrice = 0;
+
+  for (const asset of deviations) {
+    let p = asset.price;
+    if (p === null && asset.shares_owned > 0 && (asset.currentValue || 0) > 0) {
+      p = (asset.currentValue || 0) / asset.shares_owned;
+    }
+    if (p && p > 0 && p <= cash) {
+      best = asset;
+      bestPrice = p;
+      break;
+    }
   }
 
-  const singleSharesToBuy = bestPrice ? Math.floor(cash / bestPrice) : 0;
-  const singleCost = bestPrice ? singleSharesToBuy * bestPrice : cash;
+  // Fallback if no asset is affordable
+  if (!best) {
+    best = deviations[0];
+    bestPrice = best.price ?? ((best.shares_owned > 0 && (best.currentValue || 0) > 0) ? (best.currentValue || 0) / best.shares_owned : 0);
+  }
+
+  const singleSharesToBuy = bestPrice && bestPrice > 0 ? Math.floor(cash / bestPrice) : 0;
+  const singleCost = bestPrice && bestPrice > 0 ? singleSharesToBuy * bestPrice : 0;
 
   return {
     optimalBuys: optimalBuys as any,

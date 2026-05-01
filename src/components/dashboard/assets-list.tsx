@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { updateAsset, deleteAsset, addAsset, toggleAssetActive, reorderAssets } from "@/actions/portfolio";
+import { updateAsset, deleteAsset, addAsset, toggleAssetActive, reorderAssets, updatePortfolio } from "@/actions/portfolio";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -362,6 +362,33 @@ const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [netDetailsOpen, setNetDetailsOpen] = useState(false);
   const [netDetailsPinned, setNetDetailsPinned] = useState(false);
+  const [editingPortfolioName, setEditingPortfolioName] = useState(false);
+  const [newPortfolioName, setNewPortfolioName] = useState(portfolioName);
+  const [isUpdatingPortfolioName, setIsUpdatingPortfolioName] = useState(false);
+
+  const handleUpdatePortfolioName = async () => {
+    if (newPortfolioName.trim() && newPortfolioName !== portfolioName) {
+      setIsUpdatingPortfolioName(true);
+      try {
+        await updatePortfolio(portfolioId, { name: newPortfolioName.trim() });
+        toast.success("Portfolio name updated");
+      } catch (error) {
+        toast.error("Failed to update name");
+        setNewPortfolioName(portfolioName);
+      } finally {
+        setIsUpdatingPortfolioName(false);
+      }
+    }
+    setEditingPortfolioName(false);
+  };
+
+  const handlePortfolioNameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleUpdatePortfolioName();
+    if (e.key === 'Escape') {
+      setNewPortfolioName(portfolioName);
+      setEditingPortfolioName(false);
+    }
+  };
 
   const isIsraeli = (ticker: string) => /^\d{6,8}$/.test(ticker);
   
@@ -377,7 +404,7 @@ const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const renderNetDetailsTooltip = () => {
     if (!netDetailsOpen) return null;
     return (
-      <div className="absolute top-full left-0 mt-2 z-50 bg-background/95 backdrop-blur-xl border border-border shadow-2xl p-4 min-w-[280px] cursor-default text-left pointer-events-auto" onClick={e => e.stopPropagation()}>
+      <div className="absolute top-full left-0 mt-2 z-50 bg-background backdrop-blur-xl border border-border shadow-2xl p-4 min-w-[280px] cursor-default text-left pointer-events-auto" onClick={e => e.stopPropagation()}>
         {netDetailsPinned && (
           <button 
             onClick={(e) => { e.stopPropagation(); setNetDetailsPinned(false); setNetDetailsOpen(false); }}
@@ -429,6 +456,15 @@ const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   useEffect(() => {
     setOrderedAssets(assets);
   }, [assets]);
+
+  // Sync mobile search
+  useEffect(() => {
+    const handleMobileSearch = ((e: CustomEvent<string>) => {
+      setSearchQuery(e.detail);
+    }) as EventListener;
+    window.addEventListener('mobile-search', handleMobileSearch);
+    return () => window.removeEventListener('mobile-search', handleMobileSearch);
+  }, []);
 
   // Helper functions for URL management
   const updateURL = (params: Record<string, string | null>) => {
@@ -728,15 +764,30 @@ const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
       <Card className="h-full flex flex-col overflow-hidden bg-background/40 border-border rounded-none shadow-2xl backdrop-blur-xl relative group">
         
         {/* Consolidated High-Density Header */}
-        <CardHeader className="flex-shrink-0 space-y-6 p-6 pt-0 pr-0 sm-mobile:py-0 border-b border-border relative z-10">
+        <CardHeader className="flex-shrink-0 space-y-6 p-6 pt-0 pr-0 sm-mobile:py-0 border-b border-border relative z-50">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div className="space-y-1 flex-1 min-w-0">
               {/* Desktop: Vertical layout */}
               <div className="hidden mobile:flex items-center gap-3 min-w-0">
                 <div className="h-6 w-1 bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)] flex-shrink-0" />
-                <CardTitle className="text-2xl font-black uppercase tracking-[0.2em] text-primary text-glow font-heading whitespace-nowrap">
-                  {portfolioName}
-                </CardTitle>
+                {editingPortfolioName ? (
+                  <Input
+                    autoFocus
+                    value={newPortfolioName}
+                    onChange={e => setNewPortfolioName(e.target.value)}
+                    onBlur={handleUpdatePortfolioName}
+                    onKeyDown={handlePortfolioNameKeyDown}
+                    disabled={isUpdatingPortfolioName}
+                    className="text-2xl font-black uppercase tracking-[0.2em] text-primary h-8 max-w-[300px] font-heading"
+                  />
+                ) : (
+                  <CardTitle 
+                    className="text-2xl font-black uppercase tracking-[0.2em] text-primary text-glow font-heading whitespace-nowrap cursor-text hover:opacity-80 transition-opacity"
+                    onClick={() => setEditingPortfolioName(true)}
+                  >
+                    {portfolioName}
+                  </CardTitle>
+                )}
               </div>
               <div className="hidden mobile:flex items-center gap-3 text-[10px] uppercase font-black tracking-widest text-muted-foreground opacity-60">
                 <span className="flex items-center gap-1.5 text-primary">
@@ -765,9 +816,24 @@ const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
               <div className="hidden sm-mobile:flex mobile:hidden items-center justify-between gap-3 min-w-0 flex-wrap">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className="h-5 w-1 bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)] flex-shrink-0" />
-                  <CardTitle className="text-lg font-black uppercase tracking-[0.2em] text-primary text-glow font-heading whitespace-nowrap">
-                    {portfolioName}
-                  </CardTitle>
+                  {editingPortfolioName ? (
+                    <Input
+                      autoFocus
+                      value={newPortfolioName}
+                      onChange={e => setNewPortfolioName(e.target.value)}
+                      onBlur={handleUpdatePortfolioName}
+                      onKeyDown={handlePortfolioNameKeyDown}
+                      disabled={isUpdatingPortfolioName}
+                      className="text-lg font-black uppercase tracking-[0.2em] text-primary h-7 max-w-[200px] font-heading"
+                    />
+                  ) : (
+                    <CardTitle 
+                      className="text-lg font-black uppercase tracking-[0.2em] text-primary text-glow font-heading whitespace-nowrap cursor-text hover:opacity-80 transition-opacity"
+                      onClick={() => setEditingPortfolioName(true)}
+                    >
+                      {portfolioName}
+                    </CardTitle>
+                  )}
                   <div className="flex items-center gap-2 text-[9px] uppercase font-black tracking-widest text-muted-foreground opacity-60">
                     <span className="flex items-center gap-1.5 text-primary">
                       <span className="h-1.5 w-1.5 bg-primary animate-pulse" />
@@ -816,9 +882,24 @@ const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
                 <div className="flex flex-col gap-2 min-w-0 flex-1">
                   <div className="flex items-center gap-2 min-w-0">
                     <div className="h-5 w-1 bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)] flex-shrink-0" />
-                    <CardTitle className="text-base font-black uppercase tracking-[0.15em] text-primary text-glow font-heading whitespace-nowrap">
-                      {portfolioName}
-                    </CardTitle>
+                    {editingPortfolioName ? (
+                      <Input
+                        autoFocus
+                        value={newPortfolioName}
+                        onChange={e => setNewPortfolioName(e.target.value)}
+                        onBlur={handleUpdatePortfolioName}
+                        onKeyDown={handlePortfolioNameKeyDown}
+                        disabled={isUpdatingPortfolioName}
+                        className="text-base font-black uppercase tracking-[0.15em] text-primary h-7 max-w-[180px] font-heading"
+                      />
+                    ) : (
+                      <CardTitle 
+                        className="text-base font-black uppercase tracking-[0.15em] text-primary text-glow font-heading whitespace-nowrap cursor-text hover:opacity-80 transition-opacity"
+                        onClick={() => setEditingPortfolioName(true)}
+                      >
+                        {portfolioName}
+                      </CardTitle>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 text-[9px] uppercase font-black tracking-widest text-muted-foreground opacity-60 ml-3">
                     <span className="flex items-center gap-1 text-primary">
