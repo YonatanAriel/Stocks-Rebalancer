@@ -9,7 +9,7 @@ import { AssetsList } from "@/components/dashboard/assets-list";
 import { RebalanceCalculator } from "@/components/dashboard/rebalance-calculator";
 import { AllocationChart } from "@/components/allocation-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Portfolio, PriceMap, AssetWithValue } from "@/lib/types";
+import type { Portfolio, PriceMap, AssetWithValue, Asset } from "@/lib/types";
 
 export function DashboardShell({
   portfolio,
