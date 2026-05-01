@@ -170,8 +170,8 @@ export function RebalanceCalculator({
   );
 
   return (
-    <div className="grid gap-6 mobile:gap-12 lg:grid-cols-[1fr_450px] h-full overflow-hidden">
-      <div className="flex flex-col min-h-0 space-y-6 mobile:space-y-8 overflow-hidden">
+    <div className="grid gap-6 mobile:gap-12 lg:grid-cols-[1fr_450px] h-full">
+      <div className="flex flex-col min-h-0 space-y-6 mobile:space-y-8">
         <div className="flex-shrink-0 space-y-3 mobile:space-y-4 p-4 mobile:p-8 bg-primary/5 border-l-4 border-primary">
           <Label className="text-xs mobile:text-sm uppercase tracking-[0.2em] mobile:tracking-[0.3em] font-black text-primary font-heading">01. Capital Injection (₪)</Label>
           <Input
@@ -196,7 +196,7 @@ export function RebalanceCalculator({
             </span>
           </div>
           
-          <div className="flex-1 overflow-y-auto custom-scrollbar border border-white/10 bg-white/[0.02]">
+          <div className="flex-1 border border-white/10 bg-white/[0.02]">
             <div className="divide-y divide-white/5">
               {assets.map((asset) => (
                 <div key={asset.id} className="grid grid-cols-[1fr_110px_45px] mobile:grid-cols-[1fr_160px_50px] items-center gap-2 mobile:gap-6 p-3 mobile:p-6 hover:bg-primary/[0.03] transition-all">
@@ -253,7 +253,7 @@ export function RebalanceCalculator({
         </div>
       </div>
 
-      <div className="flex flex-col min-h-0 space-y-6 overflow-hidden">
+      <div className="flex flex-col min-h-0 space-y-6">
         <div className="flex flex-col gap-1 px-1">
           <Label className="text-sm uppercase tracking-[0.3em] font-black font-heading">03. Execution Plan</Label>
           <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest opacity-60">
@@ -261,7 +261,7 @@ export function RebalanceCalculator({
           </span>
         </div>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-8 pr-2">
+        <div className="flex-1 space-y-8 pr-2">
           {!result && (
             <div className="h-full flex items-center justify-center border-2 border-dashed border-white/10 p-12 text-center rounded-none bg-white/[0.01]">
               <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.3em] leading-loose opacity-40">
