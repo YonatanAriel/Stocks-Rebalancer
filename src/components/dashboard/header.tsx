@@ -75,10 +75,9 @@ export function DashboardHeader({
               <div className={`transition-all duration-300 ${searchOpen ? 'w-2 xs:w-4 sm:w-8' : 'w-0'}`} />
               
               {/* Search button that expands into search bar */}
-              <div className={`flex items-center border border-border rounded-none transition-all duration-300 ease-in-out ${searchOpen ? 'flex-1 border-primary bg-background/50' : 'w-10 hover:border-primary/50 hover:bg-primary/5'}`}>
-                {/* Input field - expands from right to left */}
-                <div className={`flex-1 flex items-center overflow-hidden transition-all duration-300 ease-in-out ${searchOpen ? 'opacity-100 px-3' : 'opacity-0 w-0 px-0'}`}>
-                  <div className="flex-1 relative flex items-center">
+              <div className={`relative flex items-center justify-end border border-border rounded-none transition-all duration-300 ease-in-out overflow-hidden h-10 flex-1 ${searchOpen ? 'max-w-[600px] border-primary bg-background/50' : 'max-w-[40px] hover:border-primary/50 hover:bg-primary/5'}`}>
+                <div className={`absolute left-0 top-0 bottom-0 flex items-center transition-all duration-300 ease-in-out ${searchOpen ? 'w-[calc(100%-40px)] opacity-100 pl-3' : 'w-0 opacity-0 pl-0'}`}>
+                  <div className="relative flex items-center w-full min-w-[150px]">
                     <Input
                       value={searchQuery}
                       onChange={(e) => {
@@ -86,7 +85,7 @@ export function DashboardHeader({
                         onSearch?.();
                       }}
                       placeholder="Search..."
-                      className="h-10 bg-transparent border-0 text-sm focus-visible:ring-0 focus-visible:ring-offset-0 px-0 pr-8 w-full"
+                      className="h-10 bg-transparent border-0 text-sm focus-visible:ring-0 focus-visible:ring-offset-0 px-0 w-full"
                       autoFocus={searchOpen}
                     />
                     <button
@@ -95,17 +94,16 @@ export function DashboardHeader({
                         setSearchOpen(false);
                         setSearchQuery("");
                       }}
-                      className={`absolute right-0 transition-all duration-300 ${searchOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
+                      className={`absolute right-2 transition-all duration-300 ${searchOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
                     >
                       <X className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
                     </button>
                   </div>
                 </div>
                 
-                {/* Search icon - always visible in same position */}
                 <button
                   onClick={() => setSearchOpen(true)}
-                  className="h-10 w-10 flex items-center justify-center hover:text-primary transition-colors cursor-pointer flex-shrink-0"
+                  className="relative z-10 h-10 w-10 flex items-center justify-center hover:text-primary transition-colors cursor-pointer flex-shrink-0"
                   title="Search"
                 >
                   <Search className="h-5 w-5" />
