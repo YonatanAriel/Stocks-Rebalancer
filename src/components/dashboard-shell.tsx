@@ -25,6 +25,7 @@ export function DashboardShell({
   const [names, setNames] = useState<Record<string, string>>({});
   const [priceOverrides, setPriceOverrides] = useState<Record<string, string>>({});
   const [loadingPrices, setLoadingPrices] = useState(true);
+  const [cashAmount, setCashAmount] = useState("");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [fetchTrigger, setFetchTrigger] = useState(0);
   const [showCalculator, setShowCalculator] = useState(false);
