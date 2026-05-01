@@ -353,8 +353,8 @@ export function AssetsList({
   const [newPercentage, setNewPercentage] = useState("");
   const [newShares, setNewShares] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<'value' | 'ticker' | 'weight' | 'price' | 'shares' | 'order'>('order');
-const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortBy, setSortBy] = useState<'value' | 'ticker' | 'weight' | 'price' | 'shares' | 'order'>('value');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showSearch, setShowSearch] = useState(false);
   const [searchClicked, setSearchClicked] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<AssetWithValue | null>(null);
@@ -404,39 +404,48 @@ const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const renderNetDetailsTooltip = () => {
     if (!netDetailsOpen) return null;
     return (
-      <div className="absolute top-full left-0 mt-2 z-50 bg-background backdrop-blur-xl border border-border shadow-2xl p-4 min-w-[280px] cursor-default text-left pointer-events-auto" onClick={e => e.stopPropagation()}>
+      <div 
+        className="absolute top-full left-0 mt-2 z-[100] border shadow-[0_20px_50px_rgba(0,0,0,1)] p-5 min-w-[300px] cursor-default text-left pointer-events-auto" 
+        style={{ 
+          backgroundColor: '#0a0a0a', 
+          borderColor: '#333333',
+          isolation: 'isolate'
+        }}
+        onClick={e => e.stopPropagation()}
+      >
         {netDetailsPinned && (
           <button 
             onClick={(e) => { e.stopPropagation(); setNetDetailsPinned(false); setNetDetailsOpen(false); }}
-            className="absolute top-2 right-2 hover:text-primary transition-colors cursor-pointer"
+            className="absolute top-2 right-2 transition-colors cursor-pointer"
+            style={{ color: '#ffffff' }}
           >
             <X className="h-4 w-4" />
           </button>
         )}
-        <h3 className="text-primary font-heading font-black tracking-widest text-[10px] mb-3 border-b border-border/50 pb-2">PORTFOLIO EXPOSURE (ACTIVE / TOTAL)</h3>
-        <div className="space-y-3 font-mono text-xs normal-case tracking-normal">
+        <h3 className="font-heading font-black tracking-widest text-[10px] mb-4 pb-2 uppercase" style={{ color: '#00ff6b', borderBottom: '1px solid #333333' }}>Portfolio Exposure Breakdown</h3>
+        <div className="space-y-4 font-mono text-xs normal-case tracking-normal">
           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground uppercase text-[10px] tracking-widest font-black">Israeli</span>
-            <span className="text-foreground">
-              <span className="text-primary">₪{israeliActive.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
-              <span className="text-muted-foreground/50 mx-1">/</span>
-              <span className="opacity-50">₪{israeliTotal.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+            <span className="uppercase text-[10px] tracking-widest font-black" style={{ color: '#888888' }}>Israeli Assets</span>
+            <span style={{ color: '#ffffff' }}>
+              <span style={{ color: '#00ff6b', fontWeight: '900' }}>₪{israeliActive.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+              <span style={{ color: '#444444', margin: '0 8px' }}>/</span>
+              <span style={{ color: '#ffffff', opacity: '0.8' }}>₪{israeliTotal.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground uppercase text-[10px] tracking-widest font-black">Global</span>
-            <span className="text-foreground">
-              <span className="text-primary">₪{intlActive.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
-              <span className="text-muted-foreground/50 mx-1">/</span>
-              <span className="opacity-50">₪{intlTotal.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+            <span className="uppercase text-[10px] tracking-widest font-black" style={{ color: '#888888' }}>Global Assets</span>
+            <span style={{ color: '#ffffff' }}>
+              <span style={{ color: '#00ff6b', fontWeight: '900' }}>₪{intlActive.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+              <span style={{ color: '#444444', margin: '0 8px' }}>/</span>
+              <span style={{ color: '#ffffff', opacity: '0.8' }}>₪{intlTotal.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
             </span>
           </div>
-          <div className="flex justify-between items-center border-t border-border/50 pt-2 mt-2">
-            <span className="text-muted-foreground uppercase text-[10px] tracking-widest font-black">Total</span>
-            <span className="text-foreground font-black">
-              <span className="text-primary">₪{allActive.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
-              <span className="text-muted-foreground/50 mx-1">/</span>
-              <span className="opacity-50">₪{allTotal.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+          <div className="flex justify-between items-center pt-3 mt-1" style={{ borderTop: '1px solid #333333' }}>
+            <span className="uppercase text-[10px] tracking-widest font-black" style={{ color: '#888888' }}>Total Portfolio</span>
+            <span style={{ color: '#ffffff', fontWeight: '900' }}>
+              <span style={{ color: '#00ff6b' }}>₪{allActive.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+              <span style={{ color: '#444444', margin: '0 8px' }}>/</span>
+              <span style={{ color: '#ffffff' }}>₪{allTotal.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
             </span>
           </div>
         </div>

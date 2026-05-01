@@ -11,6 +11,7 @@ import { SpicyLoadingSpinner } from "./spicy-loading-spinner";
 
 interface AssetAllocation {
   ticker: string;
+  name?: string;
   targetPct: number;
   currentPct: number;
   priceSource?: 'manual' | 'scraped';
@@ -47,13 +48,16 @@ export function AllocationChart({
     );
   }
 
-  const currentData = assets.map((a, i) => ({
+  // Sort assets by current value (most money) descending
+  const sortedAssets = [...assets].sort((a, b) => b.currentPct - a.currentPct);
+
+  const currentData = sortedAssets.map((a, i) => ({
     name: a.ticker,
     value: parseFloat(a.currentPct.toFixed(1)),
     color: COLORS[i % COLORS.length],
   }));
 
-  const targetData = assets.map((a, i) => ({
+  const targetData = sortedAssets.map((a, i) => ({
     name: a.ticker,
     value: a.targetPct,
     color: COLORS[i % COLORS.length],
@@ -88,12 +92,17 @@ export function AllocationChart({
                 const asset = assets.find(a => a.ticker === d.name);
                 const isManual = asset?.priceSource === 'manual';
                 return (
-                  <div className="rounded-lg bg-popover px-3 py-2 text-xs shadow-lg border border-border">
-                    <div>
-                      <span className="font-medium">{d.name}</span>: {d.value}%
+                  <div className="rounded-lg px-3 py-2 text-xs shadow-2xl border" style={{ backgroundColor: '#0a0a0a', borderColor: '#333333' }}>
+                    {asset?.name && asset.name !== d.name && (
+                      <div className="font-black uppercase tracking-widest text-[9px] mb-1 opacity-70" style={{ color: '#ffffff' }}>
+                        {asset.name}
+                      </div>
+                    )}
+                    <div style={{ color: '#ffffff' }}>
+                      <span className="font-black" style={{ color: '#00ff6b' }}>{d.name}</span>: {d.value}%
                     </div>
                     {isManual && (
-                      <div className="text-[9px] text-primary font-black uppercase tracking-widest mt-1">
+                      <div className="text-[9px] font-black uppercase tracking-widest mt-1" style={{ color: '#00ff6b' }}>
                         Manual Override
                       </div>
                     )}
@@ -106,17 +115,17 @@ export function AllocationChart({
       </div>
 
       <div className="space-y-1.5">
-        {assets.map((a, i) => (
+        {sortedAssets.map((a, i) => (
           <div
             key={a.ticker}
             className="flex items-center justify-between text-xs"
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" title={(a.name && a.name !== a.ticker) ? a.name : undefined}>
               <div
                 className="h-2.5 w-2.5 rounded-full"
                 style={{ backgroundColor: COLORS[i % COLORS.length] }}
               />
-              <span className="text-muted-foreground">{a.ticker}</span>
+              <span className="text-muted-foreground cursor-help">{a.ticker}</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex flex-col items-end">

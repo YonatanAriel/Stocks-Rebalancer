@@ -281,6 +281,7 @@ export function DashboardShell({
                   .filter(a => !excludedAssets.has(a.ticker))
                   .map((a) => ({
                     ticker: a.ticker,
+                    name: a.name || names[a.ticker] || "",
                     targetPct: a.target_percentage,
                     currentPct: totalValue > 0 && a.currentValue ? (a.currentValue / totalValue) * 100 : 0,
                     priceSource: a.priceSource,
