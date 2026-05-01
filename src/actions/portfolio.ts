@@ -49,6 +49,7 @@ export async function addAsset(portfolioId: string, ticker: string, targetPercen
 
   if (error) throw new Error(error.message)
   
+  revalidatePath('/dashboard')
   return data
 }
 
@@ -71,7 +72,7 @@ export async function updateAsset(assetId: string, updates: {
 
   if (error) throw new Error(error.message)
   
-  // Don't revalidate to avoid losing scraped prices
+  revalidatePath('/dashboard')
   return data
 }
 
@@ -87,7 +88,7 @@ export async function toggleAssetActive(assetId: string, isActive: boolean) {
 
   if (error) throw new Error(error.message)
   
-  // Don't revalidate path to avoid losing scraped prices
+  revalidatePath('/dashboard')
   return data
 }
 
@@ -100,6 +101,8 @@ export async function deleteAsset(assetId: string) {
     .eq('id', assetId)
 
   if (error) throw new Error(error.message)
+  
+  revalidatePath('/dashboard')
 }
 
 export async function reorderAssets(assetIds: string[]) {
@@ -122,4 +125,6 @@ export async function reorderAssets(assetIds: string[]) {
   for (const result of results) {
     if (result.error) throw new Error(result.error.message)
   }
+  
+  revalidatePath('/dashboard')
 }

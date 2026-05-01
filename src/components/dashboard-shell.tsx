@@ -88,8 +88,8 @@ export function DashboardShell({
       }
     });
     
-    setPrices(initialPrices);
-    setPriceSource(initialSource);
+    setPrices(prev => ({ ...initialPrices, ...prev }));
+    setPriceSource(prev => ({ ...initialSource, ...prev }));
   }, [portfolio.assets]);
 
   // Fetch all prices on mount with parallel requests
