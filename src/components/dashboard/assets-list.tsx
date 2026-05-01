@@ -377,7 +377,18 @@ export function AssetsList({
 
   const openNetDetails = (el: HTMLElement, pinned?: boolean) => {
     const rect = el.getBoundingClientRect();
-    setNetDetailsPos({ top: rect.bottom + 8, left: rect.left });
+    const tooltipWidth = 300;
+    const padding = 16;
+    
+    let left = rect.left;
+    if (left + tooltipWidth > window.innerWidth - padding) {
+      left = window.innerWidth - tooltipWidth - padding;
+    }
+    if (left < padding) {
+      left = padding;
+    }
+    
+    setNetDetailsPos({ top: rect.bottom + 8, left });
     if (pinned) setNetDetailsPinned(true);
     setNetDetailsOpen(true);
   };
@@ -440,7 +451,7 @@ export function AssetsList({
     return createPortal(
       <div 
         ref={netDetailsRef}
-        className="fixed z-[9999] border border-border bg-background shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.7)] p-5 min-w-[300px] cursor-default text-left pointer-events-auto" 
+        className="fixed z-[9999] border border-border bg-background shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.7)] p-5 min-w-[300px] max-w-[calc(100vw-32px)] cursor-default text-left pointer-events-auto" 
         style={{ 
           top: netDetailsPos.top,
           left: netDetailsPos.left,
