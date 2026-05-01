@@ -142,7 +142,8 @@ export function RebalanceCalculator({
   onRefreshPrices?: () => void;
   isRefreshing?: boolean;
 }) {
-  const [expandedOption, setExpandedOption] = React.useState<'A' | 'B' | null>(null);
+  const [showOptionA, setShowOptionA] = React.useState(false);
+  const [showOptionB, setShowOptionB] = React.useState(false);
   const [manualValuationsOpen, setManualValuationsOpen] = React.useState(false);
   const cashInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -299,10 +300,10 @@ export function RebalanceCalculator({
                     <h3 className="text-xs mobile:text-sm font-black uppercase tracking-[0.2em] mobile:tracking-[0.3em] font-heading">Single Asset Entry</h3>
                   </div>
                   <button
-                    onClick={() => setExpandedOption(expandedOption === 'A' ? null : 'A')}
+                    onClick={() => setShowOptionA(!showOptionA)}
                     className="rounded-none h-8 mobile:h-10 px-2 mobile:px-4 text-[8px] mobile:text-[10px] font-black uppercase tracking-widest bg-white/20 dark:bg-white/10 hover:bg-white/30 dark:hover:bg-white/20 border border-white/40 dark:border-white/30 transition-all cursor-pointer whitespace-nowrap"
                   >
-                    {expandedOption === 'A' ? 'HIDE' : 'VIEW'} ALLOCATION
+                    {showOptionA ? 'HIDE' : 'VIEW'} ALLOCATION
                   </button>
                 </div>
                 
@@ -323,7 +324,7 @@ export function RebalanceCalculator({
                   </div>
                 </div>
 
-                {expandedOption === 'A' && (
+                {showOptionA && (
                   <div className="bg-white/20 dark:bg-white/[0.02] border border-white/30 dark:border-white/10 p-4 mobile:p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Post-Investment Allocation:</div>
                     <div className="space-y-2">
@@ -373,10 +374,10 @@ export function RebalanceCalculator({
                         <h3 className="text-xs mobile:text-sm font-black uppercase tracking-[0.2em] mobile:tracking-[0.3em] font-heading">Optimal Balance Strategy</h3>
                       </div>
                       <button
-                        onClick={() => setExpandedOption(expandedOption === 'B' ? null : 'B')}
+                        onClick={() => setShowOptionB(!showOptionB)}
                         className="rounded-none h-8 mobile:h-10 px-2 mobile:px-4 text-[8px] mobile:text-[10px] font-black uppercase tracking-widest bg-primary/10 hover:bg-primary/20 border border-primary/30 transition-all cursor-pointer whitespace-nowrap"
                       >
-                        {expandedOption === 'B' ? 'HIDE' : 'VIEW'} ALLOCATION
+                        {showOptionB ? 'HIDE' : 'VIEW'} ALLOCATION
                       </button>
                     </div>
                     <div className="space-y-px bg-white/5 border border-white/10 shadow-xl overflow-hidden">
@@ -410,7 +411,7 @@ export function RebalanceCalculator({
                       </div>
                     </div>
 
-                    {expandedOption === 'B' && (
+                    {showOptionB && (
                       <div className="bg-white/[0.02] border border-primary/10 p-4 mobile:p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                         <div className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Post-Investment Allocation:</div>
                         <div className="space-y-2">
