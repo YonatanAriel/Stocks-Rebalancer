@@ -21,6 +21,22 @@ export async function createPortfolio(name: string, currency: string = 'ILS') {
   return data
 }
 
+export async function updatePortfolio(portfolioId: string, updates: { name?: string, currency?: string }) {
+  const supabase = await createClient()
+  
+  const { data, error } = await supabase
+    .from('portfolios')
+    .update(updates)
+    .eq('id', portfolioId)
+    .select()
+    .single()
+
+  if (error) throw new Error(error.message)
+  
+  revalidatePath('/dashboard')
+  return data
+}
+
 export async function getPortfolios() {
   const supabase = await createClient()
   const { data, error } = await supabase
