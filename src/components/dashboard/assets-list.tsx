@@ -1041,7 +1041,14 @@ export function AssetsList({
                       step="0.01" 
                       placeholder="0.00" 
                       value={newPercentage}
-                      onChange={(e) => setNewPercentage(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === '' || (parseInt(val) <= 99 && val.length <= 2)) {
+                          setNewPercentage(val);
+                        }
+                      }}
+                      max={99}
+                      min={0}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
