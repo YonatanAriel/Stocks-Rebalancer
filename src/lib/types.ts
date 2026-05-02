@@ -15,6 +15,8 @@ export interface Portfolio {
   id: string;
   name: string;
   currency: string;
+  commission_percentage: number;
+  commission_minimum: number;
   assets: Asset[];
 }
 
