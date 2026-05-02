@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Menu, Search, RefreshCw, X, Plus, Calculator, LogOut, Moon, Sun } from "lucide-react";
+import { Menu, Search, RefreshCw, X, Plus, Calculator, LogOut, Moon, Sun, Settings } from "lucide-react";
 import { useTheme } from "next-themes";
 import { signout } from "@/actions/auth";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,8 @@ export function DashboardHeader({
   isLoading,
   onRebalance,
   onAllocation,
-  onSearch
+  onSearch,
+  onCommissionSettings,
 }: { 
   userEmail: string;
   onRefresh?: () => void;
@@ -22,6 +23,7 @@ export function DashboardHeader({
   onRebalance?: () => void;
   onAllocation?: () => void;
   onSearch?: () => void;
+  onCommissionSettings?: () => void;
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -144,6 +146,13 @@ export function DashboardHeader({
             <div className="hidden mobile:flex items-center gap-3">
               <div className="h-8 w-px bg-border" />
               <button
+                onClick={onCommissionSettings}
+                className="h-10 w-10 rounded-none flex items-center justify-center border border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer"
+                title="Commission Settings"
+              >
+                <Settings className="h-5 w-5" />
+              </button>
+              <button
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                 className="h-10 w-10 rounded-none flex items-center justify-center border border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer"
               >
@@ -246,6 +255,21 @@ export function DashboardHeader({
             <div className="h-px bg-border my-2" />
 
             
+            <button
+              onClick={() => {
+                onCommissionSettings?.();
+                setDrawerOpen(false);
+              }}
+              className="flex items-center gap-4 w-full p-4 rounded-none border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
+            >
+              <Settings className="h-5 w-5 text-primary" />
+              <div className="flex flex-col">
+                <span className="text-sm font-black uppercase tracking-widest">Commission</span>
+                <span className="text-xs text-muted-foreground">Configure settings</span>
+              </div>
+            </button>
+
+            <div className="h-px bg-border my-2" />
             <button
               onClick={() => {
                 setTheme(theme === "dark" ? "light" : "dark");
