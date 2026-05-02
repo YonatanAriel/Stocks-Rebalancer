@@ -178,7 +178,7 @@
   background: var(--primary);
 }
 
-/* Light mode border improvements */
+
 .light .border-white\/5 {
   border-color: oklch(0.8 0.05 145);
 }
@@ -191,7 +191,6 @@
   border-color: oklch(0.7 0.05 145);
 }
 
-/* Touch scrolling support */
 .touch-pan-y {
   touch-action: pan-y;
 }
@@ -200,7 +199,6 @@
   touch-action: pan-x;
 }
 
-/* Prevent unwanted mobile behaviors */
 body {
   overscroll-behavior-y: none;
 }

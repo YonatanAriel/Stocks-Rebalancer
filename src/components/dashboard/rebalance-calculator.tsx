@@ -58,7 +58,6 @@ export function calculateRebalance(
   while (madePurchase && remainingCash > 0) {
     madePurchase = false;
     
-    // Find the asset that is currently most under its target value
     let mostUnder: { ticker: string; targetPct: number; sharesToBuy: number; cost: number; price: number } | null = null;
     let maxDeficit = -Infinity;
 
@@ -109,7 +108,6 @@ export function calculateRebalance(
     }
   }
 
-  // Fallback if no asset is affordable
   if (!best) {
     best = deviations[0];
     bestPrice = best.price ?? ((best.shares_owned > 0 && (best.currentValue || 0) > 0) ? (best.currentValue || 0) / best.shares_owned : 0);
@@ -180,7 +178,6 @@ export function RebalanceCalculator({
     return a;
   });
 
-  // Filter out excluded assets for calculation
   const includedAssetsWithValues = effectiveAssetsWithValues.filter(a => !excludedAssets.has(a.ticker));
 
   const sumTargets = includedAssetsWithValues.reduce((sum, a) => sum + (a.target_percentage || 0), 0);

@@ -54,7 +54,6 @@ export function StockDetailModal(props: StockDetailModalProps) {
           setLoading(false);
         })
         .catch(err => {
-          console.error("Failed to fetch stock details:", err);
           setLoading(false);
         });
     }

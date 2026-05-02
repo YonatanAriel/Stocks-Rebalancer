@@ -53,7 +53,6 @@ function AssetRow({
   const diff = currentPct - asset.target_percentage;
   const isManualPrice = asset.priceSource === 'manual';
   
-  // Calculate price per slice
   let pricePerSlice = asset.price;
   let isEstimated = false;
   if (pricePerSlice === null && asset.shares_owned > 0 && (asset.currentValue || 0) > 0) {
@@ -117,7 +116,6 @@ function AssetRow({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              console.log("Edit button clicked for", asset.ticker);
               onEdit(asset);
             }}
             style={{ pointerEvents: 'auto' }}
@@ -130,7 +128,6 @@ function AssetRow({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              console.log("Delete button clicked for", asset.ticker);
               onDeleteClick?.(asset.id, asset.ticker);
             }}
             style={{ pointerEvents: 'auto' }}
@@ -1259,7 +1256,6 @@ export function AssetsList({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log("Update Registry clicked");
                     handleUpdateAsset();
                   }}
                   style={{ pointerEvents: 'auto' }}
@@ -1404,7 +1400,6 @@ export function AssetsList({
                 onAssetDeleted?.(deleteConfirm.id);
                 setDeleteConfirm(null);
                 deleteAsset(deleteConfirm.id).catch(err => {
-                  console.error("Failed to delete asset:", err);
                   toast.error("Failed to delete asset");
                   if (assetToRestore) onAssetRestore?.(assetToRestore);
                 });
@@ -1444,7 +1439,6 @@ export function AssetsList({
                     setDeleteConfirm(null);
                     
                     deleteAsset(deleteConfirm.id).catch(err => {
-                      console.error("Failed to delete asset:", err);
                       toast.error("Failed to delete asset");
                       if (assetToRestore) onAssetRestore?.(assetToRestore);
                     });

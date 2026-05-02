@@ -86,8 +86,6 @@ export async function GET(
           };
         }
       } catch (error) {
-        console.error(`[API] Failed to fetch Bizportal details for ${ticker}:`, error);
-        // Continue without additional data
       }
     } else {
       try {
@@ -139,10 +137,8 @@ export async function GET(
             };
           }
         } catch (histError) {
-          console.error(`[API] Failed to fetch historical data for ${ticker}:`, histError);
         }
       } catch (error) {
-        console.error(`[API] Failed to fetch Yahoo Finance details for ${ticker}:`, error);
       }
     }
     
@@ -153,7 +149,6 @@ export async function GET(
     });
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : "Unknown error";
-    console.error(`[API] Error fetching stock details for ${ticker}:`, errorMsg);
     
     return NextResponse.json(
       { error: errorMsg },

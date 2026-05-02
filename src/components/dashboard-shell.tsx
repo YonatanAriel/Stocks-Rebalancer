@@ -122,11 +122,9 @@ export function DashboardShell({
             setNames(prev => ({ ...prev, [ticker]: data.name as string }));
           }
         } catch (e) {
-          console.error(`[Dashboard] Failed to fetch price for ${ticker}`, e);
         }
       }));
     } catch (e) {
-      console.error('[Dashboard] Error during parallel price fetch', e);
     } finally {
       setLoadingPrices(false);
       setIsInitialLoad(false);
