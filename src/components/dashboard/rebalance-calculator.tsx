@@ -1,17 +1,18 @@
 "use client";
 
 import React from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
 import type { AssetWithValue, Asset, PriceMap } from "@/lib/types";
+
+function calculateCommission(amount: number, percentage: number, minimum: number, ticker: string): number {
+  if (percentage === 0 && minimum === 0) return 0;
+  
+  const isIsraeliStock = /^\d+$/.test(ticker);
+  if (!isIsraeliStock) return 0;
+  
+  return Math.max(amount * (percentage / 100), minimum);
+}
 
 interface RebalanceResult {
   optimalBuys: {
@@ -19,8 +20,10 @@ interface RebalanceResult {
     targetPct: number;
     sharesToBuy: number;
     cost: number;
+    commission: number;
   }[];
   optimalSpent: number;
+  optimalCommission: number;
   optimalLeftover: number;
   singleBuy: {
     ticker: string;
@@ -28,14 +31,18 @@ interface RebalanceResult {
     price: number;
     sharesToBuy: number;
     cost: number;
+    commission: number;
   };
+  singleCommission: number;
   singleLeftover: number;
 }
 
 export function calculateRebalance(
   assetsWithValues: AssetWithValue[],
   totalValue: number,
-  cash: number
+  cash: number,
+  commissionPercentage: number = 0,
+  commissionMinimum: number = 0
 ): RebalanceResult | null {
   if (cash <= 0) return null;
 
@@ -51,6 +58,7 @@ export function calculateRebalance(
     normalizedTargetPct: asset.target_percentage * normalizationFactor,
     sharesToBuy: 0,
     cost: 0,
+    commission: 0,
     price: asset.price ?? (asset.shares_owned > 0 ? (asset.currentValue || 0) / asset.shares_owned : 0)
   }));
 
@@ -82,7 +90,13 @@ export function calculateRebalance(
     }
   }
 
-  const optimalSpent = cash - remainingCash;
+  const optimalBuysWithCommission = optimalBuys.map(buy => ({
+    ...buy,
+    commission: buy.cost > 0 ? calculateCommission(buy.cost, commissionPercentage, commissionMinimum, buy.ticker) : 0
+  }));
+
+  const optimalSpent = optimalBuysWithCommission.reduce((sum, b) => sum + b.cost, 0);
+  const optimalCommission = optimalBuysWithCommission.reduce((sum, b) => sum + b.commission, 0);
   const optimalLeftover = remainingCash;
 
   const deviations = assetsWithValues.map((asset) => {
@@ -115,10 +129,12 @@ export function calculateRebalance(
 
   const singleSharesToBuy = bestPrice && bestPrice > 0 ? Math.floor(cash / bestPrice) : 0;
   const singleCost = bestPrice && bestPrice > 0 ? singleSharesToBuy * bestPrice : 0;
+  const singleCommission = singleCost > 0 ? calculateCommission(singleCost, commissionPercentage, commissionMinimum, best.ticker) : 0;
 
   return {
-    optimalBuys: optimalBuys.map(({ price, ...rest }) => rest),
+    optimalBuys: optimalBuysWithCommission.map(({ price, ...rest }) => rest),
     optimalSpent,
+    optimalCommission,
     optimalLeftover,
     singleBuy: {
       ticker: best.ticker,
@@ -126,7 +142,9 @@ export function calculateRebalance(
       price: bestPrice || 0,
       sharesToBuy: singleSharesToBuy,
       cost: singleCost,
+      commission: singleCommission,
     },
+    singleCommission,
     singleLeftover: cash - singleCost,
   };
 }
@@ -145,6 +163,8 @@ export function RebalanceCalculator({
   onExcludedAssetsChange,
   onRefreshPrices,
   isRefreshing = false,
+  commissionPercentage = 0,
+  commissionMinimum = 0,
 }: {
   assets: Asset[];
   assetsWithValues: AssetWithValue[];
@@ -159,6 +179,8 @@ export function RebalanceCalculator({
   onExcludedAssetsChange?: (excluded: Set<string>) => void;
   onRefreshPrices?: () => void;
   isRefreshing?: boolean;
+  commissionPercentage?: number;
+  commissionMinimum?: number;
 }) {
   const [showOptionA, setShowOptionA] = React.useState(false);
   const [showOptionB, setShowOptionB] = React.useState(false);
@@ -186,7 +208,9 @@ export function RebalanceCalculator({
   const result = calculateRebalance(
     includedAssetsWithValues,
     effectiveTotalValue,
-    parseFloat(cashAmount) || 0
+    parseFloat(cashAmount) || 0,
+    commissionPercentage,
+    commissionMinimum
   );
 
   return (
@@ -347,6 +371,11 @@ export function RebalanceCalculator({
                     <div className="text-[9px] mobile:text-[10px] text-muted-foreground font-black font-mono">
                       Σ ₪{result.singleBuy.cost.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </div>
+                    {result.singleBuy.commission > 0 && (
+                      <div className="text-[8px] mobile:text-[9px] text-orange-400 font-black font-mono">
+                        + ₪{result.singleBuy.commission.toLocaleString(undefined, { minimumFractionDigits: 2 })} commission
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -377,11 +406,29 @@ export function RebalanceCalculator({
                   </div>
                 )}
 
-                <div className="flex justify-between items-center border-t border-white/20 dark:border-white/10 pt-4">
-                  <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Leftover Cash:</span>
-                  <span className="text-sm font-black font-mono text-black dark:text-white">
-                    ₪{result.singleLeftover.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                  </span>
+                <div className="flex justify-between items-center border-t border-white/20 dark:border-white/10 pt-4 space-y-2">
+                  <div className="space-y-2 w-full">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Buy Amount:</span>
+                      <span className="text-sm font-black font-mono text-black dark:text-white">
+                        ₪{result.singleBuy.cost.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                    {result.singleCommission > 0 && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] text-orange-400 uppercase font-black tracking-widest">Commission:</span>
+                        <span className="text-sm font-black font-mono text-orange-400">
+                          ₪{result.singleCommission.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center border-t border-white/20 dark:border-white/10 pt-2">
+                      <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Leftover Cash:</span>
+                      <span className="text-sm font-black font-mono text-black dark:text-white">
+                        ₪{result.singleLeftover.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -422,6 +469,11 @@ export function RebalanceCalculator({
                             <div className="text-[8px] mobile:text-[9px] text-muted-foreground font-black font-mono">
                               ₪{buy.cost.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </div>
+                            {buy.commission > 0 && (
+                              <div className="text-[7px] mobile:text-[8px] text-orange-400 font-black font-mono">
+                                + ₪{buy.commission.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -431,7 +483,13 @@ export function RebalanceCalculator({
                         <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Total Invested:</span>
                         <span className="text-sm font-black font-mono text-primary">₪{result.optimalSpent.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                       </div>
-                      <div className="flex justify-between items-center">
+                      {result.optimalCommission > 0 && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] text-orange-400 uppercase font-black tracking-widest">Total Commission:</span>
+                          <span className="text-sm font-black font-mono text-orange-400">₪{result.optimalCommission.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center border-t border-primary/10 pt-2">
                         <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Leftover Cash:</span>
                         <span className="text-sm font-black font-mono text-primary">₪{result.optimalLeftover.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                       </div>
