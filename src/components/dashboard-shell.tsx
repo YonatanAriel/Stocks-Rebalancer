@@ -8,6 +8,7 @@ import { DashboardHeader } from "@/components/dashboard/header";
 import { AssetsList } from "@/components/dashboard/assets-list";
 import { RebalanceCalculator } from "@/components/dashboard/rebalance-calculator";
 import { AllocationChart } from "@/components/allocation-chart";
+import { CommissionSettingsModal } from "@/components/dashboard/commission-settings-modal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Portfolio, PriceMap, AssetWithValue, Asset } from "@/lib/types";
 
@@ -41,6 +42,14 @@ export function DashboardShell({
     });
     return excluded;
   });
+  const [showCommissionModal, setShowCommissionModal] = useState(false);
+  const [commissionPercentage, setCommissionPercentage] = useState(portfolio.commission_percentage || 0);
+  const [commissionMinimum, setCommissionMinimum] = useState(portfolio.commission_minimum || 0);
+
+  useEffect(() => {
+    setCommissionPercentage(portfolio.commission_percentage || 0);
+    setCommissionMinimum(portfolio.commission_minimum || 0);
+  }, [portfolio.commission_percentage, portfolio.commission_minimum]);
 
   useEffect(() => {
     setPortfolioAssets(portfolio.assets);
@@ -202,6 +211,9 @@ export function DashboardShell({
         }}
         onSearch={() => {
           // Search is handled in the header component itself
+        }}
+        onCommissionSettings={() => {
+          setShowCommissionModal(true);
         }}
       />
 
@@ -368,6 +380,8 @@ export function DashboardShell({
                 onExcludedAssetsChange={setExcludedAssets}
                 onRefreshPrices={fetchPrices}
                 isRefreshing={loadingPrices}
+                commissionPercentage={commissionPercentage}
+                commissionMinimum={commissionMinimum}
               />
             </div>
           </div>
@@ -415,6 +429,19 @@ export function DashboardShell({
           </div>
         </div>
       )}
+
+      <CommissionSettingsModal
+        open={showCommissionModal}
+        onOpenChange={setShowCommissionModal}
+        portfolioId={portfolio.id}
+        currentPercentage={commissionPercentage}
+        currentMinimum={commissionMinimum}
+        onUpdate={(pct, min) => {
+          setCommissionPercentage(pct);
+          setCommissionMinimum(min);
+          router.refresh();
+        }}
+      />
       </main>
     </div>
   );
