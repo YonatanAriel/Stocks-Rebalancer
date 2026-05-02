@@ -34,6 +34,8 @@ export function SetupWizard() {
   const searchParams = useSearchParams();
   const [step, setStep] = useState(1);
   const [portfolioName, setPortfolioName] = useState("My Portfolio");
+  const [commissionPercentage, setCommissionPercentage] = useState("");
+  const [commissionMinimum, setCommissionMinimum] = useState("");
   const [assets, setAssets] = useState<AssetRow[]>([
     { ticker: "", targetPercentage: "", sharesOwned: "" },
   ]);
@@ -115,7 +117,12 @@ export function SetupWizard() {
     setLoading(true);
 
     try {
-      const portfolio = await createPortfolio(portfolioName);
+      const portfolio = await createPortfolio(
+        portfolioName,
+        'ILS',
+        parseFloat(commissionPercentage) || 0,
+        parseFloat(commissionMinimum) || 0
+      );
 
       for (const asset of assets) {
         await addAsset(
@@ -196,7 +203,52 @@ export function SetupWizard() {
                 the target allocation %, and how many shares you currently own.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-1 bg-primary rounded-full" />
+                  <h3 className="text-sm font-black uppercase tracking-widest text-primary">Israeli Stock Commission (Optional)</h3>
+                </div>
+                <p className="text-xs text-muted-foreground">Configure buying commission for Israeli stocks. Leave empty for no commission.</p>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="commission-pct" className="text-xs font-black uppercase tracking-widest">Commission %</Label>
+                    <div className="relative">
+                      <Input
+                        id="commission-pct"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.06"
+                        value={commissionPercentage}
+                        onChange={(e) => setCommissionPercentage(e.target.value)}
+                        className="pr-6"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-xs">%</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="commission-min" className="text-xs font-black uppercase tracking-widest">Minimum (₪)</Label>
+                    <div className="relative">
+                      <Input
+                        id="commission-min"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="2"
+                        value={commissionMinimum}
+                        onChange={(e) => setCommissionMinimum(e.target.value)}
+                        className="pl-6"
+                      />
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-xs">₪</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-px bg-border" />
               
               <div className="grid grid-cols-[1fr_100px_100px_40px] gap-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 <span>Ticker / Security #</span>
