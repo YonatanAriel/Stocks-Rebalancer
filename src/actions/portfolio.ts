@@ -3,7 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-export async function createPortfolio(name: string, currency: string = 'ILS') {
+export async function createPortfolio(name: string, currency: string = 'ILS', commissionPercentage: number = 0, commissionMinimum: number = 0) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -11,7 +11,13 @@ export async function createPortfolio(name: string, currency: string = 'ILS') {
 
   const { data, error } = await supabase
     .from('portfolios')
-    .insert([{ name, currency, user_id: user.id }])
+    .insert([{ 
+      name, 
+      currency, 
+      user_id: user.id,
+      commission_percentage: commissionPercentage,
+      commission_minimum: commissionMinimum
+    }])
     .select()
     .single()
 
@@ -143,4 +149,23 @@ export async function reorderAssets(assetIds: string[]) {
   }
   
   revalidatePath('/dashboard')
+}
+
+export async function updateCommissionSettings(portfolioId: string, commissionPercentage: number, commissionMinimum: number) {
+  const supabase = await createClient()
+  
+  const { data, error } = await supabase
+    .from('portfolios')
+    .update({ 
+      commission_percentage: commissionPercentage,
+      commission_minimum: commissionMinimum
+    })
+    .eq('id', portfolioId)
+    .select()
+    .single()
+
+  if (error) throw new Error(error.message)
+  
+  revalidatePath('/dashboard')
+  return data
 }
