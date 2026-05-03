@@ -2,7 +2,7 @@
 
 import YahooFinance from 'yahoo-finance2'
 import { createClient } from '@/utils/supabase/server'
-import { getBaseUrl } from '@/lib/getBaseUrl'
+import { scrapeBizportalEtf } from '@/lib/scrapeBizportalEtf'
 
 
 const yf = new YahooFinance()
