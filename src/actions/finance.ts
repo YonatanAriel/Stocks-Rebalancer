@@ -2,7 +2,7 @@
 
 import YahooFinance from 'yahoo-finance2'
 import { createClient } from '@/utils/supabase/server'
-import { getBaseUrl } from '@/lib/getBaseUrl'
+import { scrapeBizportalEtf } from '@/lib/scrapeBizportalEtf'
 
 
 const yf = new YahooFinance()
@@ -77,26 +77,7 @@ export async function clearManualPrice(securityId: string): Promise<{ ok: boolea
 
 async function getPriceFromBizportal(ticker: string): Promise<{ price: number | null; name: string | null }> {
   try {
-    const baseUrl = getBaseUrl();
-    const url = `${baseUrl}/api/etf/${ticker}`;
-    
-    const response = await fetch(url, { cache: 'no-store' });
-    
-    if (!response.ok) {
-      return { price: null, name: null };
-    }
-    
-    const contentType = response.headers.get('content-type');
-    if (!contentType?.includes('application/json')) {
-      return { price: null, name: null };
-    }
-    
-    const json = await response.json();
-    
-    const { ok, data } = json;
-    if (!ok || !data) {
-      return { price: null, name: null };
-    }
+    const data = await scrapeBizportalEtf(ticker);
     
     let price: number | null = null;
     if (data.unitValueText) {
