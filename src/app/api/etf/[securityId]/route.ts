@@ -9,8 +9,10 @@ export async function GET(
 ) {
   const { securityId } = await params;
   const startTime = Date.now();
+  console.log(`[API] ETF route called for securityId: ${securityId}`);
 
   try {
+    console.log(`[API] Starting scrape with ${SCRAPING_TIMEOUT}ms timeout`);
     const data = await Promise.race([
       scrapeBizportalEtf(securityId),
       new Promise<never>((_, reject) => 
@@ -19,6 +21,7 @@ export async function GET(
     ]);
     
     const duration = Date.now() - startTime;
+    console.log(`[API] Scrape successful in ${duration}ms`);
     
     return NextResponse.json({ ok: true, data }, { 
       status: 200,
@@ -29,6 +32,7 @@ export async function GET(
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    console.error(`[API] Scrape failed after ${duration}ms: ${errorMsg}`);
     
     return NextResponse.json(
       {

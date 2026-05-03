@@ -77,44 +77,60 @@ export async function clearManualPrice(securityId: string): Promise<{ ok: boolea
 
 async function getPriceFromBizportal(ticker: string): Promise<{ price: number | null; name: string | null }> {
   try {
+    console.log(`[Finance] getPriceFromBizportal called for ticker: ${ticker}`);
     const baseUrl = getBaseUrl();
+    console.log(`[Finance] Base URL: ${baseUrl}`);
     const url = `${baseUrl}/api/etf/${ticker}`;
+    console.log(`[Finance] Fetching from URL: ${url}`);
     
     const response = await fetch(url, { cache: 'no-store' });
+    console.log(`[Finance] Response status: ${response.status}`);
     
     if (!response.ok) {
+      console.log(`[Finance] Response not OK, returning null`);
       return { price: null, name: null };
     }
     
     const contentType = response.headers.get('content-type');
+    console.log(`[Finance] Content-Type: ${contentType}`);
     if (!contentType?.includes('application/json')) {
+      console.log(`[Finance] Content-Type is not JSON, returning null`);
       return { price: null, name: null };
     }
     
     const json = await response.json();
+    console.log(`[Finance] Response JSON: ${JSON.stringify(json).substring(0, 200)}...`);
     
     const { ok, data } = json;
+    console.log(`[Finance] Response ok: ${ok}, has data: ${!!data}`);
     if (!ok || !data) {
+      console.log(`[Finance] Response not ok or no data, returning null`);
       return { price: null, name: null };
     }
     
+    console.log(`[Finance] Data unitValueText: ${data.unitValueText}`);
     let price: number | null = null;
     if (data.unitValueText) {
       const match = data.unitValueText.match(/([\d,]+\.?\d*)/);
+      console.log(`[Finance] Price regex match: ${match ? match[1] : 'no match'}`);
       
       if (match) {
         const priceStr = match[1].replace(/,/g, '');
         price = parseFloat(priceStr);
+        console.log(`[Finance] Parsed price: ${price}`);
       }
     }
     
     if (price) {
       price = price / 100;
+      console.log(`[Finance] Final price (after /100): ${price}, name: ${data.name}`);
       return { price, name: data.name };
     }
     
+    console.log(`[Finance] No price extracted, returning null`);
     return { price: null, name: null };
   } catch (error) {
+    console.error(`[Finance] Exception in getPriceFromBizportal: ${error}`);
     return { price: null, name: null };
   }
 }
@@ -192,6 +208,7 @@ async function getPriceFromGoogleFinance(ticker: string): Promise<{ price: numbe
 
 export async function getAssetPrice(ticker: string): Promise<{ price: number | null; name: string | null; isManual?: boolean; error?: string }> {
   try {
+    console.log(`[Finance] getAssetPrice called for ticker: ${ticker}`);
     try {
       const supabase = await createClient();
       const { data: asset } = await supabase
@@ -200,25 +217,34 @@ export async function getAssetPrice(ticker: string): Promise<{ price: number | n
         .eq('ticker', ticker)
         .single();
       
+      console.log(`[Finance] Manual override check - has override: ${!!asset?.manual_price_override}`);
       if (asset?.manual_price_override && asset?.manual_price_set_at) {
         const minutesAgo = (Date.now() - new Date(asset.manual_price_set_at).getTime()) / 60000;
+        console.log(`[Finance] Manual override age: ${minutesAgo.toFixed(2)} minutes`);
         if (minutesAgo < 15) {
+          console.log(`[Finance] Using manual override: ${asset.manual_price_override}`);
           return { price: asset.manual_price_override, name: asset.name, isManual: true };
         }
       }
     } catch (dbError) {
+      console.log(`[Finance] DB error checking manual override: ${dbError}`);
     }
     
     // 2. Handle Israeli numeric tickers with Bizportal
+    console.log(`[Finance] Checking if ticker is Israeli numeric: ${ticker}`);
     if (/^\d{6,8}$/.test(ticker)) {
+      console.log(`[Finance] Ticker matches Israeli pattern, trying Bizportal`);
       const bizResult = await getPriceFromBizportal(ticker);
+      console.log(`[Finance] Bizportal result: price=${bizResult.price}, name=${bizResult.name}`);
       if (bizResult.price) {
         return { price: bizResult.price, name: bizResult.name, isManual: false };
       }
     }
 
     // 3. Try Google Finance for international stocks
+    console.log(`[Finance] Trying Google Finance for ticker: ${ticker}`);
     const gfResult = await getPriceFromGoogleFinance(ticker);
+    console.log(`[Finance] Google Finance result: price=${gfResult.price}, currency=${gfResult.currency}`);
     if (gfResult.price) {
       let price = gfResult.price;
       const currency = gfResult.currency || 'USD';
@@ -234,13 +260,17 @@ export async function getAssetPrice(ticker: string): Promise<{ price: number | n
     }
 
     // 4. Fallback to Yahoo Finance
+    console.log(`[Finance] Trying Yahoo Finance for ticker: ${ticker}`);
     let quote;
     try {
       quote = await yf.quote(ticker);
+      console.log(`[Finance] Yahoo Finance quote found: ${quote?.regularMarketPrice}`);
     } catch {
+      console.log(`[Finance] Yahoo Finance quote failed, trying search`);
       const searchResult = await yf.search(ticker);
       if (searchResult.quotes && searchResult.quotes.length > 0) {
         const bestMatchSymbol = searchResult.quotes[0].symbol;
+        console.log(`[Finance] Search found symbol: ${bestMatchSymbol}`);
         if (bestMatchSymbol && typeof bestMatchSymbol === 'string') {
           quote = await yf.quote(bestMatchSymbol);
         }
@@ -250,6 +280,7 @@ export async function getAssetPrice(ticker: string): Promise<{ price: number | n
     if (quote && quote.regularMarketPrice) {
       let price = quote.regularMarketPrice;
       const currency = (quote.currency || 'USD').toUpperCase();
+      console.log(`[Finance] Yahoo Finance price: ${price}, currency: ${currency}`);
       
       if (currency === 'USD') {
         const rate = await getUsdIlsRate();
@@ -262,8 +293,10 @@ export async function getAssetPrice(ticker: string): Promise<{ price: number | n
       return { price, name: quote.longName || quote.shortName || null, isManual: false };
     }
 
+    console.log(`[Finance] All price sources failed for ticker: ${ticker}`);
     return { price: null, name: null, error: 'Price not found - use manual override', isManual: false };
   } catch (error: any) {
+    console.error(`[Finance] Exception in getAssetPrice: ${error.message}`);
     return { price: null, name: null, error: error.message, isManual: false };
   }
 }

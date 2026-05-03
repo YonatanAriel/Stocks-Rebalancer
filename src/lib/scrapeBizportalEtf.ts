@@ -98,8 +98,10 @@ export async function scrapeBizportalEtf(
   securityId: string
 ): Promise<BizportalEtfSnapshot> {
   const fetchStartTime = Date.now();
+  console.log(`[Bizportal] Starting scrape for security ID: ${securityId}`);
   
   const scraperApiKey = process.env.SCRAPER_API_KEY;
+  console.log(`[Bizportal] SCRAPER_API_KEY configured: ${!!scraperApiKey}`);
   
   const urls = [
     { url: `https://www.bizportal.co.il/tradedfund/quote/profile/${securityId}`, type: 'ETF' },
@@ -112,6 +114,7 @@ export async function scrapeBizportalEtf(
 
   for (const { url: sourceUrl, type } of urls) {
     const urlStartTime = Date.now();
+    console.log(`[Bizportal] Attempting to fetch ${type} from: ${sourceUrl}`);
     
     try {
       let fetchUrl: string;
@@ -119,12 +122,14 @@ export async function scrapeBizportalEtf(
       
       if (scraperApiKey) {
         fetchUrl = `http://api.scraperapi.com?api_key=${scraperApiKey}&url=${encodeURIComponent(sourceUrl)}&country_code=il`;
+        console.log(`[Bizportal] Using ScraperAPI for ${type}`);
         fetchOptions = {
           method: 'GET',
           cache: 'no-store' as RequestCache,
         };
       } else {
         fetchUrl = sourceUrl;
+        console.log(`[Bizportal] Using direct fetch for ${type} (no ScraperAPI key)`);
         fetchOptions = {
           headers: {
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -136,38 +141,51 @@ export async function scrapeBizportalEtf(
         };
       }
 
+      console.log(`[Bizportal] Fetching from: ${fetchUrl.substring(0, 100)}...`);
       const res = await fetch(fetchUrl, fetchOptions);
+      const fetchDuration = Date.now() - urlStartTime;
+      console.log(`[Bizportal] Fetch completed in ${fetchDuration}ms with status: ${res.status}`);
 
       if (!res.ok) {
         lastError = new Error(`Bizportal request failed: ${res.status}`);
+        console.log(`[Bizportal] Error: ${lastError.message}`);
         continue;
       }
 
       html = await res.text();
+      console.log(`[Bizportal] Successfully fetched HTML, length: ${html.length} bytes`);
       successUrl = sourceUrl;
       break;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
+      console.error(`[Bizportal] Exception during fetch: ${lastError.message}`);
       continue;
     }
   }
 
   if (!html) {
+    console.error(`[Bizportal] Failed to fetch HTML for ${securityId}. Last error: ${lastError?.message}`);
     throw lastError || new Error("Failed to fetch from Bizportal");
   }
+  
+  console.log(`[Bizportal] HTML fetched successfully, parsing...`);
 
   const sourceUrl = successUrl || urls[0].url;
   const $ = cheerio.load(html);
 
   const rawPairs = collectLabelValuePairs($);
+  console.log(`[Bizportal] Collected ${Object.keys(rawPairs).length} label-value pairs`);
+  console.log(`[Bizportal] Raw pairs keys: ${Object.keys(rawPairs).slice(0, 5).join(', ')}...`);
 
   const name =
     clean($("h1").first().text()) ||
     clean($("title").text()?.split(" - ")[0]) ||
     null;
+  console.log(`[Bizportal] Extracted name: ${name}`);
 
   const asOf =
     pickValueNearLabel($, "נכון ל") || rawPairs["נכון ל"] || null;
+  console.log(`[Bizportal] Extracted asOf: ${asOf}`);
 
   const unitValueText =
     (pickValueNearLabel($, "שווי יחידה") !== "--" ? pickValueNearLabel($, "שווי יחידה") : null) ||
@@ -176,6 +194,7 @@ export async function scrapeBizportalEtf(
     (rawPairs["מחיר פדיון"] !== "--" ? rawPairs["מחיר פדיון"] : null) ||
     extractPriceFromRawPairs(rawPairs) ||
     null;
+  console.log(`[Bizportal] Extracted unitValueText: ${unitValueText}`);
 
   const changeText = pickValueNearLabel($, "שינוי") || null;
   const turnoverText =
@@ -206,6 +225,8 @@ export async function scrapeBizportalEtf(
     null;
 
   const totalDuration = Date.now() - fetchStartTime;
+  console.log(`[Bizportal] Scrape completed in ${totalDuration}ms for ${securityId}`);
+  console.log(`[Bizportal] Final result - name: ${name}, price: ${unitValueText}, asOf: ${asOf}`);
 
   return {
     securityId,
