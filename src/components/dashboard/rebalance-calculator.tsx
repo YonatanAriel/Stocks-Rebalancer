@@ -603,7 +603,10 @@ export function RebalanceCalculator({
             onChange={(e) => {
               const raw = e.target.value.replace(/,/g, "");
               if (raw === "" || !isNaN(Number(raw))) {
-                setCashAmount(raw);
+                const numValue = Number(raw);
+                if (numValue <= 99999999) {
+                  setCashAmount(raw);
+                }
               }
             }}
             className="text-2xl mobile:text-4xl h-16 mobile:h-20 bg-background/50 border-white/20 focus:border-primary rounded-none font-black text-glow"
@@ -771,12 +774,12 @@ export function RebalanceCalculator({
                             key={asset.ticker} 
                             className={`flex items-center justify-between text-[10px] p-3 rounded-none transition-all ${
                               isInvested 
-                                ? 'bg-white/40 dark:bg-white/20 border-l-2 border-gray-400 dark:border-white/40 font-black' 
+                                ? 'bg-gray-200 dark:bg-white/20 border-l-4 border-gray-600 dark:border-white/40 font-black' 
                                 : 'bg-transparent'
                             }`}
                           >
-                            <span className="font-black uppercase">{asset.ticker}</span>
-                            <span className={`font-mono ${isInvested ? 'text-black dark:text-white' : 'text-muted-foreground'}`}>{newPct.toFixed(2)}%</span>
+                            <span className={`font-black uppercase ${isInvested ? 'text-black dark:text-white' : ''}`}>{asset.ticker}</span>
+                            <span className={`font-mono font-black ${isInvested ? 'text-black dark:text-white' : 'text-muted-foreground'}`}>{newPct.toFixed(2)}%</span>
                           </div>
                         );
                       })}
