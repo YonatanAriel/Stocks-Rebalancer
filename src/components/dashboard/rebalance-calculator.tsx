@@ -35,6 +35,16 @@ interface RebalanceResult {
   };
   singleCommission: number;
   singleLeftover: number;
+  commissionOptimizedBuys: {
+    ticker: string;
+    targetPct: number;
+    sharesToBuy: number;
+    cost: number;
+    commission: number;
+  }[];
+  commissionOptimizedSpent: number;
+  commissionOptimizedCommission: number;
+  commissionOptimizedLeftover: number;
 }
 
 export function calculateRebalance(
@@ -166,6 +176,15 @@ export function calculateRebalance(
   const singleCost = bestPrice && bestPrice > 0 ? singleSharesToBuy * bestPrice : 0;
   const singleCommission = singleCost > 0 ? calculateCommission(singleCost, commissionPercentage, commissionMinimum, best.ticker) : 0;
 
+  // OPTION C: Commission-Optimized Strategy
+  const commissionOptimizedResult = calculateCommissionOptimized(
+    assetsWithValues,
+    totalValue,
+    cash,
+    commissionPercentage,
+    commissionMinimum
+  );
+
   return {
     optimalBuys: optimalBuysWithCommission.map(({ price, ...rest }) => rest),
     optimalSpent,
@@ -181,13 +200,338 @@ export function calculateRebalance(
     },
     singleCommission,
     singleLeftover: cash - singleCost,
+    ...commissionOptimizedResult,
+  };
+}
+
+function calculateCommissionOptimized(
+  assetsWithValues: AssetWithValue[],
+  totalValue: number,
+  cash: number,
+  commissionPercentage: number,
+  commissionMinimum: number
+) {
+  // Calculate normalized target percentages
+  const sumTargets = assetsWithValues.reduce((s, a) => s + (a.target_percentage || 0), 0);
+  const normalizationFactor = sumTargets > 0 ? (100 / sumTargets) : 1;
+
+  // Build candidates list
+  const candidates = assetsWithValues.map(asset => {
+    const normalizedTargetPct = asset.target_percentage * normalizationFactor;
+    const currentVal = asset.currentValue || 0;
+    const targetVal = (totalValue + cash) * (normalizedTargetPct / 100);
+    const deficit = targetVal - currentVal;
+    
+    return {
+      ticker: asset.ticker,
+      price: asset.price ?? (asset.shares_owned > 0 ? (asset.currentValue || 0) / asset.shares_owned : 0),
+      deficit: deficit,
+      targetPct: asset.target_percentage,
+      normalizedTargetPct: normalizedTargetPct,
+      currentValue: currentVal
+    };
+  }).filter(c => c.price > 0 && c.deficit > 0 && c.price <= cash);
+
+  // Sort by deficit (most under-target first)
+  candidates.sort((a, b) => b.deficit - a.deficit);
+
+  if (candidates.length === 0) {
+    return {
+      commissionOptimizedBuys: [],
+      commissionOptimizedSpent: 0,
+      commissionOptimizedCommission: 0,
+      commissionOptimizedLeftover: cash
+    };
+  }
+
+  // Calculate breakeven point
+  const breakeven = commissionPercentage > 0 
+    ? commissionMinimum / (commissionPercentage / 100) 
+    : Infinity;
+
+  // Helper function to calculate total squared deviation for a stock selection
+  const calculateTotalDeviation = (stocks: typeof candidates, cashToAllocate: number) => {
+    const tempPurchases = stocks.map(s => ({ ...s, allocated: 0 }));
+    let remaining = cashToAllocate;
+    
+    // Greedy allocation
+    while (remaining > 0) {
+      let bestStock = null;
+      let minDev = Infinity;
+      
+      for (const stock of tempPurchases) {
+        if (stock.price > remaining) continue;
+        const newVal = stock.currentValue + stock.allocated + stock.price;
+        const newTotal = totalValue + (cashToAllocate - remaining + stock.price);
+        const newPct = newTotal > 0 ? (newVal / newTotal) * 100 : 0;
+        const dev = Math.abs(newPct - stock.normalizedTargetPct);
+        
+        if (dev < minDev) {
+          minDev = dev;
+          bestStock = stock;
+        }
+      }
+      
+      if (bestStock) {
+        bestStock.allocated += bestStock.price;
+        remaining -= bestStock.price;
+      } else {
+        break;
+      }
+    }
+    
+    // Calculate total squared deviation
+    return tempPurchases.reduce((sum, s) => {
+      const finalVal = s.currentValue + s.allocated;
+      const finalTotal = totalValue + (cashToAllocate - remaining);
+      const finalPct = finalTotal > 0 ? (finalVal / finalTotal) * 100 : 0;
+      const dev = Math.abs(finalPct - s.normalizedTargetPct);
+      return sum + (dev * dev);
+    }, 0);
+  };
+
+  // Determine optimal number of stocks to buy
+  let selectedStocks: typeof candidates = [];
+  
+  if (breakeven === Infinity || breakeven === 0) {
+    // No commission or no minimum - buy like Option B
+    selectedStocks = candidates;
+  } else {
+    // COMMISSION-OPTIMIZED STRATEGY:
+    // 1. Each stock must get ≥ breakeven (to avoid minimum commission)
+    // 2. Choose combination with best percentage allocation + least leftover
+    
+    // Calculate how many stocks we can afford at breakeven each
+    const maxStocksAboveBreakeven = Math.floor(cash / breakeven);
+    
+    if (maxStocksAboveBreakeven === 0) {
+      // Can't afford any stock above breakeven - buy only 1 stock with all money
+      selectedStocks = [candidates[0]];
+    } else {
+      // Test all combinations where each stock gets ≥ breakeven
+      const testResults: Array<{
+        count: number;
+        deviation: number;
+        leftover: number;
+      }> = [];
+      
+      const maxToTest = Math.min(maxStocksAboveBreakeven, candidates.length);
+      
+      for (let count = 1; count <= maxToTest; count++) {
+        const stocksToTest = candidates.slice(0, count);
+        
+        // Simulate allocation with breakeven constraint
+        const simPurchases = stocksToTest.map(s => ({ ...s, allocated: 0 }));
+        let simRemaining = cash;
+        
+        // Give each stock at least breakeven
+        for (const p of simPurchases) {
+          const shares = Math.floor(breakeven / p.price);
+          p.allocated = shares * p.price;
+          simRemaining -= p.allocated;
+        }
+        
+        // Distribute remaining cash
+        while (simRemaining > 0) {
+          let best = null;
+          let minDev = Infinity;
+          
+          for (const p of simPurchases) {
+            if (p.price > simRemaining) continue;
+            const newVal = p.currentValue + p.allocated + p.price;
+            const newTotal = totalValue + (cash - simRemaining + p.price);
+            const newPct = newTotal > 0 ? (newVal / newTotal) * 100 : 0;
+            const dev = Math.abs(newPct - p.normalizedTargetPct);
+            if (dev < minDev) {
+              minDev = dev;
+              best = p;
+            }
+          }
+          
+          if (best) {
+            best.allocated += best.price;
+            simRemaining -= best.price;
+          } else {
+            break;
+          }
+        }
+        
+        // Calculate total deviation
+        const totalDev = simPurchases.reduce((sum, p) => {
+          const finalVal = p.currentValue + p.allocated;
+          const finalTotal = totalValue + (cash - simRemaining);
+          const finalPct = finalTotal > 0 ? (finalVal / finalTotal) * 100 : 0;
+          const dev = Math.abs(finalPct - p.normalizedTargetPct);
+          return sum + (dev * dev);
+        }, 0);
+        
+        testResults.push({ count, deviation: totalDev, leftover: simRemaining });
+      }
+      
+      // Choose the option with best deviation (and least leftover as tiebreaker)
+      let best = testResults[0];
+      for (const result of testResults) {
+        if (result.deviation < best.deviation || 
+            (Math.abs(result.deviation - best.deviation) < 0.01 && result.leftover < best.leftover)) {
+          best = result;
+        }
+      }
+      
+      selectedStocks = candidates.slice(0, best.count);
+    }
+  }
+
+  // Allocate cash to selected stocks using the SAME logic as the selection phase
+  const purchases = selectedStocks.map(stock => ({
+    ticker: stock.ticker,
+    targetPct: stock.targetPct,
+    sharesToBuy: 0,
+    cost: 0,
+    commission: 0,
+    price: stock.price,
+    normalizedTargetPct: stock.normalizedTargetPct,
+    currentValue: stock.currentValue
+  }));
+
+  let remainingCash = cash;
+
+  // CRITICAL: Use the EXACT SAME allocation logic as the selection phase simulation
+  // This ensures the actual allocation matches what we tested
+  
+  if (breakeven > 0 && breakeven < Infinity && selectedStocks.length > 0) {
+    const maxStocksAboveBreakeven = Math.floor(cash / breakeven);
+    
+    if (maxStocksAboveBreakeven === 0) {
+      // Can't afford breakeven - buy 1 stock with all money (greedy allocation)
+      while (remainingCash > 0) {
+        let bestBuy: typeof purchases[0] | null = null;
+        let smallestDeviation = Infinity;
+        
+        for (const purchase of purchases) {
+          if (purchase.price <= 0 || purchase.price > remainingCash) continue;
+          
+          const newCost = purchase.cost + purchase.price;
+          const newValue = purchase.currentValue + newCost;
+          const totalSpent = cash - remainingCash + purchase.price;
+          const newTotal = totalValue + totalSpent;
+          const newPct = newTotal > 0 ? (newValue / newTotal) * 100 : 0;
+          const deviation = Math.abs(newPct - purchase.normalizedTargetPct);
+          
+          if (deviation < smallestDeviation) {
+            smallestDeviation = deviation;
+            bestBuy = purchase;
+          }
+        }
+        
+        if (bestBuy) {
+          bestBuy.sharesToBuy += 1;
+          bestBuy.cost += bestBuy.price;
+          remainingCash -= bestBuy.price;
+        } else {
+          break;
+        }
+      }
+    } else {
+      // PHASE 1: Give each selected stock at least breakeven
+      for (const purchase of purchases) {
+        const sharesToBuy = Math.floor(breakeven / purchase.price);
+        const cost = sharesToBuy * purchase.price;
+        
+        if (cost >= breakeven && remainingCash >= cost) {
+          purchase.sharesToBuy = sharesToBuy;
+          purchase.cost = cost;
+          remainingCash -= cost;
+        }
+      }
+      
+      // PHASE 2: Distribute remaining cash using greedy allocation
+      while (remainingCash > 0) {
+        let bestBuy: typeof purchases[0] | null = null;
+        let smallestDeviation = Infinity;
+        
+        for (const purchase of purchases) {
+          if (purchase.price <= 0 || purchase.price > remainingCash) continue;
+          if (purchase.cost === 0) continue; // Skip stocks that didn't get initial allocation
+          
+          const newCost = purchase.cost + purchase.price;
+          const newValue = purchase.currentValue + newCost;
+          const totalSpent = cash - remainingCash + purchase.price;
+          const newTotal = totalValue + totalSpent;
+          const newPct = newTotal > 0 ? (newValue / newTotal) * 100 : 0;
+          const deviation = Math.abs(newPct - purchase.normalizedTargetPct);
+          
+          if (deviation < smallestDeviation) {
+            smallestDeviation = deviation;
+            bestBuy = purchase;
+          }
+        }
+        
+        if (bestBuy) {
+          bestBuy.sharesToBuy += 1;
+          bestBuy.cost += bestBuy.price;
+          remainingCash -= bestBuy.price;
+        } else {
+          break;
+        }
+      }
+    }
+  } else {
+    // No breakeven constraint, use simple greedy allocation
+    while (remainingCash > 0) {
+      let bestBuy: typeof purchases[0] | null = null;
+      let smallestDeviation = Infinity;
+      
+      for (const purchase of purchases) {
+        if (purchase.price <= 0 || purchase.price > remainingCash) continue;
+        
+        const newCost = purchase.cost + purchase.price;
+        const newValue = purchase.currentValue + newCost;
+        const totalSpent = cash - remainingCash + purchase.price;
+        const newTotal = totalValue + totalSpent;
+        const newPct = newTotal > 0 ? (newValue / newTotal) * 100 : 0;
+        const deviation = Math.abs(newPct - purchase.normalizedTargetPct);
+        
+        if (deviation < smallestDeviation) {
+          smallestDeviation = deviation;
+          bestBuy = purchase;
+        }
+      }
+      
+      if (bestBuy) {
+        bestBuy.sharesToBuy += 1;
+        bestBuy.cost += bestBuy.price;
+        remainingCash -= bestBuy.price;
+      } else {
+        break;
+      }
+    }
+  }
+
+  // Calculate commissions
+  purchases.forEach(purchase => {
+    if (purchase.cost > 0) {
+      purchase.commission = calculateCommission(
+        purchase.cost,
+        commissionPercentage,
+        commissionMinimum,
+        purchase.ticker
+      );
+    }
+  });
+
+  const activePurchases = purchases.filter(p => p.sharesToBuy > 0);
+
+  return {
+    commissionOptimizedBuys: activePurchases.map(({ price, normalizedTargetPct, currentValue, ...rest }) => rest),
+    commissionOptimizedSpent: cash - remainingCash,
+    commissionOptimizedCommission: activePurchases.reduce((sum, p) => sum + p.commission, 0),
+    commissionOptimizedLeftover: remainingCash
   };
 }
 
 export function RebalanceCalculator({
   assets,
   assetsWithValues,
-  totalValue,
   prices,
   names,
   cashAmount,
@@ -196,8 +540,6 @@ export function RebalanceCalculator({
   setPriceOverrides,
   excludedAssets = new Set(),
   onExcludedAssetsChange,
-  onRefreshPrices,
-  isRefreshing = false,
   commissionPercentage = 0,
   commissionMinimum = 0,
 }: {
@@ -219,6 +561,7 @@ export function RebalanceCalculator({
 }) {
   const [showOptionA, setShowOptionA] = React.useState(false);
   const [showOptionB, setShowOptionB] = React.useState(false);
+  const [showOptionC, setShowOptionC] = React.useState(false);
   const [manualValuationsOpen, setManualValuationsOpen] = React.useState(false);
   const cashInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -378,7 +721,7 @@ export function RebalanceCalculator({
               ) : (
                 <div className="space-y-6 mobile:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
               
-              <div className="bg-white/40 dark:bg-white/5 border border-white/30 dark:border-white/20 p-4 mobile:p-8 space-y-4 mobile:space-y-6 relative overflow-hidden group">
+              <div className="bg-white/40 dark:bg-white/5 border-2 border-gray-300 dark:border-white/20 p-4 mobile:p-8 space-y-4 mobile:space-y-6 relative overflow-hidden group">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3 mobile:gap-4">
                     <div className="h-6 mobile:h-8 w-1 bg-white dark:bg-white shadow-[0_0_15px_rgba(255,255,255,0.5)]" />
@@ -386,13 +729,13 @@ export function RebalanceCalculator({
                   </div>
                   <button
                     onClick={() => setShowOptionA(!showOptionA)}
-                    className="rounded-none h-8 mobile:h-10 px-2 mobile:px-4 text-[8px] mobile:text-[10px] font-black uppercase tracking-widest bg-white/20 dark:bg-white/10 hover:bg-white/30 dark:hover:bg-white/20 border border-white/40 dark:border-white/30 transition-all cursor-pointer whitespace-nowrap"
+                    className="rounded-none h-8 mobile:h-10 px-2 mobile:px-4 text-[8px] mobile:text-[10px] font-black uppercase tracking-widest bg-white/20 dark:bg-white/10 hover:bg-white/30 dark:hover:bg-white/20 border border-gray-300 dark:border-white/30 transition-all cursor-pointer whitespace-nowrap"
                   >
                     {showOptionA ? 'HIDE' : 'VIEW'} ALLOCATION
                   </button>
                 </div>
                 
-                <div className="bg-background border border-white/40 dark:border-white/30 p-4 mobile:p-6 flex items-center justify-between shadow-xl">
+                <div className="bg-background border border-gray-300 dark:border-white/30 p-4 mobile:p-6 flex items-center justify-between shadow-xl">
                   <div>
                     <div className="font-black text-base mobile:text-lg uppercase text-glow">{result.singleBuy.ticker}</div>
                     <div className="text-[9px] mobile:text-[10px] text-muted-foreground font-black tracking-widest uppercase opacity-60">TARGET: {result.singleBuy.targetPct.toFixed(1)}%</div>
@@ -415,9 +758,9 @@ export function RebalanceCalculator({
                 </div>
 
                 {showOptionA && (
-                  <div className="bg-white/20 dark:bg-white/[0.02] border border-white/30 dark:border-white/10 p-4 mobile:p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="bg-white/20 dark:bg-white/[0.02] border border-gray-200 dark:border-white/10 p-4 mobile:p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Post-Investment Allocation:</div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 divide-y divide-gray-200 dark:divide-white/5">
                       {effectiveAssetsWithValues.filter(a => !excludedAssets.has(a.ticker)).map((asset) => {
                         const newValue = (asset.currentValue || 0) + (asset.ticker === result.singleBuy.ticker ? result.singleBuy.cost : 0);
                         const newTotal = effectiveTotalValue + result.singleBuy.cost;
@@ -428,7 +771,7 @@ export function RebalanceCalculator({
                             key={asset.ticker} 
                             className={`flex items-center justify-between text-[10px] p-3 rounded-none transition-all ${
                               isInvested 
-                                ? 'bg-white/40 dark:bg-white/20 border border-white/50 dark:border-white/40 font-black' 
+                                ? 'bg-white/40 dark:bg-white/20 border-l-2 border-gray-400 dark:border-white/40 font-black' 
                                 : 'bg-transparent'
                             }`}
                           >
@@ -441,7 +784,7 @@ export function RebalanceCalculator({
                   </div>
                 )}
 
-                <div className="flex justify-between items-center border-t border-white/20 dark:border-white/10 pt-4 space-y-2">
+                <div className="flex justify-between items-center border-t-2 border-gray-300 dark:border-white/10 pt-4 space-y-2">
                   <div className="space-y-2 w-full">
                     <div className="flex justify-between items-center">
                       <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Buy Amount:</span>
@@ -457,7 +800,7 @@ export function RebalanceCalculator({
                         </span>
                       </div>
                     )}
-                    <div className="flex justify-between items-center border-t border-white/20 dark:border-white/10 pt-2">
+                    <div className="flex justify-between items-center border-t-2 border-gray-300 dark:border-white/10 pt-2">
                       <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Leftover Cash:</span>
                       <span className="text-sm font-black font-mono text-black dark:text-white">
                         ₪{result.singleLeftover.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -551,6 +894,130 @@ export function RebalanceCalculator({
                               >
                                 <span className="font-black uppercase">{asset.ticker}</span>
                                 <span className={`font-mono ${isInvested ? 'text-primary' : 'text-muted-foreground'}`}>{newPct.toFixed(2)}%</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* OPTION C: Commission-Optimized Strategy */}
+              {(() => {
+                const activeCommissionOptimized = result.commissionOptimizedBuys.filter(b => b.cost > 0);
+                
+                // Hide if no purchases
+                if (activeCommissionOptimized.length === 0) {
+                  return null;
+                }
+                
+                // Check if identical to Option A
+                const isSameAsA = activeCommissionOptimized.length === 1 && 
+                  activeCommissionOptimized[0].ticker === result.singleBuy.ticker && 
+                  activeCommissionOptimized[0].sharesToBuy === result.singleBuy.sharesToBuy;
+                
+                // Check if identical to Option B
+                const activeOptimal = result.optimalBuys.filter(b => b.cost > 0);
+                const isSameAsB = activeCommissionOptimized.length === activeOptimal.length &&
+                  activeCommissionOptimized.every(c => {
+                    const optimalBuy = activeOptimal.find(o => o.ticker === c.ticker);
+                    return optimalBuy && optimalBuy.sharesToBuy === c.sharesToBuy;
+                  });
+                
+                // Hide if identical to other options
+                if (isSameAsA || isSameAsB) {
+                  return null;
+                }
+
+                return (
+                  <div className="bg-green-500/5 border border-green-500/20 p-4 mobile:p-8 space-y-4 mobile:space-y-6 relative overflow-hidden group">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3 mobile:gap-4">
+                        <div className="h-6 mobile:h-8 w-1 bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.5)]" />
+                        <h3 className="text-xs mobile:text-sm font-black uppercase tracking-[0.2em] mobile:tracking-[0.3em] font-heading">Commission-Optimized</h3>
+                      </div>
+                      <button
+                        onClick={() => setShowOptionC(!showOptionC)}
+                        className="rounded-none h-8 mobile:h-10 px-2 mobile:px-4 text-[8px] mobile:text-[10px] font-black uppercase tracking-widest bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 transition-all cursor-pointer whitespace-nowrap"
+                      >
+                        {showOptionC ? 'HIDE' : 'VIEW'} ALLOCATION
+                      </button>
+                    </div>
+                    
+                    <div className="space-y-px bg-white/5 border border-white/10 shadow-xl overflow-hidden">
+                      {activeCommissionOptimized.map((buy) => (
+                        <div key={buy.ticker} className="flex items-center justify-between bg-background p-4 mobile:p-6 border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors">
+                          <div>
+                            <div className="font-black text-xs mobile:text-sm uppercase text-glow">{buy.ticker}</div>
+                            <div className="text-[8px] mobile:text-[9px] text-muted-foreground font-black tracking-widest uppercase opacity-60">TARGET: {buy.targetPct.toFixed(1)}%</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-black text-green-500 text-xs mobile:text-sm uppercase">
+                              {buy.sharesToBuy > 0 
+                                ? `+${buy.sharesToBuy} UNITS` 
+                                : `+₪${buy.cost.toLocaleString()}`}
+                            </div>
+                            <div className="text-[8px] mobile:text-[9px] text-muted-foreground font-black font-mono">
+                              ₪{buy.cost.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </div>
+                            {buy.commission > 0 && (
+                              <div className="text-[7px] mobile:text-[8px] text-orange-400 font-black font-mono">
+                                + ₪{buy.commission.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="pt-4 space-y-3 border-t border-green-500/10">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Total Invested:</span>
+                        <span className="text-sm font-black font-mono text-green-500">₪{result.commissionOptimizedSpent.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      </div>
+                      {result.commissionOptimizedCommission > 0 && (
+                        <div className="flex justify-between items-center bg-green-500/10 p-2 rounded-none">
+                          <span className="text-[10px] text-green-500 uppercase font-black tracking-widest">Total Commission (OPTIMIZED):</span>
+                          <span className="text-sm font-black font-mono text-green-500">₪{result.commissionOptimizedCommission.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center border-t border-green-500/10 pt-2">
+                        <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Leftover Cash:</span>
+                        <span className="text-sm font-black font-mono text-green-500">₪{result.commissionOptimizedLeftover.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      </div>
+                      
+                      {/* Commission savings comparison */}
+                      {result.optimalCommission > result.commissionOptimizedCommission && result.commissionOptimizedCommission > 0 && (
+                        <div className="text-[9px] text-green-500 font-black uppercase tracking-widest bg-green-500/10 p-2 border border-green-500/30 flex items-center gap-2">
+                          <span>💰</span>
+                          <span>Saves ₪{(result.optimalCommission - result.commissionOptimizedCommission).toLocaleString(undefined, { minimumFractionDigits: 2 })} vs Optimal Balance</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {showOptionC && (
+                      <div className="bg-white/[0.02] border border-green-500/10 p-4 mobile:p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Post-Investment Allocation:</div>
+                        <div className="space-y-2">
+                          {effectiveAssetsWithValues.filter(a => !excludedAssets.has(a.ticker)).map((asset) => {
+                            const buyForThisAsset = result.commissionOptimizedBuys.find(b => b.ticker === asset.ticker);
+                            const newValue = (asset.currentValue || 0) + (buyForThisAsset?.cost || 0);
+                            const newTotal = effectiveTotalValue + result.commissionOptimizedSpent;
+                            const newPct = newTotal > 0 ? (newValue / newTotal) * 100 : 0;
+                            const isInvested = (buyForThisAsset?.cost || 0) > 0;
+                            return (
+                              <div 
+                                key={asset.ticker} 
+                                className={`flex items-center justify-between text-[10px] p-3 rounded-none transition-all ${
+                                  isInvested 
+                                    ? 'bg-green-500/20 border border-green-500/40 font-black' 
+                                    : 'bg-transparent'
+                                }`}
+                              >
+                                <span className="font-black uppercase">{asset.ticker}</span>
+                                <span className={`font-mono ${isInvested ? 'text-green-500' : 'text-muted-foreground'}`}>{newPct.toFixed(2)}%</span>
                               </div>
                             );
                           })}
