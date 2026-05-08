@@ -50,13 +50,58 @@ Mutual Funds              → Bizportal API with automated discovery
 - **Search, sort, and filter** across tickers, names, values, and status
 - **Manual Price Overrides** with 15-minute persistent windows
 - **Target allocation tracking** with color-coded deviation indicators
+- **Commission settings** with customizable percentage and minimum fees (Israeli stocks only)
 
 ### 📊 Rebalancing Engine
 
-- Calculate optimal buy/sell orders to match target allocations
+The rebalancing calculator provides **three distinct strategies** to optimize your portfolio allocation based on different priorities:
+
+#### **Option A: Single Asset Entry**
+- Invests all capital into the most under-allocated asset
+- **Best for**: Simplicity and minimal transaction overhead
+- **Commission**: Lowest (single buy order)
+- **Allocation**: May create imbalance if one asset dominates
+
+#### **Option B: Optimal Balance Strategy**
+- Two-phase allocation algorithm:
+  1. **Phase 1**: Prioritize percentage accuracy (only buy if deficit ≥ price)
+  2. **Phase 2**: Deploy leftover cash (maximize capital efficiency)
+- **Best for**: Achieving target percentages with minimal leftover cash
+- **Commission**: Moderate (multiple buy orders)
+- **Allocation**: Most accurate to target percentages
+
+#### **Option C: Commission-Optimized Strategy** 🆕
+- Minimizes commission costs while maintaining good allocation
+- Enforces **breakeven constraint**: Each stock gets ≥ breakeven amount OR gets nothing
+- Tests all stock combinations (1, 2, 3...) and selects the one with:
+  - Best percentage allocation
+  - Least leftover cash
+  - Lowest total commission
+- **Best for**: Cost-conscious investors with commission-sensitive portfolios
+- **Commission**: Lowest or tied with Option A
+- **Allocation**: Better than Option A, comparable to Option B
+- **Hidden automatically** when identical to Options A or B
+
+#### Commission Settings
+- **Configurable per-user**: Set your broker's commission percentage and minimum fee
+- **Israeli stocks only**: Commission applies to TASE securities (ticker = all digits)
+- **Real-time calculation**: All three options display total commission costs
+- **Breakeven awareness**: Option C calculates the breakeven point (minimum ÷ percentage) to avoid triggering minimum fees unnecessarily
+
+**Example**: With 0.06% commission + ₪2 minimum:
+- Breakeven = ₪2 ÷ 0.0006 = ₪3,333
+- Buying ₪3,000 → ₪2 commission (minimum triggered)
+- Buying ₪4,000 → ₪2.40 commission (percentage applied)
+- Option C ensures each stock gets ≥₪3,333 to maximize efficiency
+
+#### Features
+- Calculate optimal buy orders to match target allocations
 - Factor in cash injections and current holdings
 - Display trade recommendations with precise quantities
 - Real-time recalculation as prices update or overrides are applied
+- Post-investment allocation preview for each strategy
+- Commission comparison across all three options
+- Maximum investment limit: ₪99,999,999
 
 ### 💾 Data Persistence
 
@@ -279,6 +324,7 @@ NEXT_PUBLIC_APP_URL=https://stocks-rebalancer.vercel.app
 - `Alt + R` - Refresh all prices
 - `Alt + C` - Toggle rebalance calculator
 - `Alt + A` - Trigger "Add Asset" modal
+- `Alt + S` - Open commission settings
 - `Escape` - Close all modals/drawers
 
 ---
