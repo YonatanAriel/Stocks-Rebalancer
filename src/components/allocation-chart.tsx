@@ -120,12 +120,17 @@ export function AllocationChart({
             key={a.ticker}
             className="flex items-center justify-between text-xs"
           >
-            <div className="flex items-center gap-2" title={(a.name && a.name !== a.ticker) ? a.name : undefined}>
-              <div
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: COLORS[i % COLORS.length] }}
-              />
-              <span className="text-muted-foreground cursor-help">{a.ticker}</span>
+            <div className="flex flex-col items-start gap-0.5 min-w-0" title={(a.name && a.name !== a.ticker) ? a.name : undefined}>
+              <div className="flex items-center gap-2 min-w-0">
+                <div
+                  className="h-2.5 w-2.5 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                />
+                <span className="text-muted-foreground cursor-help font-black">{a.ticker}</span>
+              </div>
+              {a.name && a.name !== a.ticker && (
+                <span className="text-[10px] text-muted-foreground/70 truncate pl-4">{a.name}</span>
+              )}
             </div>
             <div className="flex items-center gap-3">
               <div className="flex flex-col items-end">

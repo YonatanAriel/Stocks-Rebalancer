@@ -741,6 +741,7 @@ export function RebalanceCalculator({
                 <div className="bg-background border border-gray-300 dark:border-white/30 p-4 mobile:p-6 flex items-center justify-between shadow-xl">
                   <div>
                     <div className="font-black text-base mobile:text-lg uppercase text-glow">{result.singleBuy.ticker}</div>
+                    <div className="text-[8px] mobile:text-[9px] text-muted-foreground font-black tracking-widest uppercase opacity-60">{names[result.singleBuy.ticker] || "NO METADATA"}</div>
                     <div className="text-[9px] mobile:text-[10px] text-muted-foreground font-black tracking-widest uppercase opacity-60">TARGET: {result.singleBuy.targetPct.toFixed(1)}%</div>
                   </div>
                   <div className="text-right">
@@ -839,6 +840,7 @@ export function RebalanceCalculator({
                         <div key={buy.ticker} className="flex items-center justify-between bg-background p-4 mobile:p-6 border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors">
                           <div>
                             <div className="font-black text-xs mobile:text-sm uppercase text-glow">{buy.ticker}</div>
+                            <div className="text-[8px] mobile:text-[9px] text-muted-foreground font-black tracking-widest uppercase opacity-60">{names[buy.ticker] || "NO METADATA"}</div>
                             <div className="text-[8px] mobile:text-[9px] text-muted-foreground font-black tracking-widest uppercase opacity-60">TARGET: {buy.targetPct.toFixed(1)}%</div>
                           </div>
                           <div className="text-right">
@@ -954,6 +956,7 @@ export function RebalanceCalculator({
                         <div key={buy.ticker} className="flex items-center justify-between bg-background p-4 mobile:p-6 border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors">
                           <div>
                             <div className="font-black text-xs mobile:text-sm uppercase text-glow">{buy.ticker}</div>
+                            <div className="text-[8px] mobile:text-[9px] text-muted-foreground font-black tracking-widest uppercase opacity-60">{names[buy.ticker] || "NO METADATA"}</div>
                             <div className="text-[8px] mobile:text-[9px] text-muted-foreground font-black tracking-widest uppercase opacity-60">TARGET: {buy.targetPct.toFixed(1)}%</div>
                           </div>
                           <div className="text-right">
