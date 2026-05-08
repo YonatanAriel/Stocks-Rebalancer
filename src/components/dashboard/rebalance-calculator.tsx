@@ -62,6 +62,7 @@ export function calculateRebalance(
     price: asset.price ?? (asset.shares_owned > 0 ? (asset.currentValue || 0) / asset.shares_owned : 0)
   }));
 
+  // PHASE 1: Optimal allocation - prioritize percentage accuracy
   let madePurchase = true;
   while (madePurchase && remainingCash > 0) {
     madePurchase = false;
@@ -87,6 +88,40 @@ export function calculateRebalance(
       mostUnder.cost += mostUnder.price;
       remainingCash -= mostUnder.price;
       madePurchase = true;
+    }
+  }
+
+  // PHASE 2: Deploy leftover cash - maximize capital efficiency
+  // After optimal allocation, spend remaining cash on shares that create smallest deviation
+  while (remainingCash > 0) {
+    let bestBuy: typeof optimalBuys[0] | null = null;
+    let smallestDeviation = Infinity;
+    
+    for (const buy of optimalBuys) {
+      if (buy.price <= 0 || buy.price > remainingCash) continue;
+      
+      // Calculate what the deviation would be AFTER buying one more share
+      const currentVal = (assetsWithValues.find(a => a.ticker === buy.ticker)?.currentValue || 0) + buy.cost;
+      const newVal = currentVal + buy.price;
+      const totalSpent = cash - remainingCash + buy.price;
+      const newTotal = totalValue + totalSpent;
+      const newPct = newTotal > 0 ? (newVal / newTotal) * 100 : 0;
+      const targetPct = buy.normalizedTargetPct;
+      const deviation = Math.abs(newPct - targetPct);
+      
+      // Choose the purchase that creates the smallest deviation from target
+      if (deviation < smallestDeviation) {
+        smallestDeviation = deviation;
+        bestBuy = buy;
+      }
+    }
+    
+    if (bestBuy) {
+      bestBuy.sharesToBuy += 1;
+      bestBuy.cost += bestBuy.price;
+      remainingCash -= bestBuy.price;
+    } else {
+      break; // No affordable shares left
     }
   }
 
