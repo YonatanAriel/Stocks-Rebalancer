@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Outfit, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const inter = Inter({
@@ -59,6 +60,7 @@ export default function RootLayout({
           </div>
           <Toaster richColors position="bottom-right" />
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
