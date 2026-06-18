@@ -183,7 +183,12 @@ export async function scrapeBizportalEtf(
   const asOf =
     pickValueNearLabel($, "נכון ל") || rawPairs["נכון ל"] || null;
 
+  const topRateText = clean($(".top-rate-line .num").first().text());
+  const paperRateText = clean($(".paper_top_title #paper_rate .num").first().text());
+
   const unitValueText =
+    (topRateText && topRateText !== "--" ? topRateText : null) ||
+    (paperRateText && paperRateText !== "--" ? paperRateText : null) ||
     (pickValueNearLabel($, "שווי יחידה") !== "--" ? pickValueNearLabel($, "שווי יחידה") : null) ||
     (rawPairs["שווי יחידה"] !== "--" ? rawPairs["שווי יחידה"] : null) ||
     (pickValueNearLabel($, "מחיר פדיון") !== "--" ? pickValueNearLabel($, "מחיר פדיון") : null) ||
