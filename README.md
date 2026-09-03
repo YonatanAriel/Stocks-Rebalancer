@@ -24,7 +24,7 @@ A brutalist-aesthetic portfolio management platform that tracks Israeli TASE sec
 ### Key Capabilities
 
 - **High-speed parallel price aggregation** from Bizportal, Yahoo Finance, and Google Finance
-- **ScraperAPI integration** for robust data acquisition and rate-limit bypassing
+- **ScraperAPI integration** for reliable market-data retrieval and resilient fallback handling.
 - **Intelligent rebalancing calculator** with target allocation optimization
 - **Manual drag-and-drop reordering** for personalized portfolio organization
 - **Exposure Analytics** with Israeli vs. Global breakdown tooltips
